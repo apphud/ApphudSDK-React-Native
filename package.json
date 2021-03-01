@@ -31,13 +31,13 @@
     "ios",
     "android"
   ],
-  "repository": "https://github.com/apphud/ApphudSDK",
+  "repository": "https://github.com/apphud/ApphudSDK-React-Native",
   "author": "Alexandr Makarov <alexandr.makarov.am@icloud.com> (https://apphud.com)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/apphud/ApphudSDK/issues"
+    "url": "https://github.com/apphud/ApphudSDK-React-Native/issues"
   },
-  "homepage": "https://github.com/apphud/ApphudSDK#readme",
+  "homepage": "https://github.com/apphud/ApphudSDK-React-Native#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
