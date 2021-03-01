@@ -5,13 +5,13 @@ Apphud SDK for react native
 ## Installation
 
 ```sh
-npm install react-native-apphud-sdk
+npm install @apphud/react-native-apphud-sdk
 ```
 
 ## Usage
 
 ```js
-import ApphudSdk from "react-native-apphud-sdk";
+import ApphudSdk from "@apphud/react-native-apphud-sdk";
 
 // ...
 ```
