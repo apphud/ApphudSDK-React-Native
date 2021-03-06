@@ -89,7 +89,7 @@ export interface RestorePurchase {
 
 export interface ApphudProduct {
   id: string;
-  price: number;
+  price: string;
   regionCode: string;
   currencyCode?: string;
 }

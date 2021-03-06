@@ -1,4 +1,5 @@
 package com.reactnativeapphudsdk
+import android.util.Log
 import com.apphud.sdk.Apphud
 import com.apphud.sdk.ApphudAttributionProvider
 import com.facebook.react.bridge.*
@@ -23,7 +24,13 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         if (BuildConfig.DEBUG) {
           Apphud.enableDebugLogs();
         };
-        Apphud.start(this.reactApplicationContext, apiKey, userId, deviceId);
+        if (userId !== null && deviceId !== null) {
+          Apphud.start(this.reactApplicationContext, apiKey, userId, deviceId);
+        }else if (userId !== null) {
+          Apphud.start(this.reactApplicationContext, apiKey, userId);
+        }else {
+          Apphud.start(this.reactApplicationContext, apiKey);
+        }
       }
 
       promise.resolve(true);

@@ -1,6 +1,6 @@
 {
   "name": "@apphud/react-native-apphud-sdk",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Apphud SDK for react native",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
@@ -24,7 +24,12 @@
   "scripts": {
     "test": "jest",
     "typescript": "tsc --noEmit",
-    "lint": "eslint \"**/*.{js,ts,tsx}\""
+    "lint": "eslint \"**/*.{js,ts,tsx}\"",
+    "prepare": "bob build",
+    "release": "release-it",
+    "example": "yarn --cwd example",
+    "pods": "cd example && pod-install --quiet",
+    "bootstrap": "yarn example && yarn && yarn pods"
   },
   "keywords": [
     "react-native",
