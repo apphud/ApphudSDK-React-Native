@@ -200,15 +200,17 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
 
     @ReactMethod
-    fun setUserProperty(key: String, value: Any, setOnce: Boolean) {
+    fun setUserProperty(key: String, value: String, setOnce: Boolean,  promise: Promise) {
       val label = getUserPropertyKey(key);
-      Apphud.setUserProperty(label, value, setOnce)
+      Apphud.setUserProperty(label, value, setOnce);
+      promise.resolve(true);
     }
 
     @ReactMethod
-    fun incrementUserProperty(key: String, by: Any) {
+    fun incrementUserProperty(key: String, by: String, promise: Promise) {
       val label = getUserPropertyKey(key);
-      Apphud.incrementUserProperty(label, by);
+      Apphud.incrementUserProperty(label, by)
+      promise.resolve(true);
     }
 
     @ReactMethod

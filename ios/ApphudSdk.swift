@@ -187,4 +187,14 @@ class ApphudSdk: NSObject {
     func syncPurchases(resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
         reject("Error method", "Unsupported method", nil);
     }
+    
+    @objc(setUserProperty:withRejecter:)
+    func setUserProperty(resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+        reject("Error method", "Unsupported method", nil);
+    }
+    
+    @objc(incrementUserProperty:withRejecter:)
+    func incrementUserProperty(resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+        reject("Error method", "Unsupported method", nil);
+    }
 }

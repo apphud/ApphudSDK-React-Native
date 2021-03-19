@@ -120,12 +120,12 @@ type ApphudSdkType = {
   userId(): Promise<string>;
   setUserProperty(
     key: ApphudUserPropertyKey | String,
-    value: any,
+    value: string,
     setOnce: boolean
   ): Promise<any>;
   incrementUserProperty(
     key: ApphudUserPropertyKey | String,
-    by: any
+    by: string
   ): Promise<any>;
 };
 
