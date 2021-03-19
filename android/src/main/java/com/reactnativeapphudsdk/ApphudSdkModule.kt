@@ -1,7 +1,7 @@
 package com.reactnativeapphudsdk
-import android.util.Log
 import com.apphud.sdk.Apphud
 import com.apphud.sdk.ApphudAttributionProvider
+import com.apphud.sdk.ApphudUserPropertyKey
 import com.facebook.react.bridge.*
 import java.lang.Error
 
@@ -180,7 +180,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     @ReactMethod
     fun product(productIdentifier: String, promise: Promise) {
-      val product = Apphud.products(productIdentifier);
+      val product = Apphud.product(productIdentifier);
       if (product != null) {
         val item = WritableNativeMap();
         item.putString("id", product.sku);
@@ -200,7 +200,31 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
 
     @ReactMethod
+    fun setUserProperty(key: String, value: Any, setOnce: Boolean) {
+      val label = getUserPropertyKey(key);
+      Apphud.setUserProperty(label, value, setOnce)
+    }
+
+    @ReactMethod
+    fun incrementUserProperty(key: String, by: Any) {
+      val label = getUserPropertyKey(key);
+      Apphud.incrementUserProperty(label, by);
+    }
+
+    @ReactMethod
     fun restorePurchases(promise: Promise) {
       promise.reject(this.unSupportMethodMsg);
+    }
+
+    private fun getUserPropertyKey(key: String): ApphudUserPropertyKey {
+      return when (key) {
+        "age" -> ApphudUserPropertyKey.Age
+        "email" -> ApphudUserPropertyKey.Email
+        "name" -> ApphudUserPropertyKey.Name
+        "cohort" -> ApphudUserPropertyKey.Cohort
+        "gender" -> ApphudUserPropertyKey.Gender
+        "phone" -> ApphudUserPropertyKey.Phone
+        else -> ApphudUserPropertyKey.CustomProperty(key)
+      }
     }
 }
