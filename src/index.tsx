@@ -14,12 +14,12 @@ export enum AndroidApphudAttributionProvider {
 }
 
 export enum ApphudUserPropertyKey {
-  Age = 'age',
-  Email = 'email',
-  Name = 'name',
-  Cohort = 'cohort',
-  Gender = 'gender',
-  Phone = 'phone',
+  Age = '$age',
+  Email = '$email',
+  Name = '$name',
+  Cohort = '$cohort',
+  Gender = '$gender',
+  Phone = '$phone',
 }
 
 export interface StartProperties {
