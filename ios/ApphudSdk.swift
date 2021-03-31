@@ -70,7 +70,9 @@ class ApphudSdk: NSObject {
                     "isAutorenewEnabled": result.subscription?.isAutorenewEnabled as Any,
                     "isIntroductoryActivated": result.subscription?.isIntroductoryActivated as Any,
                     "isActive":  result.subscription?.isActive() as Any,
-                    "status": result.subscription?.status.rawValue as Any
+                    "status": result.subscription?.status.rawValue as Any,
+                    "isLocal": result.subscription?.isLocal as Any,
+                    "isSandbox": result.subscription?.isSandbox as Any
                 ],
                 "nonRenewingPurchase": [
                     "productId": result.nonRenewingPurchase?.productId as Any,
@@ -151,6 +153,8 @@ class ApphudSdk: NSObject {
                         "isIntroductoryActivated": subscription.isIntroductoryActivated as Any,
                         "isActive":  subscription.isActive() as Any,
                         "status": subscription.status.rawValue as Any,
+                        "isLocal": subscription.isLocal as Any,
+                        "isSandbox": subscription.isSandbox as Any
                     ]
                 } as Any,
                 "purchases": purchases?.map{ (purchase) -> NSDictionary in
