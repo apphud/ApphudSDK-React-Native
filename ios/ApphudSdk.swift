@@ -77,7 +77,9 @@ class ApphudSdk: NSObject {
                 "nonRenewingPurchase": [
                     "productId": result.nonRenewingPurchase?.productId as Any,
                     "purchasedAt": result.nonRenewingPurchase?.purchasedAt.timeIntervalSince1970 as Any,
-                    "canceledAt": result.nonRenewingPurchase?.canceledAt?.timeIntervalSince1970 as Any
+                    "canceledAt": result.nonRenewingPurchase?.canceledAt?.timeIntervalSince1970 as Any,
+                    "isLocal": result.nonRenewingPurchase?.isLocal as Any,
+                    "isSandbox": result.nonRenewingPurchase?.isSandbox as Any
                 ],
                 "error": result.error.debugDescription
             ] as [String : Any];
