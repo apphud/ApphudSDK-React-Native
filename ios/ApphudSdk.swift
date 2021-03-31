@@ -108,6 +108,8 @@ class ApphudSdk: NSObject {
             "isIntroductoryActivated": subscription?.isIntroductoryActivated as Any,
             "isActive":  subscription?.isActive() as Any,
             "status": subscription?.status.rawValue as Any,
+            "isLocal": subscription?.isLocal as Any,
+            "isSandbox": subscription?.isSandbox as Any
         ]);
     }
     
@@ -126,7 +128,9 @@ class ApphudSdk: NSObject {
                 return [
                     "productId": purchase.productId,
                     "canceledAt": purchase.canceledAt?.timeIntervalSince1970 as Any,
-                    "purchasedAt": purchase.purchasedAt.timeIntervalSince1970 as Any
+                    "purchasedAt": purchase.purchasedAt.timeIntervalSince1970 as Any,
+                    "isLocal": purchase.isLocal as Any,
+                    "isSandbox": purchase.isSandbox as Any
                 ]
             })
         );
