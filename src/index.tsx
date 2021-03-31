@@ -13,6 +13,15 @@ export enum AndroidApphudAttributionProvider {
   facebook = 'facebook',
 }
 
+export enum ApphudUserPropertyKey {
+  Age = '$age',
+  Email = '$email',
+  Name = '$name',
+  Cohort = '$cohort',
+  Gender = '$gender',
+  Phone = '$phone',
+}
+
 export interface StartProperties {
   apiKey: string;
   userId?: string;
@@ -109,6 +118,15 @@ type ApphudSdkType = {
   syncPurchases(): Promise<boolean>;
   addAttribution(options: AttributeProperties): Promise<boolean>;
   userId(): Promise<string>;
+  setUserProperty(
+    key: ApphudUserPropertyKey | String,
+    value: string,
+    setOnce: boolean
+  ): Promise<any>;
+  incrementUserProperty(
+    key: ApphudUserPropertyKey | String,
+    by: string
+  ): Promise<any>;
 };
 
 const { ApphudSdk } = NativeModules;

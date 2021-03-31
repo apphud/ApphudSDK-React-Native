@@ -48,4 +48,15 @@ RCT_EXTERN_METHOD(userId:(RCTPromiseResolveBlock)resolve
 RCT_EXTERN_METHOD(addAttribution:(NSDictionary)options
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(setUserProperty:(NSString)key
+                  withValue:(NSString)value
+                  withSetOnce:(BOOL)setOnce
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(incrementUserProperty:(NSString)key
+                  withBy:(NSString)by
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
 @end

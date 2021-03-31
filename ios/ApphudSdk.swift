@@ -58,24 +58,28 @@ class ApphudSdk: NSObject {
     
     @objc(purchase:withResolver:withRejecter:)
     func purchase(productIdentifier:String,  resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
-        Apphud.purchaseById(productIdentifier) { (result:ApphudPurchaseResult) in
+        Apphud.purchase(productIdentifier) { (result:ApphudPurchaseResult) in
             let transaction:SKPaymentTransaction? = result.transaction;
             var response = [
                 "subscription": [
                     "productId": result.subscription?.productId as Any,
                     "expiresDate": result.subscription?.expiresDate.timeIntervalSince1970 as Any,
-                    "startedAt": result.subscription?.startedAt?.timeIntervalSince1970 as Any,
+                    "startedAt": result.subscription?.startedAt.timeIntervalSince1970 as Any,
                     "canceledAt": result.subscription?.canceledAt?.timeIntervalSince1970 as Any,
                     "isInRetryBilling": result.subscription?.isInRetryBilling as Any,
                     "isAutorenewEnabled": result.subscription?.isAutorenewEnabled as Any,
                     "isIntroductoryActivated": result.subscription?.isIntroductoryActivated as Any,
                     "isActive":  result.subscription?.isActive() as Any,
-                    "status": result.subscription?.status.rawValue as Any
+                    "status": result.subscription?.status.rawValue as Any,
+                    "isLocal": result.subscription?.isLocal as Any,
+                    "isSandbox": result.subscription?.isSandbox as Any
                 ],
                 "nonRenewingPurchase": [
                     "productId": result.nonRenewingPurchase?.productId as Any,
                     "purchasedAt": result.nonRenewingPurchase?.purchasedAt.timeIntervalSince1970 as Any,
-                    "canceledAt": result.nonRenewingPurchase?.canceledAt?.timeIntervalSince1970 as Any
+                    "canceledAt": result.nonRenewingPurchase?.canceledAt?.timeIntervalSince1970 as Any,
+                    "isLocal": result.nonRenewingPurchase?.isLocal as Any,
+                    "isSandbox": result.nonRenewingPurchase?.isSandbox as Any
                 ],
                 "error": result.error.debugDescription
             ] as [String : Any];
@@ -101,13 +105,15 @@ class ApphudSdk: NSObject {
         resolve([
             "productId": subscription?.productId as Any,
             "expiresDate": subscription?.expiresDate.timeIntervalSince1970 as Any,
-            "startedAt": subscription?.startedAt?.timeIntervalSince1970 as Any,
+            "startedAt": subscription?.startedAt.timeIntervalSince1970 as Any,
             "canceledAt": subscription?.canceledAt?.timeIntervalSince1970 as Any,
             "isInRetryBilling": subscription?.isInRetryBilling as Any,
             "isAutorenewEnabled": subscription?.isAutorenewEnabled as Any,
             "isIntroductoryActivated": subscription?.isIntroductoryActivated as Any,
             "isActive":  subscription?.isActive() as Any,
             "status": subscription?.status.rawValue as Any,
+            "isLocal": subscription?.isLocal as Any,
+            "isSandbox": subscription?.isSandbox as Any
         ]);
     }
     
@@ -126,7 +132,9 @@ class ApphudSdk: NSObject {
                 return [
                     "productId": purchase.productId,
                     "canceledAt": purchase.canceledAt?.timeIntervalSince1970 as Any,
-                    "purchasedAt": purchase.purchasedAt.timeIntervalSince1970 as Any
+                    "purchasedAt": purchase.purchasedAt.timeIntervalSince1970 as Any,
+                    "isLocal": purchase.isLocal as Any,
+                    "isSandbox": purchase.isSandbox as Any
                 ]
             })
         );
@@ -140,13 +148,15 @@ class ApphudSdk: NSObject {
                     return [
                         "productId": subscription.productId as Any,
                         "expiresDate": subscription.expiresDate.timeIntervalSince1970 as Any,
-                        "startedAt": subscription.startedAt?.timeIntervalSince1970 as Any,
+                        "startedAt": subscription.startedAt.timeIntervalSince1970 as Any,
                         "canceledAt": subscription.canceledAt?.timeIntervalSince1970 as Any,
                         "isInRetryBilling": subscription.isInRetryBilling as Any,
                         "isAutorenewEnabled": subscription.isAutorenewEnabled as Any,
                         "isIntroductoryActivated": subscription.isIntroductoryActivated as Any,
                         "isActive":  subscription.isActive() as Any,
                         "status": subscription.status.rawValue as Any,
+                        "isLocal": subscription.isLocal as Any,
+                        "isSandbox": subscription.isSandbox as Any
                     ]
                 } as Any,
                 "purchases": purchases?.map{ (purchase) -> NSDictionary in
@@ -176,6 +186,25 @@ class ApphudSdk: NSObject {
         Apphud.addAttribution(data: data, from: from!, identifer: identifier) {  (result:Bool) in
             resolve(result);
         }
+    }
+    
+    @objc(appStoreReceipt:withRejecter:)
+    func appStoreReceipt(resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+        resolve(
+            Apphud.appStoreReceipt()
+        );
+    }
+    
+    @objc(setUserProperty:withValue:withSetOnce:withResolver:withRejecter:)
+    func setUserProperty(key: String, value: String, setOnce: Bool, resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+        let _key = ApphudUserPropertyKey.init(key)
+        resolve(Apphud.setUserProperty(key: _key, value: value, setOnce: setOnce));
+    }
+    
+    @objc(incrementUserProperty:withBy:withResolver:withRejecter:)
+    func incrementUserProperty(key: String, by: String, resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+        let _key = ApphudUserPropertyKey.init(key)
+        resolve(Apphud.incrementUserProperty(key: _key, by: by));
     }
     
     @objc(subscriptions:withRejecter:)
