@@ -58,13 +58,13 @@ class ApphudSdk: NSObject {
     
     @objc(purchase:withResolver:withRejecter:)
     func purchase(productIdentifier:String,  resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
-        Apphud.purchaseById(productIdentifier) { (result:ApphudPurchaseResult) in
+        Apphud.purchase(productIdentifier) { (result:ApphudPurchaseResult) in
             let transaction:SKPaymentTransaction? = result.transaction;
             var response = [
                 "subscription": [
                     "productId": result.subscription?.productId as Any,
                     "expiresDate": result.subscription?.expiresDate.timeIntervalSince1970 as Any,
-                    "startedAt": result.subscription?.startedAt?.timeIntervalSince1970 as Any,
+                    "startedAt": result.subscription?.startedAt.timeIntervalSince1970 as Any,
                     "canceledAt": result.subscription?.canceledAt?.timeIntervalSince1970 as Any,
                     "isInRetryBilling": result.subscription?.isInRetryBilling as Any,
                     "isAutorenewEnabled": result.subscription?.isAutorenewEnabled as Any,
@@ -101,7 +101,7 @@ class ApphudSdk: NSObject {
         resolve([
             "productId": subscription?.productId as Any,
             "expiresDate": subscription?.expiresDate.timeIntervalSince1970 as Any,
-            "startedAt": subscription?.startedAt?.timeIntervalSince1970 as Any,
+            "startedAt": subscription?.startedAt.timeIntervalSince1970 as Any,
             "canceledAt": subscription?.canceledAt?.timeIntervalSince1970 as Any,
             "isInRetryBilling": subscription?.isInRetryBilling as Any,
             "isAutorenewEnabled": subscription?.isAutorenewEnabled as Any,
@@ -140,7 +140,7 @@ class ApphudSdk: NSObject {
                     return [
                         "productId": subscription.productId as Any,
                         "expiresDate": subscription.expiresDate.timeIntervalSince1970 as Any,
-                        "startedAt": subscription.startedAt?.timeIntervalSince1970 as Any,
+                        "startedAt": subscription.startedAt.timeIntervalSince1970 as Any,
                         "canceledAt": subscription.canceledAt?.timeIntervalSince1970 as Any,
                         "isInRetryBilling": subscription.isInRetryBilling as Any,
                         "isAutorenewEnabled": subscription.isAutorenewEnabled as Any,
@@ -178,6 +178,25 @@ class ApphudSdk: NSObject {
         }
     }
     
+    @objc(appStoreReceipt:withRejecter:)
+    func appStoreReceipt(resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+        resolve(
+            Apphud.appStoreReceipt()
+        );
+    }
+    
+    @objc(setUserProperty:withValue:withSetOnce:withResolver:withRejecter:)
+    func setUserProperty(key: String, value: String, setOnce: Bool, resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+        let _key = ApphudUserPropertyKey.init(key)
+        resolve(Apphud.setUserProperty(key: _key, value: value, setOnce: setOnce));
+    }
+    
+    @objc(incrementUserProperty:withBy:withResolver:withRejecter:)
+    func incrementUserProperty(key: String, by: String, resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+        let _key = ApphudUserPropertyKey.init(key)
+        resolve(Apphud.incrementUserProperty(key: _key, by: by));
+    }
+    
     @objc(subscriptions:withRejecter:)
     func subscriptions(resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
         reject("Error method", "Unsupported method", nil);
@@ -185,16 +204,6 @@ class ApphudSdk: NSObject {
     
     @objc(syncPurchases:withRejecter:)
     func syncPurchases(resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
-        reject("Error method", "Unsupported method", nil);
-    }
-    
-    @objc(setUserProperty:withRejecter:)
-    func setUserProperty(resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
-        reject("Error method", "Unsupported method", nil);
-    }
-    
-    @objc(incrementUserProperty:withRejecter:)
-    func incrementUserProperty(resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
         reject("Error method", "Unsupported method", nil);
     }
 }

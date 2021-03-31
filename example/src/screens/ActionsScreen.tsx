@@ -113,13 +113,13 @@ export default function ActionsScreen({ navigation }: Props) {
               <ListItem.Title>Sync Purchases</ListItem.Title>
             </ListItem.Content>
           </ListItem>
-          <ListItem onPress={() => navigation.navigate('UserProperty')}>
-            <ListItem.Content>
-              <ListItem.Title>User property</ListItem.Title>
-            </ListItem.Content>
-          </ListItem>
         </>
       )}
+      <ListItem onPress={() => navigation.navigate('UserProperty')}>
+        <ListItem.Content>
+          <ListItem.Title>User property</ListItem.Title>
+        </ListItem.Content>
+      </ListItem>
       <ListItem onPress={() => navigation.navigate('AddAttribution')}>
         <ListItem.Content>
           <ListItem.Title>Add attribution</ListItem.Title>
