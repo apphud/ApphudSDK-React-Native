@@ -39,12 +39,7 @@ class ApphudSdk: NSObject {
         let products:[SKProduct]? = Apphud.products();
         resolve(
             products?.map{ (product) -> NSDictionary in
-                return [
-                    "id": product.productIdentifier,
-                    "price": product.price,
-                    "regionCode": product.priceLocale.regionCode as Any,
-                    "currencyCode": product.priceLocale.currencyCode as Any,
-                ];
+                return DataTransformer.skProduct(product: product);
             }
         );
     }
@@ -61,26 +56,8 @@ class ApphudSdk: NSObject {
         Apphud.purchase(productIdentifier) { (result:ApphudPurchaseResult) in
             let transaction:SKPaymentTransaction? = result.transaction;
             var response = [
-                "subscription": [
-                    "productId": result.subscription?.productId as Any,
-                    "expiresDate": result.subscription?.expiresDate.timeIntervalSince1970 as Any,
-                    "startedAt": result.subscription?.startedAt.timeIntervalSince1970 as Any,
-                    "canceledAt": result.subscription?.canceledAt?.timeIntervalSince1970 as Any,
-                    "isInRetryBilling": result.subscription?.isInRetryBilling as Any,
-                    "isAutorenewEnabled": result.subscription?.isAutorenewEnabled as Any,
-                    "isIntroductoryActivated": result.subscription?.isIntroductoryActivated as Any,
-                    "isActive":  result.subscription?.isActive() as Any,
-                    "status": result.subscription?.status.rawValue as Any,
-                    "isLocal": result.subscription?.isLocal as Any,
-                    "isSandbox": result.subscription?.isSandbox as Any
-                ],
-                "nonRenewingPurchase": [
-                    "productId": result.nonRenewingPurchase?.productId as Any,
-                    "purchasedAt": result.nonRenewingPurchase?.purchasedAt.timeIntervalSince1970 as Any,
-                    "canceledAt": result.nonRenewingPurchase?.canceledAt?.timeIntervalSince1970 as Any,
-                    "isLocal": result.nonRenewingPurchase?.isLocal as Any,
-                    "isSandbox": result.nonRenewingPurchase?.isSandbox as Any
-                ],
+                "subscription": DataTransformer.apphudSubscription(subscription: result.subscription!),
+                "nonRenewingPurchase": DataTransformer.nonRenewingPurchase(nonRenewingPurchase: result.nonRenewingPurchase!),
                 "error": result.error.debugDescription
             ] as [String : Any];
             if (transaction != nil) {
