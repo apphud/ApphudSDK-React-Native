@@ -3,6 +3,10 @@ export enum ApphudSdkEmitterEvents {
   apphudDidChangeUserID = 'apphudDidChangeUserID',
   apphudSubscriptionsUpdated = 'apphudSubscriptionsUpdated',
   apphudNonRenewingPurchasesUpdated = 'apphudNonRenewingPurchasesUpdated',
+  apphudDidPurchase = 'apphudDidPurchase',
+  apphudWillPurchase = 'apphudWillPurchase',
+  apphudDidFailPurchase = 'apphudDidFailPurchase',
+  apphudDidSelectSurveyAnswer = 'apphudDidSelectSurveyAnswer',
 }
 
 export type ApphudSdkEventsType = {

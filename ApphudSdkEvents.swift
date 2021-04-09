@@ -11,6 +11,7 @@ class ApphudSdkEvents: RCTEventEmitter {
     override init() {
         super.init();
         Apphud.setDelegate(self);
+        Apphud.setUIDelegate(self);
     }
     
     @objc(setApphudProductIdentifiers:withResolve:withReject:)
@@ -25,7 +26,11 @@ class ApphudSdkEvents: RCTEventEmitter {
             "apphudDidChangeUserID",
             "apphudSubscriptionsUpdated",
             "apphudNonRenewingPurchasesUpdated",
-            "apphudProductIdentifiers"
+            "apphudProductIdentifiers",
+            "apphudDidPurchase",
+            "apphudWillPurchase",
+            "apphudDidFailPurchase",
+            "apphudDidSelectSurveyAnswer"
         ]
     }
 }
@@ -59,5 +64,41 @@ extension ApphudSdkEvents: ApphudDelegate {
     
     func apphudProductIdentifiers() -> [String] {
         return self.productIdentifiers;
+    }
+}
+
+extension ApphudSdkEvents: ApphudUIDelegate {
+    
+    func apphudDidPurchase(product: SKProduct, offerID: String?, screenName: String) {
+        self.sendEvent(withName: "apphudDidPurchase", body: [
+            "product": DataTransformer.skProduct(product: product),
+            "offerId": offerID as Any,
+            "screenName": screenName
+        ]);
+    }
+    
+    func apphudWillPurchase(product: SKProduct, offerID: String?, screenName: String) {
+        self.sendEvent(withName: "apphudWillPurchase", body: [
+            "product": DataTransformer.skProduct(product: product),
+            "offerId": offerID as Any,
+            "screenName": screenName
+        ]);
+    }
+    
+    func apphudDidFailPurchase(product: SKProduct, offerID: String?, errorCode: SKError.Code, screenName: String) {
+        self.sendEvent(withName: "apphudWillPurchase", body: [
+            "product": DataTransformer.skProduct(product: product),
+            "offerId": offerID as Any,
+            "screenName": screenName,
+            "errorCode": errorCode.rawValue
+        ]);
+    }
+    
+    func apphudDidSelectSurveyAnswer(question: String, answer: String, screenName: String) {
+        self.sendEvent(withName: "apphudDidSelectSurveyAnswer", body: [
+            "question": question,
+            "answer": answer,
+            "screenName": screenName
+        ])
     }
 }
