@@ -48,7 +48,7 @@ export interface ApphudSubscriptionStatus {
 export interface ApphudNonRenewingPurchase {
   productId: string;
   purchasedAt: string;
-  canceledAt: string;
+  canceledAt?: string;
 }
 
 export interface PurchaseResponse {
@@ -80,12 +80,6 @@ export interface ApphudSubscription {
   isIntroductoryActivated?: Boolean;
   isActive: Boolean;
   kind: string;
-}
-
-export interface ApphudNonRenewingPurchase {
-  productId: string;
-  purchasedAt: string;
-  canceledAt: string;
 }
 
 export interface RestorePurchase {
