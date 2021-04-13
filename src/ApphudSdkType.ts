@@ -27,7 +27,7 @@ export interface StartProperties {
   observerMode?: boolean;
 }
 
-export interface AttributeProperties {
+export interface AttributionProperties {
   data: any;
   identifier: string;
   attributionProviderId:
@@ -114,7 +114,7 @@ export type ApphudSdkType = {
   nonRenewingPurchases(): Promise<ApphudNonRenewingPurchase>;
   restorePurchases(): Promise<RestorePurchase>;
   syncPurchases(): Promise<boolean>;
-  addAttribution(options: AttributeProperties): Promise<boolean>;
+  addAttribution(options: AttributionProperties): Promise<boolean>;
   userId(): Promise<string>;
   setUserProperty(
     key: ApphudUserPropertyKey | String,
