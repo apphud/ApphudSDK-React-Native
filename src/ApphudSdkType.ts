@@ -71,13 +71,13 @@ export interface PurchaseResponse {
 
 export interface ApphudSubscription {
   status: string;
-  productId: string;
-  expiresAt: string;
-  startedAt: string;
-  cancelledAt: string;
-  isInRetryBilling: Boolean;
-  isAutoRenewEnabled: Boolean;
-  isIntroductoryActivated: Boolean;
+  productId?: string;
+  expiresAt?: string;
+  startedAt?: string;
+  cancelledAt?: string;
+  isInRetryBilling?: Boolean;
+  isAutoRenewEnabled?: Boolean;
+  isIntroductoryActivated?: Boolean;
   isActive: Boolean;
   kind: string;
 }
@@ -97,7 +97,7 @@ export interface RestorePurchase {
 export interface ApphudProduct {
   id: string;
   price: string;
-  regionCode: string;
+  regionCode?: string;
   currencyCode?: string;
 }
 
