@@ -7,6 +7,7 @@
 
 import Foundation
 import StoreKit
+import ApphudSDK
 
 public class DataTransformer {
     public static func skProduct(product: SKProduct) -> NSDictionary {

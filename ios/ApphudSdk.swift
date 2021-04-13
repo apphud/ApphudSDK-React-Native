@@ -79,19 +79,7 @@ class ApphudSdk: NSObject {
     @objc(subscription:withRejecter:)
     func subscription(resolve: RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
         let subscription = Apphud.subscription();
-        resolve([
-            "productId": subscription?.productId as Any,
-            "expiresDate": subscription?.expiresDate.timeIntervalSince1970 as Any,
-            "startedAt": subscription?.startedAt.timeIntervalSince1970 as Any,
-            "canceledAt": subscription?.canceledAt?.timeIntervalSince1970 as Any,
-            "isInRetryBilling": subscription?.isInRetryBilling as Any,
-            "isAutorenewEnabled": subscription?.isAutorenewEnabled as Any,
-            "isIntroductoryActivated": subscription?.isIntroductoryActivated as Any,
-            "isActive":  subscription?.isActive() as Any,
-            "status": subscription?.status.rawValue as Any,
-            "isLocal": subscription?.isLocal as Any,
-            "isSandbox": subscription?.isSandbox as Any
-        ]);
+        resolve(DataTransformer.apphudSubscription(subscription: subscription));
     }
     
     @objc(isNonRenewingPurchaseActive:withResolver:withRejecter:)
@@ -106,13 +94,7 @@ class ApphudSdk: NSObject {
         let purchases = Apphud.nonRenewingPurchases();
         resolve(
             purchases?.map({ (purchase) -> NSDictionary in
-                return [
-                    "productId": purchase.productId,
-                    "canceledAt": purchase.canceledAt?.timeIntervalSince1970 as Any,
-                    "purchasedAt": purchase.purchasedAt.timeIntervalSince1970 as Any,
-                    "isLocal": purchase.isLocal as Any,
-                    "isSandbox": purchase.isSandbox as Any
-                ]
+                return DataTransformer.nonRenewingPurchase(nonRenewingPurchase: purchase);
             })
         );
     }
@@ -122,19 +104,7 @@ class ApphudSdk: NSObject {
         Apphud.restorePurchases { (subscriptions, purchases, error) in
             resolve([
                 "subscriptions": subscriptions?.map{ (subscription) -> NSDictionary in
-                    return [
-                        "productId": subscription.productId as Any,
-                        "expiresDate": subscription.expiresDate.timeIntervalSince1970 as Any,
-                        "startedAt": subscription.startedAt.timeIntervalSince1970 as Any,
-                        "canceledAt": subscription.canceledAt?.timeIntervalSince1970 as Any,
-                        "isInRetryBilling": subscription.isInRetryBilling as Any,
-                        "isAutorenewEnabled": subscription.isAutorenewEnabled as Any,
-                        "isIntroductoryActivated": subscription.isIntroductoryActivated as Any,
-                        "isActive":  subscription.isActive() as Any,
-                        "status": subscription.status.rawValue as Any,
-                        "isLocal": subscription.isLocal as Any,
-                        "isSandbox": subscription.isSandbox as Any
-                    ]
+                    return DataTransformer.apphudSubscription(subscription: subscription);
                 } as Any,
                 "purchases": purchases?.map{ (purchase) -> NSDictionary in
                     return [

@@ -7,10 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-
-		5E555C0D2413F4C50049A1A2 /* ApphudSdk.m in Sources */ = {isa = PBXBuildFile; fileRef = B3E7B5891CC2AC0600A0062D /* ApphudSdk.m */; };
-		F4FF95D7245B92E800C19C63 /*  ApphudSdk.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FF95D6245B92E800C19C63 /*  ApphudSdk.swift */; };
-
+		A878EB9B2625BFBA00A20068 /* ApphudSdkEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A878EB972625BFBA00A20068 /* ApphudSdkEvents.swift */; };
+		A878EB9C2625BFBA00A20068 /* DataTransformer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A878EB992625BFBA00A20068 /* DataTransformer.swift */; };
+		A878EB9D2625BFBA00A20068 /* ApphudSdkEvents.m in Sources */ = {isa = PBXBuildFile; fileRef = A878EB9A2625BFBA00A20068 /* ApphudSdkEvents.m */; };
+		F4FF95D7245B92E800C19C63 /* ApphudSdk.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FF95D6245B92E800C19C63 /* ApphudSdk.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -27,11 +27,13 @@
 
 /* Begin PBXFileReference section */
 		134814201AA4EA6300B7C361 /* libApphudSdk.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libApphudSdk.a; sourceTree = BUILT_PRODUCTS_DIR; };
-
+		A878EB972625BFBA00A20068 /* ApphudSdkEvents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ApphudSdkEvents.swift; sourceTree = "<group>"; };
+		A878EB982625BFBA00A20068 /* ApphudSdkEvents-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ApphudSdkEvents-Bridging-Header.h"; sourceTree = "<group>"; };
+		A878EB992625BFBA00A20068 /* DataTransformer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataTransformer.swift; sourceTree = "<group>"; };
+		A878EB9A2625BFBA00A20068 /* ApphudSdkEvents.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ApphudSdkEvents.m; sourceTree = "<group>"; };
 		B3E7B5891CC2AC0600A0062D /* ApphudSdk.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ApphudSdk.m; sourceTree = "<group>"; };
 		F4FF95D5245B92E700C19C63 /* ApphudSdk-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ApphudSdk-Bridging-Header.h"; sourceTree = "<group>"; };
 		F4FF95D6245B92E800C19C63 /* ApphudSdk.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApphudSdk.swift; sourceTree = "<group>"; };
-
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,11 +58,13 @@
 		58B511D21A9E6C8500147676 = {
 			isa = PBXGroup;
 			children = (
-
 				F4FF95D6245B92E800C19C63 /* ApphudSdk.swift */,
 				B3E7B5891CC2AC0600A0062D /* ApphudSdk.m */,
+				A878EB982625BFBA00A20068 /* ApphudSdkEvents-Bridging-Header.h */,
+				A878EB9A2625BFBA00A20068 /* ApphudSdkEvents.m */,
+				A878EB972625BFBA00A20068 /* ApphudSdkEvents.swift */,
+				A878EB992625BFBA00A20068 /* DataTransformer.swift */,
 				F4FF95D5245B92E700C19C63 /* ApphudSdk-Bridging-Header.h */,
-
 				134814211AA4EA7D00B7C361 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -122,10 +126,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-
 				F4FF95D7245B92E800C19C63 /* ApphudSdk.swift in Sources */,
-				B3E7B58A1CC2AC0600A0062D /* ApphudSdk.m in Sources */,
-
+				A878EB9D2625BFBA00A20068 /* ApphudSdkEvents.m in Sources */,
+				A878EB9B2625BFBA00A20068 /* ApphudSdkEvents.swift in Sources */,
+				A878EB9C2625BFBA00A20068 /* DataTransformer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -238,11 +242,9 @@
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = ApphudSdk;
 				SKIP_INSTALL = YES;
-
 				SWIFT_OBJC_BRIDGING_HEADER = "ApphudSdk-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
-
 			};
 			name = Debug;
 		};
@@ -259,10 +261,8 @@
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = ApphudSdk;
 				SKIP_INSTALL = YES;
-
 				SWIFT_OBJC_BRIDGING_HEADER = "ApphudSdk-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
-
 			};
 			name = Release;
 		};
