@@ -35,20 +35,12 @@ export interface AttributionProperties {
     | AndroidApphudAttributionProvider;
 }
 
-export interface ApphudSubscriptionStatus {
-  productId: string;
-  expiresDate: string;
-  startedAt: string;
-  canceledAt: string;
-  isInRetryBilling: boolean;
-  isAutorenewEnabled: boolean;
-  isIntroductoryActivated: boolean;
-}
-
 export interface ApphudNonRenewingPurchase {
   productId: string;
   purchasedAt: string;
   canceledAt?: string;
+  isLocal: string;
+  isSandbox: string;
 }
 
 export interface PurchaseResponse {
@@ -63,7 +55,7 @@ export interface PurchaseResponse {
   sku?: string;
 
   /* iOS: ApphudPurchaseResult class */
-  subscription?: ApphudSubscriptionStatus;
+  subscription?: ApphudSubscription;
   nonRenewingPurchase?: ApphudNonRenewingPurchase;
   transaction?: object;
   error?: any;
@@ -71,19 +63,19 @@ export interface PurchaseResponse {
 
 export interface ApphudSubscription {
   status: string;
-  productId?: string;
-  expiresAt?: string;
-  startedAt?: string;
+  productId: string;
+  expiresAt: string;
+  startedAt: string;
   cancelledAt?: string;
-  isInRetryBilling?: Boolean;
-  isAutoRenewEnabled?: Boolean;
-  isIntroductoryActivated?: Boolean;
+  isInRetryBilling: Boolean;
+  isAutoRenewEnabled: Boolean;
+  isIntroductoryActivated: Boolean;
   isActive: Boolean;
   kind: string;
 }
 
 export interface RestorePurchase {
-  subscriptions: Array<ApphudSubscriptionStatus>;
+  subscriptions: Array<ApphudSubscription>;
   purchases: Array<PurchaseResponse>;
   error: any;
 }
@@ -101,7 +93,7 @@ export type ApphudSdkType = {
   logout(): Promise<boolean>;
   hasActiveSubscription(): Promise<boolean>;
   products(): Promise<Array<ApphudProduct>>;
-  subscription(): Promise<ApphudSubscriptionStatus>;
+  subscription(): Promise<ApphudSubscription>;
   subscriptions(): Promise<Array<ApphudSubscription>>;
   purchase(productIdentifier: string): Promise<PurchaseResponse>;
   isNonRenewingPurchaseActive(productIdentifier: string): Promise<boolean>;
