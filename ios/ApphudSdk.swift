@@ -56,8 +56,8 @@ class ApphudSdk: NSObject {
         Apphud.purchase(productIdentifier) { (result:ApphudPurchaseResult) in
             let transaction:SKPaymentTransaction? = result.transaction;
             var response = [
-                "subscription": DataTransformer.apphudSubscription(subscription: result.subscription!),
-                "nonRenewingPurchase": DataTransformer.nonRenewingPurchase(nonRenewingPurchase: result.nonRenewingPurchase!),
+                "subscription": DataTransformer.apphudSubscription(subscription: result.subscription),
+                "nonRenewingPurchase": DataTransformer.nonRenewingPurchase(nonRenewingPurchase: result.nonRenewingPurchase),
                 "error": result.error.debugDescription
             ] as [String : Any];
             if (transaction != nil) {
