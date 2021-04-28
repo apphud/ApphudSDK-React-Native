@@ -8,6 +8,7 @@ import CheckIsNonRenewingPurchaseScreen from './screens/CheckIsNonRenewingPurcha
 import AddAttributionScreen from './screens/AddAttributionScreen';
 import ProductsScreen from './screens/ProductsScreen';
 import UserPropertyScreen from './screens/UserPropertyScreen';
+import AddAdvertisingIdentifier from './screens/AddAdvertisingIdentifier';
 
 const Stack = createStackNavigator();
 
@@ -21,6 +22,10 @@ function App() {
         <Stack.Screen name="Products" component={ProductsScreen} />
         <Stack.Screen name="AddAttribution" component={AddAttributionScreen} />
         <Stack.Screen name="UserProperty" component={UserPropertyScreen} />
+        <Stack.Screen
+          name="AddAdvertisingIdentifier"
+          component={AddAdvertisingIdentifier}
+        />
         <Stack.Screen
           name="CheckIsNonRenewingPurchase"
           component={CheckIsNonRenewingPurchaseScreen}

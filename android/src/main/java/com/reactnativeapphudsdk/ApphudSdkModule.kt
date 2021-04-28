@@ -214,6 +214,11 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
 
     @ReactMethod
+    fun setAdvertisingIdentifier(idfa: String, promise: Promise) {
+      promise.reject(this.unSupportMethodMsg);
+    }
+
+    @ReactMethod
     fun restorePurchases(promise: Promise) {
       promise.reject(this.unSupportMethodMsg);
     }
