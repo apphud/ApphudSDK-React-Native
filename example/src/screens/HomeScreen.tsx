@@ -7,7 +7,9 @@ import type { StackScreenProps } from '@react-navigation/stack';
 export type Props = StackScreenProps<any>;
 
 export default function HomeScreen({ navigation }: Props) {
-  const [apiKey, setApiKey] = React.useState<string>('');
+  const [apiKey, setApiKey] = React.useState<string>(
+    'app_4sY9cLggXpMDDQMmvc5wXUPGReMp8G'
+  );
   const [userId, setUserId] = React.useState<any>(null);
   const [deviceId, setDeviceId] = React.useState<any>(null);
   const onStartHandler = () => {
