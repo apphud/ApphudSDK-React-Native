@@ -3,6 +3,10 @@ import StoreKit
 
 @objc(ApphudSdk)
 class ApphudSdk: NSObject {
+    
+    override init() {
+        ApphudHttpClient.shared.sdkType = "reactnative";
+    }
 
     @objc(start:withResolver:withRejecter:)
     func start(options: NSDictionary, resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
@@ -36,7 +40,7 @@ class ApphudSdk: NSObject {
     
     @objc(products:withRejecter:)
     func products(resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
-        let products:[SKProduct]? = Apphud.products();
+        let products:[SKProduct]? = Apphud.products;
         resolve(
             products?.map{ (product) -> NSDictionary in
                 return DataTransformer.skProduct(product: product);

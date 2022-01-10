@@ -81,18 +81,17 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         try {
           Apphud.purchase(it, productIdentifier ) { res ->
             val result: WritableNativeArray = WritableNativeArray();
-            for (purchase in res) {
-              val item: WritableNativeMap = WritableNativeMap();
-              item.putString("orderId", purchase.orderId);
-              item.putString("originalJson", purchase.originalJson);
-              item.putString("packageName", purchase.packageName);
-              item.putInt("purchaseState", purchase.purchaseState);
-              item.putInt("purchaseTime", purchase.purchaseTime.toInt());
-              item.putString("purchaseToken", purchase.purchaseToken);
-              item.putString("signature", purchase.signature);
-              item.putString("sku", purchase.sku);
-              result.pushMap(item);
-            }
+            val purchase = res.purchase;
+            val item: WritableNativeMap = WritableNativeMap();
+            item.putString("orderId", purchase?.orderId);
+            item.putString("originalJson", purchase?.originalJson);
+            item.putString("packageName", purchase?.packageName);
+            item.putInt("purchaseState", purchase!!.purchaseState);
+            item.putInt("purchaseTime", purchase!!.purchaseTime.toInt());
+            item.putString("purchaseToken", purchase?.purchaseToken);
+            item.putString("signature", purchase?.signature);
+            item.putString("sku", purchase?.skus.toString());
+            result.pushMap(item);
             promise.resolve(result);
           }
         } catch (error: Error) {
