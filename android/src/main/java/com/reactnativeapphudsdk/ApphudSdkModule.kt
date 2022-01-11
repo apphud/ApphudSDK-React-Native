@@ -2,6 +2,7 @@ package com.reactnativeapphudsdk
 import com.apphud.sdk.Apphud
 import com.apphud.sdk.ApphudAttributionProvider
 import com.apphud.sdk.ApphudUserPropertyKey
+import com.apphud.sdk.client.HttpUrlConnectionExecutor
 import com.facebook.react.bridge.*
 import java.lang.Error
 
@@ -11,6 +12,11 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     override fun getName(): String {
         return "ApphudSdk"
+    }
+
+    init {
+        HttpUrlConnectionExecutor.X_SDK = "reactnative";
+        HttpUrlConnectionExecutor.X_SDK_VERSION = "1.0.7";
     }
 
     @ReactMethod

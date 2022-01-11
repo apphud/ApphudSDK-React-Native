@@ -6,6 +6,7 @@ class ApphudSdk: NSObject {
     
     override init() {
         ApphudHttpClient.shared.sdkType = "reactnative";
+        ApphudHttpClient.shared.sdkVersion = "1.0.7";
     }
 
     @objc(start:withResolver:withRejecter:)
