@@ -1,5 +1,5 @@
 PODS:
-  - ApphudSDK (2.5.2)
+  - ApphudSDK (2.5.5)
   - boost-for-react-native (1.63.0)
   - CocoaAsyncSocket (7.6.5)
   - CocoaLibEvent (1.0.0)
@@ -238,7 +238,7 @@ PODS:
     - React-jsi (= 0.63.4)
   - React-jsinspector (0.63.4)
   - react-native-apphud-sdk (1.0.6):
-    - ApphudSDK (= 2.5.2)
+    - ApphudSDK (= 2.5.5)
     - React-Core
   - react-native-safe-area-context (3.1.9):
     - React-Core
@@ -461,11 +461,11 @@ EXTERNAL SOURCES:
 
 CHECKOUT OPTIONS:
   ApphudSDK:
-    :commit: a903836033e7e879725f658296ef2ef65c23c93a
+    :commit: 3828b8aea1f9c8e860e4a5892ce292cde7ab295b
     :git: https://github.com/apphud/ApphudSDK.git
 
 SPEC CHECKSUMS:
-  ApphudSDK: dc9ba544c1e3679eb371cc8aba3ed7bb2eb9391e
+  ApphudSDK: 72815473e06b0184edaba81d7ce70d23542eaf01
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   CocoaLibEvent: 2fab71b8bd46dd33ddb959f7928ec5909f838e3f
@@ -492,7 +492,7 @@ SPEC CHECKSUMS:
   React-jsi: a0418934cf48f25b485631deb27c64dc40fb4c31
   React-jsiexecutor: 93bd528844ad21dc07aab1c67cb10abae6df6949
   React-jsinspector: 58aef7155bc9a9683f5b60b35eccea8722a4f53a
-  react-native-apphud-sdk: 5b66cdec901be496dd694e97580eec39204d91ef
+  react-native-apphud-sdk: 6b91066fa607604a048c289fd25738621ac7cea6
   react-native-safe-area-context: b6e0e284002381d2ff29fa4fff42b4d8282e3c94
   React-RCTActionSheet: 89a0ca9f4a06c1f93c26067af074ccdce0f40336
   React-RCTAnimation: 1bde3ecc0c104c55df246eda516e0deb03c4e49b
