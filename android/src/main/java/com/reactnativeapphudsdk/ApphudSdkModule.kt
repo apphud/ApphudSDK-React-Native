@@ -4,7 +4,8 @@ import com.apphud.sdk.ApphudAttributionProvider
 import com.apphud.sdk.ApphudUserPropertyKey
 import com.apphud.sdk.managers.HeadersInterceptor
 import com.facebook.react.bridge.*
-import java.lang.Error
+import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
+
 
 class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
@@ -15,8 +16,15 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
 
     init {
-        HeadersInterceptor.X_SDK = "reactnative";
-        HeadersInterceptor.X_SDK_VERSION = "1.0.7";
+      HeadersInterceptor.X_SDK = "reactnative";
+      HeadersInterceptor.X_SDK_VERSION = "1.0.7";
+      Apphud.productsFetchCallback {
+        var arr: WritableNativeArray = WritableNativeArray();
+        it.map { s -> arr.pushMap(ApphudDataTransformer.getProductMap(s)) }
+        reactContext
+          .getJSModule(RCTDeviceEventEmitter::class.java)
+          .emit("productFetchCallback", arr);
+      }
     }
 
     @ReactMethod
@@ -65,18 +73,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       val subscriptions = Apphud.subscriptions();
       val result: WritableNativeArray = WritableNativeArray();
       for (subscription in subscriptions) {
-        val item: WritableNativeMap = WritableNativeMap();
-        item.putString("status", subscription.status.toString());
-        item.putString("productId", subscription.productId);
-        item.putString("expiresAt", subscription.expiresAt.toString());
-        item.putString("startedAt", subscription.startedAt.toString());
-        item.putString("cancelledAt", subscription.cancelledAt.toString());
-        item.putBoolean("isAutoRenewEnabled", subscription.isAutoRenewEnabled);
-        item.putBoolean("isInRetryBilling", subscription.isInRetryBilling);
-        item.putBoolean("isIntroductoryActivated", subscription.isIntroductoryActivated);
-        item.putBoolean("isActive", subscription.isActive());
-        item.putString("kind", subscription.kind.toString());
-        result.pushMap(item)
+        result.pushMap(ApphudDataTransformer.getSubscriptionMap(subscription));
       }
       promise.resolve(result);
     }
@@ -85,19 +82,9 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     fun purchase(productIdentifier: String, promise: Promise) {
       this.currentActivity?.let {
         try {
-          Apphud.purchase(it, productIdentifier ) { res ->
+          Apphud.purchase(it, productIdentifier) { res ->
             val result: WritableNativeArray = WritableNativeArray();
-            val purchase = res.purchase;
-            val item: WritableNativeMap = WritableNativeMap();
-            item.putString("orderId", purchase?.orderId);
-            item.putString("originalJson", purchase?.originalJson);
-            item.putString("packageName", purchase?.packageName);
-            item.putInt("purchaseState", purchase!!.purchaseState);
-            item.putInt("purchaseTime", purchase!!.purchaseTime.toInt());
-            item.putString("purchaseToken", purchase?.purchaseToken);
-            item.putString("signature", purchase?.signature);
-            item.putString("sku", purchase?.skus.toString());
-            result.pushMap(item);
+            result.pushMap(ApphudDataTransformer.getPurchaseMap(res));
             promise.resolve(result);
           }
         } catch (error: Error) {
@@ -140,11 +127,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       val products = Apphud.products();
       if (products != null) {
         for (product in products) {
-          val item = WritableNativeMap();
-          item.putString("id", product.sku);
-          item.putString("price", product.price);
-          item.putString("currencyCode", product.priceCurrencyCode);
-          result.pushMap(item);
+          result.pushMap(ApphudDataTransformer.getProductMap(product));
         }
       }
       promise.resolve(result);
@@ -155,16 +138,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       val subscription = Apphud.subscription();
       val result: WritableNativeMap = WritableNativeMap();
       if (subscription !== null) {
-        result.putString("productId", subscription.productId);
-        result.putString("expiresAt", subscription.expiresAt.toString());
-        result.putString("statedAt", subscription.startedAt.toString());
-        result.putString("cancelledAt", subscription.cancelledAt.toString());
-        result.putBoolean("isInRetryBilling", subscription.isInRetryBilling);
-        result.putBoolean("isAutoRenewEnabled", subscription.isAutoRenewEnabled);
-        result.putBoolean("isIntroductoryActivated", subscription.isIntroductoryActivated);
-        result.putBoolean("isActive", subscription.isActive());
-        result.putString("kind", subscription.kind.toString());
-        result.putString("status", subscription.status.toString());
+        result.merge(ApphudDataTransformer.getSubscriptionMap(subscription));
       }
       promise.resolve(result);
     }
@@ -173,12 +147,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     fun nonRenewingPurchases(promise: Promise) {
       val result: WritableNativeArray = WritableNativeArray();
       for (purchase in Apphud.nonRenewingPurchases()) {
-        val item: WritableNativeMap = WritableNativeMap();
-        item.putString("productId", purchase.productId);
-        item.putString("purchasedAt", purchase.purchasedAt.toString());
-        item.putString("canceledAt", purchase.canceledAt.toString());
-        item.putBoolean("isActive", purchase.isActive());
-        result.pushMap(item);
+        result.pushMap(ApphudDataTransformer.getNonRenewingPurchaseMap(purchase));
       }
       promise.resolve(result);
     }
@@ -187,11 +156,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     fun product(productIdentifier: String, promise: Promise) {
       val product = Apphud.product(productIdentifier);
       if (product != null) {
-        val item = WritableNativeMap();
-        item.putString("id", product.sku);
-        item.putString("price", product.price);
-        item.putString("currencyCode", product.priceCurrencyCode);
-        promise.resolve(item);
+        promise.resolve(ApphudDataTransformer.getProductMap(product));
       } else {
         promise.reject("product", "product not found");
       }
@@ -205,7 +170,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
 
     @ReactMethod
-    fun setUserProperty(key: String, value: String, setOnce: Boolean,  promise: Promise) {
+    fun setUserProperty(key: String, value: String, setOnce: Boolean, promise: Promise) {
       val label = getUserPropertyKey(key);
       Apphud.setUserProperty(label, value, setOnce);
       promise.resolve(true);
@@ -220,7 +185,23 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     @ReactMethod
     fun restorePurchases(promise: Promise) {
-      promise.reject(this.unSupportMethodMsg);
+      Apphud.restorePurchases { apphudSubscriptionList, apphudNonRenewingPurchaseList, error ->
+        val resultMap: WritableNativeMap = WritableNativeMap();
+        apphudSubscriptionList.let {
+          val arr: WritableNativeArray = WritableNativeArray();
+          it?.map { obj -> arr.pushMap(ApphudDataTransformer.getSubscriptionMap(obj)) }
+          resultMap.putArray("subscriptions", arr);
+        }
+        apphudNonRenewingPurchaseList.let {
+          val arr: WritableNativeArray = WritableNativeArray();
+          it?.map { obj -> arr.pushMap(ApphudDataTransformer.getNonRenewingPurchaseMap(obj)) }
+          resultMap.putArray("nonRenewingPurchases", arr);
+        }
+        error.let {
+          resultMap.putString("error", it?.message)
+        }
+        promise.resolve(resultMap);
+      }
     }
 
     private fun getUserPropertyKey(key: String): ApphudUserPropertyKey {
