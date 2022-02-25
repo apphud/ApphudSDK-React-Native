@@ -36,16 +36,16 @@ class ApphudDataTransformer {
     fun getPurchaseMap(result: ApphudPurchaseResult): WritableNativeMap {
       val item: WritableNativeMap = WritableNativeMap();
       val purchase = result.purchase;
-
-      item.putString("orderId", purchase?.orderId);
-      item.putString("originalJson", purchase?.originalJson);
-      item.putString("packageName", purchase?.packageName);
-      item.putInt("purchaseState", purchase?.purchaseState as Int);
-      item.putInt("purchaseTime", purchase.purchaseTime.toInt());
-      item.putString("purchaseToken", purchase.purchaseToken);
-      item.putString("signature", purchase.signature);
-      item.putString("sku", purchase.skus.first());
-
+      if (purchase !== null) {
+        item.putString("orderId", purchase.orderId);
+        item.putString("originalJson", purchase.originalJson);
+        item.putString("packageName", purchase.packageName);
+        item.putInt("purchaseState", purchase.purchaseState as Int);
+        item.putInt("purchaseTime", purchase.purchaseTime.toInt());
+        item.putString("purchaseToken", purchase.purchaseToken);
+        item.putString("signature", purchase.signature);
+        item.putString("sku", purchase.skus.first());
+      }
       return item;
     }
 
