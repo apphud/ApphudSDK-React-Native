@@ -67,6 +67,7 @@ class ApphudDataTransformer {
       item.putString("price", product.price);
       item.putString("currencyCode", product.priceCurrencyCode);
       item.putInt("originalPriceAmountMicros", product.originalPriceAmountMicros.toInt());
+      item.putString("type", product.type);
 
       return item;
     }
