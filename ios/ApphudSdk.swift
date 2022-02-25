@@ -60,10 +60,11 @@ class ApphudSdk: NSObject {
     func purchase(productIdentifier:String,  resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
         Apphud.purchase(productIdentifier) { (result:ApphudPurchaseResult) in
             let transaction:SKPaymentTransaction? = result.transaction;
+            let err:SKError? = result.error as? SKError;
             var response = [
                 "subscription": DataTransformer.apphudSubscription(subscription: result.subscription),
                 "nonRenewingPurchase": DataTransformer.nonRenewingPurchase(nonRenewingPurchase: result.nonRenewingPurchase),
-                "error": result.error.debugDescription
+                "error": err?.userInfo.debugDescription ?? ""
             ] as [String : Any];
             if (transaction != nil) {
                 response["transaction"] = [
