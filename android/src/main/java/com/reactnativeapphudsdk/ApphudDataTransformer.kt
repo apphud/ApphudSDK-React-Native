@@ -36,7 +36,7 @@ class ApphudDataTransformer {
     fun getPurchaseMap(result: ApphudPurchaseResult): WritableNativeMap {
       val item: WritableNativeMap = WritableNativeMap();
       val purchase = result.purchase;
-      if (purchase !== null) {
+      if (purchase != null) {
         item.putString("orderId", purchase.orderId);
         item.putString("originalJson", purchase.originalJson);
         item.putString("packageName", purchase.packageName);
