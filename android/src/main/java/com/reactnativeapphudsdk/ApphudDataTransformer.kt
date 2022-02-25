@@ -52,7 +52,7 @@ class ApphudDataTransformer {
     fun getProductMap(product: SkuDetails): WritableNativeMap {
       val item = WritableNativeMap();
 
-      item.putString("sku", product.sku);
+      item.putString("id", product.sku);
       item.putString("description", product.description);
       item.putString("freeTrialPeriod", product.freeTrialPeriod);
       item.putString("introductoryPrice", product.introductoryPrice);

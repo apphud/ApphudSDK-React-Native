@@ -34,12 +34,10 @@ const styles = StyleSheet.create({
 
 export default function ProductsScreen() {
   const [products, setProducts] = React.useState<Array<ApphudProduct>>([]);
-  const onPurchase = (productId?: string) => {
-    if (productId) {
-      ApphudSdk.purchase(productId).then((result) => {
-        Alert.alert('purchase result', JSON.stringify(result));
-      });
-    }
+  const onPurchase = (productId: string) => {
+    ApphudSdk.purchase(productId).then((result) => {
+      Alert.alert('purchase result', JSON.stringify(result));
+    });
   };
   React.useEffect(() => {
     ApphudSdk.products().then((data: Array<ApphudProduct>) => {

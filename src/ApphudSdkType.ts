@@ -81,8 +81,7 @@ export interface RestorePurchase {
 }
 
 export interface ApphudProduct {
-  id?: string;
-  sku?: string;
+  id: string;
   price: string;
   regionCode?: string;
   currencyCode?: string;
