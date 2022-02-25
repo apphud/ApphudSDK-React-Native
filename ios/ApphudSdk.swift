@@ -70,10 +70,7 @@ class ApphudSdk: NSObject {
                     "transactionIdentifier": transaction?.transactionIdentifier as Any,
                     "transactionDate": transaction?.transactionDate?.timeIntervalSince1970 as Any,
                     "payment": [
-                        "productIdentifier": transaction?.payment.productIdentifier as Any,
-                        "description": transaction?.payment.description.description as Any,
-                        "applicationUsername": transaction?.payment.applicationUsername as Any,
-                        "quantity": transaction?.payment.quantity as Any
+                        "productIdentifier": transaction?.payment.productIdentifier as Any
                     ]
                 ]
             }

@@ -41,19 +41,33 @@ class ApphudDataTransformer {
       item.putString("originalJson", purchase?.originalJson);
       item.putString("packageName", purchase?.packageName);
       item.putInt("purchaseState", purchase?.purchaseState as Int);
-      item.putInt("purchaseTime", purchase?.purchaseTime.toInt());
-      item.putString("purchaseToken", purchase?.purchaseToken);
-      item.putString("signature", purchase?.signature);
-      item.putString("sku", purchase?.skus.toString());
+      item.putInt("purchaseTime", purchase.purchaseTime.toInt());
+      item.putString("purchaseToken", purchase.purchaseToken);
+      item.putString("signature", purchase.signature);
+      item.putString("sku", purchase.skus.first());
 
       return item;
     }
 
     fun getProductMap(product: SkuDetails): WritableNativeMap {
       val item = WritableNativeMap();
-      item.putString("id", product.sku);
+
+      item.putString("sku", product.sku);
+      item.putString("description", product.description);
+      item.putString("freeTrialPeriod", product.freeTrialPeriod);
+      item.putString("introductoryPrice", product.introductoryPrice);
+      item.putInt("introductoryPriceAmountMicros", product.introductoryPriceAmountMicros.toInt());
+      item.putInt("introductoryPriceCycles", product.introductoryPriceCycles);
+      item.putString("introductoryPricePeriod", product.introductoryPricePeriod);
+      item.putInt("priceAmountMicros", product.priceAmountMicros.toInt());
+      item.putString("priceCurrencyCode", product.priceCurrencyCode);
+      item.putString("subscriptionPeriod", product.subscriptionPeriod);
+      item.putString("title", product.title);
+      item.putString("originalPrice", product.originalPrice);
       item.putString("price", product.price);
       item.putString("currencyCode", product.priceCurrencyCode);
+      item.putInt("originalPriceAmountMicros", product.originalPriceAmountMicros.toInt());
+
       return item;
     }
   }
