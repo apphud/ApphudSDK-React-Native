@@ -7,6 +7,7 @@ export enum ApphudSdkEmitterEvents {
   apphudWillPurchase = 'apphudWillPurchase',
   apphudDidFailPurchase = 'apphudDidFailPurchase',
   apphudDidSelectSurveyAnswer = 'apphudDidSelectSurveyAnswer',
+  productFetchCallback = 'productFetchCallback',
 }
 
 export type ApphudSdkEventsType = {

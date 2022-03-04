@@ -15,7 +15,7 @@ target 'ApphudSdkExample' do
   #
   # Note that if you have use_frameworks! enabled, Flipper will not work and
   # you should disable these next few lines.
-  use_flipper!
+  use_flipper!({ 'Flipper-Folly' => '2.3.0' })
   pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
 
   post_install do |installer|

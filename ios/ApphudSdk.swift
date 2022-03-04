@@ -3,6 +3,11 @@ import StoreKit
 
 @objc(ApphudSdk)
 class ApphudSdk: NSObject {
+    
+    override init() {
+        ApphudHttpClient.shared.sdkType = "reactnative";
+        ApphudHttpClient.shared.sdkVersion = "1.0.7";
+    }
 
     @objc(start:withResolver:withRejecter:)
     func start(options: NSDictionary, resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
@@ -36,7 +41,7 @@ class ApphudSdk: NSObject {
     
     @objc(products:withRejecter:)
     func products(resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
-        let products:[SKProduct]? = Apphud.products();
+        let products:[SKProduct]? = Apphud.products;
         resolve(
             products?.map{ (product) -> NSDictionary in
                 return DataTransformer.skProduct(product: product);
@@ -55,20 +60,18 @@ class ApphudSdk: NSObject {
     func purchase(productIdentifier:String,  resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
         Apphud.purchase(productIdentifier) { (result:ApphudPurchaseResult) in
             let transaction:SKPaymentTransaction? = result.transaction;
+            let err:SKError? = result.error as? SKError;
             var response = [
                 "subscription": DataTransformer.apphudSubscription(subscription: result.subscription),
                 "nonRenewingPurchase": DataTransformer.nonRenewingPurchase(nonRenewingPurchase: result.nonRenewingPurchase),
-                "error": result.error.debugDescription
+                "error": err?.userInfo.debugDescription ?? ""
             ] as [String : Any];
             if (transaction != nil) {
                 response["transaction"] = [
                     "transactionIdentifier": transaction?.transactionIdentifier as Any,
                     "transactionDate": transaction?.transactionDate?.timeIntervalSince1970 as Any,
                     "payment": [
-                        "productIdentifier": transaction?.payment.productIdentifier as Any,
-                        "description": transaction?.payment.description.description as Any,
-                        "applicationUsername": transaction?.payment.applicationUsername as Any,
-                        "quantity": transaction?.payment.quantity as Any
+                        "productIdentifier": transaction?.payment.productIdentifier as Any
                     ]
                 ]
             }

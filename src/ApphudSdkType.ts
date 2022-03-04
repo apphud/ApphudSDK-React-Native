@@ -85,6 +85,19 @@ export interface ApphudProduct {
   price: string;
   regionCode?: string;
   currencyCode?: string;
+  description?: string;
+  freeTrialPeriod?: string;
+  introductoryPrice?: string;
+  introductoryPriceAmountMicros?: number;
+  introductoryPriceCycles?: number;
+  introductoryPricePeriod?: string;
+  priceAmountMicros?: number;
+  priceCurrencyCode?: string;
+  subscriptionPeriod?: string;
+  title?: string;
+  originalPrice?: string;
+  type?: string;
+  originalPriceAmountMicros?: string;
 }
 
 export type ApphudSdkType = {
