@@ -83,17 +83,27 @@ export interface RestorePurchase {
 export interface ApphudProduct {
   id: string;
   price: string;
+  localizeTitle?: string;
+  localizedDescription?: string;
+  priceLocale?: {
+    currencySymbol: string;
+    currencyCode: string;
+  };
+  subscriptionPeriod?: any;
+  introductoryPrice?: any;
+  isDownloadable?: boolean;
+  downloadContentLengths?: any;
+  contentVersion?: any;
+  downloadContentVersion?: any;
   regionCode?: string;
   currencyCode?: string;
   description?: string;
   freeTrialPeriod?: string;
-  introductoryPrice?: string;
   introductoryPriceAmountMicros?: number;
   introductoryPriceCycles?: number;
   introductoryPricePeriod?: string;
   priceAmountMicros?: number;
   priceCurrencyCode?: string;
-  subscriptionPeriod?: string;
   title?: string;
   originalPrice?: string;
   type?: string;
