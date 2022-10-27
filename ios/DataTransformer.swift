@@ -19,10 +19,10 @@ extension SKProduct {
         "price": price.description,
         "subscriptionPeriod": subscriptionPeriod?.toMap() as Any,
         "introductoryPrice": introductoryPrice?.toMap() as Any,
-        "isDownloadable": isDownloadable,
-        "downloadContentLengths": downloadContentLengths.map {$0.intValue},
-        "contentVersion": contentVersion,
-        "downloadContentVersion": downloadContentVersion
+        //"isDownloadable": isDownloadable,
+        //"downloadContentLengths": downloadContentLengths.map {$0.intValue},
+        //"contentVersion": contentVersion,
+        //"downloadContentVersion": downloadContentVersion
     ]
     return map
   }
@@ -32,7 +32,8 @@ extension Locale {
   func toMap() -> NSDictionary {
     return [
         "currencySymbol": currencySymbol ?? "",
-        "currencyCode": currencyCode ?? ""
+        "currencyCode": currencyCode ?? "",
+        "countryCode": regionCode ?? "",
     ]
   }
 }
@@ -51,7 +52,7 @@ extension SKProductSubscriptionPeriod {
 extension SKProductDiscount {
   func toMap() -> NSDictionary {
     return [
-        "price": price.description,
+        "price": price.floatValue,
         "priceLocale": ["":""],
         "numberOfPeriods": numberOfPeriods,
         "subscriptionPeriod": subscriptionPeriod.toMap(),

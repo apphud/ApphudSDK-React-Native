@@ -88,13 +88,10 @@ export interface ApphudProduct {
   priceLocale?: {
     currencySymbol: string;
     currencyCode: string;
+    countryCode: string;
   };
   subscriptionPeriod?: any;
   introductoryPrice?: any;
-  isDownloadable?: boolean;
-  downloadContentLengths?: any;
-  contentVersion?: any;
-  downloadContentVersion?: any;
   regionCode?: string;
   currencyCode?: string;
   description?: string;
