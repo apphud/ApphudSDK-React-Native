@@ -9,14 +9,61 @@ import Foundation
 import StoreKit
 import ApphudSDK
 
+extension SKProduct {
+  func toMap() -> NSDictionary {
+    let map: NSDictionary = [
+        "id": productIdentifier,
+        "localizedTitle": localizedTitle,
+        "localizedDescription": localizedDescription,
+        "priceLocale": priceLocale.toMap(),
+        "price": price.floatValue,
+        "subscriptionPeriod": subscriptionPeriod?.toMap() as Any,
+        "introductoryPrice": introductoryPrice?.toMap() as Any,
+        //"isDownloadable": isDownloadable,
+        //"downloadContentLengths": downloadContentLengths.map {$0.intValue},
+        //"contentVersion": contentVersion,
+        //"downloadContentVersion": downloadContentVersion
+    ]
+    return map
+  }
+}
+
+extension Locale {
+  func toMap() -> NSDictionary {
+    return [
+        "currencySymbol": currencySymbol ?? "",
+        "currencyCode": currencyCode ?? "",
+        "countryCode": regionCode ?? "",
+    ]
+  }
+}
+
+@available(iOS 11.2, *)
+extension SKProductSubscriptionPeriod {
+  func toMap() -> NSDictionary {
+    return [
+      "numberOfUnits": numberOfUnits,
+      "unit": unit.rawValue
+    ]
+  }
+}
+
+@available(iOS 11.2, *)
+extension SKProductDiscount {
+  func toMap() -> NSDictionary {
+    return [
+        "price": price.floatValue,
+        "priceLocale": ["":""],
+        "numberOfPeriods": numberOfPeriods,
+        "subscriptionPeriod": subscriptionPeriod.toMap(),
+        "paymentMode": paymentMode.rawValue,
+    ]
+  }
+}
+
 public class DataTransformer {
     public static func skProduct(product: SKProduct) -> NSDictionary {
-        return [
-            "id": product.productIdentifier,
-            "price": product.price,
-            "regionCode": product.priceLocale.regionCode as Any,
-            "currencyCode": product.priceLocale.currencyCode as Any,
-        ];
+        return product.toMap();
     }
     
     public static func apphudSubscription(subscription: ApphudSubscription?) -> NSDictionary {
