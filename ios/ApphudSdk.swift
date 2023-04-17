@@ -79,6 +79,30 @@ class ApphudSdk: NSObject {
         }
     }
     
+    @objc(willPurchaseFromPaywall:withResolver:withRejecter:)
+    func willPurchaseFromPaywall(productIdentifier:String,  resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+        Apphud.willPurchaseProductFromPaywall(productIdentifier);
+    }
+    
+    @objc(token:withResolver:withRejecter:)
+    func submitPushNotificationsToken(token:Data,  resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        Apphud.submitPushNotificationsToken(token: token) { result in
+            resolve(result);
+        }
+    }
+    
+    @objc(apsInfo:withResolver:withRejecter:)
+    func handlePushNotification(apsInfo: NSDictionary,  resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+        var payload = [AnyHashable:Any]();
+        apsInfo.allKeys.forEach { key in
+            let prop: AnyHashable = key as! AnyHashable;
+            payload[prop] = apsInfo[key];
+        }
+        resolve(
+            Apphud.handlePushNotification(apsInfo: payload)
+        )
+    }
+    
     @objc(subscription:withRejecter:)
     func subscription(resolve: RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
         let subscription = Apphud.subscription();

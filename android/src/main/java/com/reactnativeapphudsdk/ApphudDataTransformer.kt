@@ -3,8 +3,12 @@ package com.reactnativeapphudsdk
 import com.android.billingclient.api.SkuDetails
 import com.apphud.sdk.ApphudPurchaseResult
 import com.apphud.sdk.domain.ApphudNonRenewingPurchase
+import com.apphud.sdk.domain.ApphudPaywall
 import com.apphud.sdk.domain.ApphudProduct
 import com.apphud.sdk.domain.ApphudSubscription
+import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.ReadableNativeArray
+import com.facebook.react.bridge.WritableNativeArray
 import com.facebook.react.bridge.WritableNativeMap
 
 class ApphudDataTransformer {
@@ -21,6 +25,53 @@ class ApphudDataTransformer {
       result.putBoolean("isActive", subscription.isActive());
       result.putString("kind", subscription.kind.toString());
       result.putString("status", subscription.status.toString());
+      return result;
+    }
+
+    fun getSkuDetailsMap(skuDetails: SkuDetails): WritableNativeMap {
+      val payload: WritableNativeMap = WritableNativeMap();
+      payload.putString("price", skuDetails.price);
+      payload.putString("sku", skuDetails.sku);
+      payload.putString("description", skuDetails.description);
+      payload.putString("title", skuDetails.title);
+      payload.putString("freeTrialPeriod", skuDetails.freeTrialPeriod);
+      payload.putString("introductoryPrice", skuDetails.freeTrialPeriod);
+      payload.putString("introductoryPriceAmountMicros", skuDetails.introductoryPriceAmountMicros.toString());
+      payload.putInt("introductoryPriceCycles", skuDetails.introductoryPriceCycles);
+      payload.putString("introductoryPricePeriod", skuDetails.introductoryPricePeriod);
+      payload.putString("priceAmountMicros", skuDetails.priceAmountMicros.toString());
+      payload.putString("priceCurrencyCode", skuDetails.priceCurrencyCode);
+      payload.putString("subscriptionPeriod", skuDetails.subscriptionPeriod);
+      payload.putString("type", skuDetails.type);
+      payload.putString("originalPrice", skuDetails.originalPrice);
+      payload.putString("originalPriceAmountMicros", skuDetails.originalPriceAmountMicros.toString());
+      return payload;
+    }
+
+    fun getApphudProductMap(apphudProduct: ApphudProduct): WritableNativeMap {
+      val payload: WritableNativeMap = WritableNativeMap();
+      payload.putString("id", apphudProduct.id);
+      payload.putString("product_id", apphudProduct.product_id);
+      payload.putString("name", apphudProduct.name);
+      payload.putString("store", apphudProduct.store);
+      payload.putString("paywall_id", apphudProduct.paywall_id);
+      payload.putString("paywall_identifier", apphudProduct.paywall_identifier);
+      payload.putMap("sku_details", apphudProduct.skuDetails?.let { getSkuDetailsMap(it) });
+      return payload;
+    }
+
+    fun getApphudPaywallMap(paywall: ApphudPaywall): WritableNativeMap {
+      val result: WritableNativeMap = WritableNativeMap();
+      result.putString("identifier", paywall.identifier);
+      result.putBoolean("isDefault", paywall.default);
+      result.putString("experimentName", paywall.experimentName);
+      result.putString("variationName", paywall.variationName);
+      result.putString("json",paywall.json.toString());
+      val array: WritableNativeArray = WritableNativeArray();
+      paywall.products?.map { it
+          array.pushMap(getApphudProductMap(it))
+      }
+      result.putArray("products", array)
       return result;
     }
 

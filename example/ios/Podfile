@@ -9,7 +9,6 @@ target 'ApphudSdkExample' do
   use_react_native!(:path => config["reactNativePath"])
 
       pod 'react-native-apphud-sdk', :path => '../..'
-      pod 'ApphudSDK', :git => 'https://github.com/apphud/ApphudSDK.git', :branch => 'master'
 
   # Enables Flipper.
   #

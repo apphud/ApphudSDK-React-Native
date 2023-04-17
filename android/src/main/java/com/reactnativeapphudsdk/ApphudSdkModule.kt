@@ -2,6 +2,7 @@ package com.reactnativeapphudsdk
 import com.apphud.sdk.Apphud
 import com.apphud.sdk.ApphudAttributionProvider
 import com.apphud.sdk.ApphudUserPropertyKey
+import com.apphud.sdk.domain.ApphudProduct
 import com.apphud.sdk.managers.HeadersInterceptor
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
@@ -83,6 +84,21 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       this.currentActivity?.let {
         try {
           Apphud.purchase(it, productIdentifier) { res ->
+            val result: WritableNativeArray = WritableNativeArray();
+            result.pushMap(ApphudDataTransformer.getPurchaseMap(res));
+            promise.resolve(result);
+          }
+        } catch (error: Error) {
+          promise.reject(this.name, error.message);
+        }
+      };
+    }
+
+    @ReactMethod
+    fun purchaseProduct(product: ApphudProduct, promise: Promise) {
+      this.currentActivity?.let {
+        try {
+          Apphud.purchase(it, product) { res ->
             val result: WritableNativeArray = WritableNativeArray();
             result.pushMap(ApphudDataTransformer.getPurchaseMap(res));
             promise.resolve(result);
