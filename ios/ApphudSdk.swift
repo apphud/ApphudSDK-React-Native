@@ -79,6 +79,13 @@ class ApphudSdk: NSObject {
         }
     }
     
+    @objc(purchaseProduct:withResolver:withRejecter:)
+    func purchaseProduct(product: ApphudProduct, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+        Apphud.purchase(product) { result in
+            resolve(result)
+        }
+    }
+    
     @objc(willPurchaseFromPaywall:withResolver:withRejecter:)
     func willPurchaseFromPaywall(productIdentifier:String,  resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
         Apphud.willPurchaseProductFromPaywall(productIdentifier);
