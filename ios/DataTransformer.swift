@@ -19,13 +19,37 @@ extension SKProduct {
         "price": price.floatValue,
         "subscriptionPeriod": subscriptionPeriod?.toMap() as Any,
         "introductoryPrice": introductoryPrice?.toMap() as Any,
-        //"isDownloadable": isDownloadable,
-        //"downloadContentLengths": downloadContentLengths.map {$0.intValue},
-        //"contentVersion": contentVersion,
-        //"downloadContentVersion": downloadContentVersion
     ]
     return map
   }
+}
+
+extension ApphudPaywall {
+    func toMap() -> NSDictionary {
+        let map: NSDictionary = [
+            "identifier": identifier,
+            "isDefault": isDefault,
+            "experimentName": experimentName,
+            "variationName": variationName,
+            "json": json,
+            "products": products
+        ]
+        return map;
+    }
+}
+
+extension ApphudProduct {
+    func toMap() -> NSDictionary {
+        let map: NSDictionary = [
+            "product_id": productId,
+            "name": name,
+            "store": store,
+            "paywall_id": paywallId,
+            "paywall_identifier": paywallIdentifier,
+            "sku_details": skProduct
+        ];
+        return map;
+    }
 }
 
 extension Locale {
