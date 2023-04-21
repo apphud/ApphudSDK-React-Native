@@ -1,6 +1,7 @@
 package com.reactnativeapphudsdk
 import com.apphud.sdk.Apphud
 import com.apphud.sdk.ApphudAttributionProvider
+import com.apphud.sdk.ApphudListener
 import com.apphud.sdk.ApphudUserPropertyKey
 import com.apphud.sdk.domain.ApphudProduct
 import com.apphud.sdk.managers.HeadersInterceptor
