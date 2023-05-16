@@ -51,12 +51,12 @@ class ApphudDataTransformer {
     fun getApphudProductMap(apphudProduct: ApphudProduct): WritableNativeMap {
       val payload: WritableNativeMap = WritableNativeMap();
       payload.putString("id", apphudProduct.id);
-      payload.putString("product_id", apphudProduct.product_id);
+      payload.putString("productId", apphudProduct.product_id);
       payload.putString("name", apphudProduct.name);
       payload.putString("store", apphudProduct.store);
-      payload.putString("paywall_id", apphudProduct.paywall_id);
-      payload.putString("paywall_identifier", apphudProduct.paywall_identifier);
-      payload.putMap("sku_details", apphudProduct.skuDetails?.let { getSkuDetailsMap(it) });
+      payload.putString("paywallId", apphudProduct.paywall_id);
+      payload.putString("paywallIdentifier", apphudProduct.paywall_identifier);
+      payload.putMap("product", apphudProduct.skuDetails?.let { getSkuDetailsMap(it) });
       return payload;
     }
 

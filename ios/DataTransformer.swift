@@ -44,9 +44,9 @@ extension ApphudProduct {
             "product_id": productId,
             "name": name,
             "store": store,
-            "paywall_id": paywallId,
-            "paywall_identifier": paywallIdentifier,
-            "sku_details": skProduct
+            "paywallId": paywallId,
+            "paywallIdentifier": paywallIdentifier,
+            "product": skProduct
         ];
         return map;
     }
