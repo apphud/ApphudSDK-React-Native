@@ -116,6 +116,10 @@ export type ApphudSdkType = {
   subscription(): Promise<ApphudSubscription>;
   subscriptions(): Promise<Array<ApphudSubscription>>;
   purchase(productIdentifier: string): Promise<PurchaseResponse>;
+  purchaseProduct(args: {
+    productId: string;
+    paywallId: string;
+  }): Promise<PurchaseResponse>;
   isNonRenewingPurchaseActive(productIdentifier: string): Promise<boolean>;
   nonRenewingPurchases(): Promise<ApphudNonRenewingPurchase>;
   restorePurchases(): Promise<RestorePurchase>;
@@ -132,4 +136,6 @@ export type ApphudSdkType = {
     by: string
   ): Promise<any>;
   paywallsDidLoadCallback(): Promise<any>;
+  collectDeviceIdentifiers(): Promise<any>;
+  optOutOfTracking(): Promise<any>;
 };

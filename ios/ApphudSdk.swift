@@ -80,9 +80,38 @@ class ApphudSdk: NSObject {
     }
     
     @objc(purchaseProduct:withResolver:withRejecter:)
-    func purchaseProduct(product: ApphudProduct, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
-        Apphud.purchase(product) { result in
-            resolve(result)
+    func purchaseProduct(args: NSDictionary, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+        let productId = args["productId"] as! String;
+        let paywallId = args["paywallId"] as! String;
+        var product:ApphudProduct?;
+        let paywalls = Apphud.paywalls ?? [];
+        for paywall in paywalls where product==nil {
+            product = paywall.products.first { product in
+                return product.productId == productId && product.paywallId == paywallId
+            }
+        }
+        if (product != nil) {
+            Apphud.purchase(product!) { result in
+                let transaction:SKPaymentTransaction? = result.transaction;
+                let err:SKError? = result.error as? SKError;
+                var response = [
+                    "subscription": DataTransformer.apphudSubscription(subscription: result.subscription),
+                    "nonRenewingPurchase": DataTransformer.nonRenewingPurchase(nonRenewingPurchase: result.nonRenewingPurchase),
+                    "error": err?.userInfo.debugDescription ?? ""
+                ] as [String : Any];
+                if (transaction != nil) {
+                    response["transaction"] = [
+                        "transactionIdentifier": transaction?.transactionIdentifier as Any,
+                        "transactionDate": transaction?.transactionDate?.timeIntervalSince1970 as Any,
+                        "payment": [
+                            "productIdentifier": transaction?.payment.productIdentifier as Any
+                        ]
+                    ]
+                }
+                resolve(response);
+            }
+        } else {
+            reject("Error", "Product not found", nil);
         }
     }
     

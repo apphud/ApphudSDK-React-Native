@@ -221,6 +221,16 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       }
     }
 
+    @ReactMethod
+    fun optOutOfTracking(promise: Promise) {
+        promise.resolve(Apphud.optOutOfTracking());
+    }
+
+    @ReactMethod
+    fun collectDeviceIdentifiers(promise: Promise) {
+      promise.resolve(Apphud.collectDeviceIdentifiers());
+    }
+
     private fun getUserPropertyKey(key: String): ApphudUserPropertyKey {
       return when (key) {
         "age" -> ApphudUserPropertyKey.Age

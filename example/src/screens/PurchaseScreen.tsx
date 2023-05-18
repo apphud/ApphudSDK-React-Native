@@ -4,9 +4,10 @@ import { Button, Input } from 'react-native-elements';
 import ApphudSdk from '@apphud/react-native-apphud-sdk';
 
 export default function PurchaseScreen() {
-  const [productId, setProductId] = React.useState<any>(null);
+  const [productId, setProductId] = React.useState<any>('com.apphud.lifetime');
+  const [paywallId, setPaywallId] = React.useState<any>('e2313cea');
   const onPurchaseHandler = () => {
-    ApphudSdk.purchase(productId).then((result) => {
+    ApphudSdk.purchaseProduct({ productId, paywallId }).then((result) => {
       Alert.alert('purchase result', JSON.stringify(result));
     });
   };
@@ -16,6 +17,11 @@ export default function PurchaseScreen() {
         placeholder="Product Identifier"
         value={productId}
         onChangeText={setProductId}
+      />
+      <Input
+        placeholder="Paywall Identifier"
+        value={paywallId}
+        onChangeText={setPaywallId}
       />
       <Button type="solid" title="Purchase" onPress={onPurchaseHandler} />
     </View>
