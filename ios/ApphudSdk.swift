@@ -91,6 +91,17 @@ class ApphudSdk: NSObject {
         Apphud.willPurchaseProductFromPaywall(productIdentifier);
     }
     
+    @objc(paywallsDidLoadCallback:withRejecter:)
+    func paywallsDidLoadCallback(resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+        Apphud.paywallsDidLoadCallback { paywalls in
+            resolve(
+                paywalls.map({ paywall in
+                    return paywall.toMap();
+                })
+            );
+        }
+    }
+    
     @objc(token:withResolver:withRejecter:)
     func submitPushNotificationsToken(token:Data,  resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         Apphud.submitPushNotificationsToken(token: token) { result in

@@ -32,7 +32,9 @@ extension ApphudPaywall {
             "experimentName": experimentName,
             "variationName": variationName,
             "json": json,
-            "products": products
+            "products": products.map({ product in
+                return product.toMap();
+            })
         ]
         return map;
     }
@@ -41,12 +43,12 @@ extension ApphudPaywall {
 extension ApphudProduct {
     func toMap() -> NSDictionary {
         let map: NSDictionary = [
-            "product_id": productId,
+            "productId": productId,
             "name": name,
             "store": store,
             "paywallId": paywallId,
             "paywallIdentifier": paywallIdentifier,
-            "product": skProduct
+            "product": skProduct?.toMap(),
         ];
         return map;
     }
