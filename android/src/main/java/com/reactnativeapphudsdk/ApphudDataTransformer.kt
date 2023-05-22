@@ -35,7 +35,7 @@ class ApphudDataTransformer {
       payload.putString("description", skuDetails.description);
       payload.putString("title", skuDetails.title);
       payload.putString("freeTrialPeriod", skuDetails.freeTrialPeriod);
-      payload.putString("introductoryPrice", skuDetails.freeTrialPeriod);
+      payload.putString("introductoryPrice", skuDetails.introductoryPrice);
       payload.putString("introductoryPriceAmountMicros", skuDetails.introductoryPriceAmountMicros.toString());
       payload.putInt("introductoryPriceCycles", skuDetails.introductoryPriceCycles);
       payload.putString("introductoryPricePeriod", skuDetails.introductoryPricePeriod);
