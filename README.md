@@ -72,7 +72,7 @@ Apphud may win back lapsed subscribers, reduce churn rate, get cancellation insi
 
 ## Installation
 
-Create your account at [Apphud for free](https://app.apphud.com/sign_up?utm_source=github&utm_medium=article&utm_campaign=github). Please feel free to read our [SDK Integration Guide](https://docs.apphud.com/getting-started/sdk-integration).
+Create your account at [Apphud for free](https://app.apphud.com/sign_up?utm_source=github&utm_medium=article&utm_campaign=github). Please feel free to read our [SDK Integration Guide](https://docs.apphud.com/docs/quickstart).
 
 ## Having a question?
 
