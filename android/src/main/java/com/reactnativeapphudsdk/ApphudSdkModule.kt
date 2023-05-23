@@ -96,10 +96,10 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
 
     @ReactMethod
-    fun purchaseProduct(product: ApphudProduct, promise: Promise) {
+    fun purchaseProduct(args: ReadableMap, promise: Promise) {
       this.currentActivity?.let {
         try {
-          Apphud.purchase(it, product) { res ->
+          Apphud.purchase(it, ApphudDataTransformer.getApphudProduct(args)) { res ->
             val result: WritableNativeArray = WritableNativeArray();
             result.pushMap(ApphudDataTransformer.getPurchaseMap(res));
             promise.resolve(result);

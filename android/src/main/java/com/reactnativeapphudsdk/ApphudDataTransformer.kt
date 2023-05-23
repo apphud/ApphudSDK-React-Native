@@ -122,5 +122,23 @@ class ApphudDataTransformer {
 
       return item;
     }
+
+    fun getApphudProduct(args: ReadableMap): ApphudProduct {
+      val productId = args.getString("productId") ?: throw IllegalArgumentException("productId is required argument");
+      val id = args.getString("id");
+      val name = args.getString("name");
+      val store = args.getString("store") ?: throw IllegalArgumentException("store is required argument");
+      val paywallId = args.getString("paywallId");
+      val paywallIdentifier = args.getString("paywallIdentifier");
+      return ApphudProduct(
+        id = id,
+        product_id = productId,
+        name = name,
+        store = store,
+        paywall_id = paywallId,
+        skuDetails = null,
+        paywall_identifier = paywallIdentifier
+      )
+    }
   }
 }

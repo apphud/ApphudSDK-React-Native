@@ -64,7 +64,11 @@ class ApphudSdk: NSObject {
             var response = [
                 "subscription": DataTransformer.apphudSubscription(subscription: result.subscription),
                 "nonRenewingPurchase": DataTransformer.nonRenewingPurchase(nonRenewingPurchase: result.nonRenewingPurchase),
-                "error": err?.userInfo.debugDescription ?? ""
+                "error": [
+                    "errorCode": err?.errorCode,
+                    "localizedDescription": err?.localizedDescription,
+                    "errorUserInfo": err?.errorUserInfo,
+                ]
             ] as [String : Any];
             if (transaction != nil) {
                 response["transaction"] = [
@@ -131,9 +135,10 @@ class ApphudSdk: NSObject {
         }
     }
     
-    @objc(token:withResolver:withRejecter:)
-    func submitPushNotificationsToken(token:Data,  resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        Apphud.submitPushNotificationsToken(token: token) { result in
+    @objc(submitPushNotificationsToken:withResolver:withRejecter:)
+    func submitPushNotificationsToken(token:String,  resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        let data: Data = (token).data(using: .utf8)!;
+        Apphud.submitPushNotificationsToken(token: data) { result in
             resolve(result);
         }
     }
