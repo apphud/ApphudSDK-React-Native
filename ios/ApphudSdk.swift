@@ -6,7 +6,7 @@ class ApphudSdk: NSObject {
     
     override init() {
         ApphudHttpClient.shared.sdkType = "reactnative";
-        ApphudHttpClient.shared.sdkVersion = "1.0.7";
+        ApphudHttpClient.shared.sdkVersion = "1.1.0";
     }
 
     @objc(start:withResolver:withRejecter:)
@@ -59,23 +59,26 @@ class ApphudSdk: NSObject {
     @objc(purchase:withResolver:withRejecter:)
     func purchase(productIdentifier:String,  resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
         Apphud.purchase(productIdentifier) { (result:ApphudPurchaseResult) in
-            let transaction:SKPaymentTransaction? = result.transaction;
-            let err:SKError? = result.error as? SKError;
+
             var response = [
                 "subscription": DataTransformer.apphudSubscription(subscription: result.subscription),
                 "nonRenewingPurchase": DataTransformer.nonRenewingPurchase(nonRenewingPurchase: result.nonRenewingPurchase),
-                "error": [
-                    "errorCode": err?.errorCode,
-                    "localizedDescription": err?.localizedDescription,
-                    "errorUserInfo": err?.errorUserInfo,
+            ]
+
+            if let err = result.error as? NSError {
+                response["error"] = [
+                    "errorCode": err.code,
+                    "localizedDescription": err.localizedDescription,
+                    "errorUserInfo": err.userInfo,
                 ]
-            ] as [String : Any];
-            if (transaction != nil) {
+            }
+
+            if let transaction = result.transaction {
                 response["transaction"] = [
-                    "transactionIdentifier": transaction?.transactionIdentifier as Any,
-                    "transactionDate": transaction?.transactionDate?.timeIntervalSince1970 as Any,
+                    "transactionIdentifier": transaction.transactionIdentifier ?? "",
+                    "transactionDate": transaction.transactionDate?.timeIntervalSince1970 ?? Date().timeIntervalSince1970,
                     "payment": [
-                        "productIdentifier": transaction?.payment.productIdentifier as Any
+                        "productIdentifier": transaction.payment.productIdentifier
                     ]
                 ]
             }
@@ -96,22 +99,32 @@ class ApphudSdk: NSObject {
         }
         if (product != nil) {
             Apphud.purchase(product!) { result in
-                let transaction:SKPaymentTransaction? = result.transaction;
-                let err:SKError? = result.error as? SKError;
+
                 var response = [
                     "subscription": DataTransformer.apphudSubscription(subscription: result.subscription),
                     "nonRenewingPurchase": DataTransformer.nonRenewingPurchase(nonRenewingPurchase: result.nonRenewingPurchase),
-                    "error": err?.userInfo.debugDescription ?? ""
-                ] as [String : Any];
-                if (transaction != nil) {
+
+                ]
+
+                if let err = result.error as? NSError {
+                    response["error"] = [
+                        "errorCode": err.code,
+                        "localizedDescription": err.localizedDescription,
+                        "errorUserInfo": err.userInfo,
+                    ]
+                }
+
+
+                if let transaction = result.transaction {
                     response["transaction"] = [
-                        "transactionIdentifier": transaction?.transactionIdentifier as Any,
-                        "transactionDate": transaction?.transactionDate?.timeIntervalSince1970 as Any,
+                        "transactionIdentifier": transaction.transactionIdentifier ?? "",
+                        "transactionDate": transaction.transactionDate?.timeIntervalSince1970 ?? Date().timeIntervalSince1970,
                         "payment": [
-                            "productIdentifier": transaction?.payment.productIdentifier as Any
+                            "productIdentifier": transaction.payment.productIdentifier
                         ]
                     ]
                 }
+
                 resolve(response);
             }
         } else {

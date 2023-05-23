@@ -19,7 +19,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     init {
       HeadersInterceptor.X_SDK = "reactnative";
-      HeadersInterceptor.X_SDK_VERSION = "1.0.7";
+      HeadersInterceptor.X_SDK_VERSION = "1.1.0";
       Apphud.productsFetchCallback {
         var arr: WritableNativeArray = WritableNativeArray();
         it.map { s -> arr.pushMap(ApphudDataTransformer.getProductMap(s)) }
@@ -99,7 +99,10 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     fun purchaseProduct(args: ReadableMap, promise: Promise) {
       this.currentActivity?.let {
         try {
-          Apphud.purchase(it, ApphudDataTransformer.getApphudProduct(args)) { res ->
+          var product = ApphudDataTransformer.getApphudProduct(args)
+          val sku = Apphud.product(product.product_id)
+          product.skuDetails = sku
+          Apphud.purchase(it, product) { res ->
             val result: WritableNativeArray = WritableNativeArray();
             result.pushMap(ApphudDataTransformer.getPurchaseMap(res));
             promise.resolve(result);
