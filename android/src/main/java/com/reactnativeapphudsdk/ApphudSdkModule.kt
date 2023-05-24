@@ -1,7 +1,9 @@
 package com.reactnativeapphudsdk
 import com.apphud.sdk.Apphud
 import com.apphud.sdk.ApphudAttributionProvider
+import com.apphud.sdk.ApphudListener
 import com.apphud.sdk.ApphudUserPropertyKey
+import com.apphud.sdk.domain.ApphudProduct
 import com.apphud.sdk.managers.HeadersInterceptor
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
@@ -17,7 +19,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     init {
       HeadersInterceptor.X_SDK = "reactnative";
-      HeadersInterceptor.X_SDK_VERSION = "1.0.7";
+      HeadersInterceptor.X_SDK_VERSION = "1.1.0";
       Apphud.productsFetchCallback {
         var arr: WritableNativeArray = WritableNativeArray();
         it.map { s -> arr.pushMap(ApphudDataTransformer.getProductMap(s)) }
@@ -83,6 +85,24 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       this.currentActivity?.let {
         try {
           Apphud.purchase(it, productIdentifier) { res ->
+            val result: WritableNativeArray = WritableNativeArray();
+            result.pushMap(ApphudDataTransformer.getPurchaseMap(res));
+            promise.resolve(result);
+          }
+        } catch (error: Error) {
+          promise.reject(this.name, error.message);
+        }
+      };
+    }
+
+    @ReactMethod
+    fun purchaseProduct(args: ReadableMap, promise: Promise) {
+      this.currentActivity?.let {
+        try {
+          var product = ApphudDataTransformer.getApphudProduct(args)
+          val sku = Apphud.product(product.product_id)
+          product.skuDetails = sku
+          Apphud.purchase(it, product) { res ->
             val result: WritableNativeArray = WritableNativeArray();
             result.pushMap(ApphudDataTransformer.getPurchaseMap(res));
             promise.resolve(result);
@@ -170,6 +190,16 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
 
     @ReactMethod
+    fun paywallsDidLoadCallback(promise: Promise) {
+      val paywalls = Apphud.paywalls();
+      val result: WritableNativeArray = WritableNativeArray();
+      for (paywall in paywalls) {
+        result.pushMap(ApphudDataTransformer.getApphudPaywallMap(paywall));
+      }
+      promise.resolve(result);
+    }
+
+    @ReactMethod
     fun setUserProperty(key: String, value: String, setOnce: Boolean, promise: Promise) {
       val label = getUserPropertyKey(key);
       Apphud.setUserProperty(label, value, setOnce);
@@ -202,6 +232,16 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         }
         promise.resolve(resultMap);
       }
+    }
+
+    @ReactMethod
+    fun optOutOfTracking(promise: Promise) {
+        promise.resolve(Apphud.optOutOfTracking());
+    }
+
+    @ReactMethod
+    fun collectDeviceIdentifiers(promise: Promise) {
+      promise.resolve(Apphud.collectDeviceIdentifiers());
     }
 
     private fun getUserPropertyKey(key: String): ApphudUserPropertyKey {

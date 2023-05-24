@@ -80,13 +80,13 @@ export default function ActionsScreen({ navigation }: Props) {
           <ListItem.Title>Сheck is Non-renewing Purchase</ListItem.Title>
         </ListItem.Content>
       </ListItem>
+      <ListItem onPress={() => navigation.navigate('Purchase')}>
+        <ListItem.Content>
+          <ListItem.Title>Purchase by id</ListItem.Title>
+        </ListItem.Content>
+      </ListItem>
       {Platform.OS === 'android' && (
         <>
-          <ListItem onPress={() => navigation.navigate('Purchase')}>
-            <ListItem.Content>
-              <ListItem.Title>Purchase by id</ListItem.Title>
-            </ListItem.Content>
-          </ListItem>
           <ListItem
             onPress={() => {
               ApphudSdk.subscriptions()
@@ -136,6 +136,19 @@ export default function ActionsScreen({ navigation }: Props) {
       >
         <ListItem.Content>
           <ListItem.Title>Get User ID</ListItem.Title>
+        </ListItem.Content>
+      </ListItem>
+      <ListItem
+        onPress={() => {
+          ApphudSdk.paywallsDidLoadCallback()
+            .then((data) => {
+              Alert.alert('paywalls', JSON.stringify(data));
+            })
+            .catch(errorHandler);
+        }}
+      >
+        <ListItem.Content>
+          <ListItem.Title>Get paywalls</ListItem.Title>
         </ListItem.Content>
       </ListItem>
     </View>

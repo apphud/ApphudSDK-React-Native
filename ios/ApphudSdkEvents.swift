@@ -65,6 +65,13 @@ extension ApphudSdkEvents: ApphudDelegate {
     func apphudProductIdentifiers() -> [String] {
         return self.productIdentifiers;
     }
+    
+    func paywallsDidFullyLoad(paywalls: [ApphudPaywall]) {
+        let result:[NSDictionary] = paywalls.map{ (paywall) ->  NSDictionary in
+            return paywall.toMap();
+        }
+        self.sendEvent(withName: "paywallsDidFullyLoad", body: result);
+    }
 }
 
 extension ApphudSdkEvents: ApphudUIDelegate {
