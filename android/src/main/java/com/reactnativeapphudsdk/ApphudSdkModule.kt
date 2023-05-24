@@ -190,6 +190,16 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
 
     @ReactMethod
+    fun paywallsDidLoadCallback(promise: Promise) {
+      val paywalls = Apphud.paywalls();
+      val result: WritableNativeArray = WritableNativeArray();
+      for (paywall in paywalls) {
+        result.pushMap(ApphudDataTransformer.getApphudPaywallMap(paywall));
+      }
+      promise.resolve(result);
+    }
+
+    @ReactMethod
     fun setUserProperty(key: String, value: String, setOnce: Boolean, promise: Promise) {
       val label = getUserPropertyKey(key);
       Apphud.setUserProperty(label, value, setOnce);
