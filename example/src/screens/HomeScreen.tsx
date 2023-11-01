@@ -1,5 +1,8 @@
 import * as React from 'react';
-import { View } from 'react-native';
+import { 
+  View,
+  KeyboardAvoidingView
+} from 'react-native';
 import { Input, Button } from 'react-native-elements';
 import ApphudSdk from '@apphud/react-native-apphud-sdk';
 import type { StackScreenProps } from '@react-navigation/stack';
@@ -22,7 +25,7 @@ export default function HomeScreen({ navigation }: Props) {
     });
   };
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
       <Input placeholder="apiKey" value={apiKey} onChangeText={setApiKey} />
       <Input placeholder="userId" value={userId} onChangeText={setUserId} />
       <Input
@@ -31,6 +34,6 @@ export default function HomeScreen({ navigation }: Props) {
         onChangeText={setDeviceId}
       />
       <Button type="solid" title="Start" onPress={onStartHandler} />
-    </View>
+    </KeyboardAvoidingView>
   );
 }

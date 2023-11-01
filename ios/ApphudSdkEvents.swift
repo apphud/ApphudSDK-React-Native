@@ -30,7 +30,9 @@ class ApphudSdkEvents: RCTEventEmitter {
             "apphudDidPurchase",
             "apphudWillPurchase",
             "apphudDidFailPurchase",
-            "apphudDidSelectSurveyAnswer"
+            "apphudDidSelectSurveyAnswer",
+            "paywallsDidFullyLoad"
+
         ]
     }
 }

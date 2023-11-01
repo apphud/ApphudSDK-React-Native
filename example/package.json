@@ -4,16 +4,16 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "android": "react-native run-android",
-    "ios": "react-native run-ios",
-    "start": "react-native start"
+    "android": "export NODE_OPTIONS=--openssl-legacy-provider && react-native run-android",
+    "ios": "export NODE_OPTIONS=--openssl-legacy-provider && react-native run-ios",
+    "start": "export NODE_OPTIONS=--openssl-legacy-provider && react-native start"
   },
   "dependencies": {
     "@react-native-community/masked-view": "^0.1.10",
     "@react-navigation/native": "^5.9.2",
     "@react-navigation/stack": "^5.14.2",
     "react": "16.13.1",
-    "react-native": "0.63.4",
+    "react-native": "0.63.5",
     "react-native-elements": "^3.1.0",
     "react-native-gesture-handler": "^1.9.0",
     "react-native-reanimated": "^1.13.2",
