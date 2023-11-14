@@ -9,4 +9,8 @@ RCT_EXTERN_METHOD(
     withReject:(RCTPromiseRejectBlock)reject
 )
 
++ (BOOL)requiresMainQueueSetup {
+    return YES; // Requires setup on the main JavaScript thread
+}
+
 @end

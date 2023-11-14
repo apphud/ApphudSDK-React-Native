@@ -1,14 +1,14 @@
 export enum ApphudSdkEmitterEvents {
-  apphudDidFetchStoreKitProducts = 'apphudDidFetchStoreKitProducts',
+  paywallsDidFullyLoad = 'paywallsDidFullyLoad',
+  apphudDidLoadStoreProducts = 'apphudDidLoadStoreProducts',
   apphudDidChangeUserID = 'apphudDidChangeUserID',
   apphudSubscriptionsUpdated = 'apphudSubscriptionsUpdated',
   apphudNonRenewingPurchasesUpdated = 'apphudNonRenewingPurchasesUpdated',
+
   apphudDidPurchase = 'apphudDidPurchase',
   apphudWillPurchase = 'apphudWillPurchase',
   apphudDidFailPurchase = 'apphudDidFailPurchase',
   apphudDidSelectSurveyAnswer = 'apphudDidSelectSurveyAnswer',
-  productFetchCallback = 'productFetchCallback',
-  paywallsDidFullyLoad = 'paywallsDidFullyLoad',
 }
 
 export type ApphudSdkEventsType = {

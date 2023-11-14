@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { 
   View,
+  Platform,
   KeyboardAvoidingView
 } from 'react-native';
 import { Input, Button } from 'react-native-elements';

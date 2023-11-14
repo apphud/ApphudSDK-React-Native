@@ -128,7 +128,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.apphud.app"
+        applicationId "com.apphud.demo"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

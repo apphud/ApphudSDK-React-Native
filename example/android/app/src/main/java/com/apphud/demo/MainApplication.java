@@ -1,4 +1,4 @@
-package com.apphud.app;
+package com.apphud.demo;
 
 import android.app.Application;
 import android.content.Context;

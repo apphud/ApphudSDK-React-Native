@@ -1,11 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
   xmlns:tools="http://schemas.android.com/tools"
-  package="com.apphud.app">
+  package="com.apphud.demo">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
-      android:name="com.apphud.app.MainApplication"
+      android:name="com.apphud.demo.MainApplication"
       android:label="@string/app_name"
       android:icon="@mipmap/ic_launcher"
       android:roundIcon="@mipmap/ic_launcher_round"
@@ -13,7 +13,7 @@
       android:theme="@style/AppTheme"
       tools:replace="android:allowBackup">
       <activity
-        android:name="com.apphud.app.MainActivity"
+        android:name="com.apphud.demo.MainActivity"
         android:label="@string/app_name"
         android:configChanges="keyboard|keyboardHidden|orientation|screenSize|uiMode"
         android:launchMode="singleTask"

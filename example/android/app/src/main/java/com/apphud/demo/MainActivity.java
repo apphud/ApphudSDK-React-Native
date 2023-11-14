@@ -1,4 +1,4 @@
-package com.apphud.app;
+package com.apphud.demo;
 
 import com.facebook.react.ReactActivity;
 

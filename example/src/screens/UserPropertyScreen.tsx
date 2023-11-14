@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Alert, CheckBox, Text, View } from 'react-native';
 import { Button, Input } from 'react-native-elements';
-import ApphudSdk from '@apphud/react-native-apphud-sdk';
+import ApphudSdk, { ApphudUserPropertyKey } from '@apphud/react-native-apphud-sdk';
 
 export default function UserPropertyScreen() {
   const [key, setKey] = React.useState<any>(null);
@@ -11,6 +11,9 @@ export default function UserPropertyScreen() {
   const successAlert = () => Alert.alert('Done');
   const errorAlert = (e: any) => Alert.alert('Error', e?.message);
   const onSetHandler = () => {
+    // CHECK
+    ApphudSdk.setUserProperty(ApphudUserPropertyKey.Name, "Test User", false)
+
     ApphudSdk.setUserProperty(key, value, once)
       .then(successAlert)
       .catch(errorAlert);

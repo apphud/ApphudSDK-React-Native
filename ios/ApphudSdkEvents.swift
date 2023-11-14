@@ -16,23 +16,25 @@ class ApphudSdkEvents: RCTEventEmitter {
     
     @objc(setApphudProductIdentifiers:withResolve:withReject:)
     public func setApphudProductIdentifiers(ids: NSArray, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
-        self.productIdentifiers = ids as! [String];
+        self.productIdentifiers = ids as? [String] ?? []
         resolve(self.productIdentifiers);
     }
 
     override func supportedEvents() -> [String]! {
         return [
-            "apphudDidFetchStoreKitProducts",
+            "paywallsDidFullyLoad",
+            "apphudDidLoadStoreProducts",
+
             "apphudDidChangeUserID",
             "apphudSubscriptionsUpdated",
             "apphudNonRenewingPurchasesUpdated",
+
             "apphudProductIdentifiers",
+
             "apphudDidPurchase",
             "apphudWillPurchase",
             "apphudDidFailPurchase",
             "apphudDidSelectSurveyAnswer",
-            "paywallsDidFullyLoad"
-
         ]
     }
 }
@@ -43,7 +45,7 @@ extension ApphudSdkEvents: ApphudDelegate {
         let result:[NSDictionary] = products.map{ (product) -> NSDictionary in
             return DataTransformer.skProduct(product: product);
         }
-        self.sendEvent(withName: "apphudDidFetchStoreKitProducts", body: result);
+        self.sendEvent(withName: "apphudDidLoadStoreProducts", body: result);
     }
 
     func apphudDidChangeUserID(_ userID: String) {
@@ -69,9 +71,7 @@ extension ApphudSdkEvents: ApphudDelegate {
     }
     
     func paywallsDidFullyLoad(paywalls: [ApphudPaywall]) {
-        let result:[NSDictionary] = paywalls.map{ (paywall) ->  NSDictionary in
-            return paywall.toMap();
-        }
+        let result = paywalls.map { $0.toMap() }
         self.sendEvent(withName: "paywallsDidFullyLoad", body: result);
     }
 }

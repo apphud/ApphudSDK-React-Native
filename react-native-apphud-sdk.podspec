@@ -10,7 +10,7 @@ Pod::Spec.new do |s|
   s.license      = package["license"]
   s.authors      = package["author"]
 
-  s.platforms    = { :ios => "11.2" }
+  s.platforms    = { :ios => "13.0" }
   s.source       = { :git => "https://github.com/apphud/ApphudSDK.git", :tag => "#{s.version}" }
 
 
@@ -18,5 +18,5 @@ Pod::Spec.new do |s|
 
 
   s.dependency "React-Core"
-  s.dependency "ApphudSDK", "2.8.8"
+  s.dependency "ApphudSDK", "3.1.3"
 end
