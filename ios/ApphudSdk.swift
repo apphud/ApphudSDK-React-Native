@@ -10,22 +10,29 @@ class ApphudSdk: NSObject {
     }
 
     @objc(start:withResolver:withRejecter:)
-    func start(options: NSDictionary, resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+    func start(options: NSDictionary, resolve: @escaping RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
         let apiKey = options["apiKey"] as! String;
         let userID = options["userId"] as? String;
         let observerMode = options["observerMode"] as? Bool ?? true;
-        Apphud.start(apiKey: apiKey, userID: userID, observerMode: observerMode);
-        resolve(true);
+        DispatchQueue.main.async {
+            #if DEBUG
+            Apphud.enableDebugLogs()
+            #endif
+            Apphud.start(apiKey: apiKey, userID: userID, observerMode: observerMode);
+            resolve(true);
+        }
     }
     
     @objc(startManually:withResolver:withRejecter:)
-    func startManually(options: NSDictionary, resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+    func startManually(options: NSDictionary, resolve: @escaping RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
         let apiKey = options["apiKey"] as! String;
         let userID = options["userId"] as? String;
         let deviceID = options["deviceId"] as? String;
         let observerMode = options["observerMode"] as? Bool ?? true;
-        Apphud.startManually(apiKey: apiKey, userID: userID, deviceID: deviceID, observerMode: observerMode);
-        resolve(true);
+        DispatchQueue.main.async {
+            Apphud.startManually(apiKey: apiKey, userID: userID, deviceID: deviceID, observerMode: observerMode);
+            resolve(true);
+        }
     }
     
     @objc(logout:withRejecter:)
@@ -54,8 +61,8 @@ class ApphudSdk: NSObject {
         );
     }
 
-    @objc(purchaseProduct:withResolver:withRejecter:)
-    func purchaseProduct(args: NSDictionary, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+    @objc(purchase:withResolver:withRejecter:)
+    func purchase(args: NSDictionary, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
 
         guard let productId = args["productId"] as? String, productId.count > 0 else {
             reject("Error", "ProductId not set", nil)
@@ -120,12 +127,7 @@ class ApphudSdk: NSObject {
             }
         }
     }
-
-    @objc(willPurchaseFromPaywall:withResolver:withRejecter:)
-    func willPurchaseFromPaywall(identifier: String,  resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
-        Apphud.willPurchaseProductFromPaywall(identifier)
-    }
-    
+   
     @objc(paywalls:withRejecter:)
     func paywalls(resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
         Apphud.paywallsDidLoadCallback { paywalls in

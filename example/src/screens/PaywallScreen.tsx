@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View, Text, StyleSheet, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Alert, ScrollView, Platform } from 'react-native';
 import type { ApphudPaywall, ApphudProduct } from '@apphud/react-native-apphud-sdk';
 import ApphudSdk from '@apphud/react-native-apphud-sdk';
 import { Button } from 'react-native-elements';
@@ -55,7 +55,6 @@ export default function PaywallScreen({ route, navigation}: { route: any, naviga
           setCurrentPaywall(paywall);
           const productsPropsList: ProductProps[] = preparedProducts(paywall.products);
           setProductsProps(productsPropsList);
-
           return paywall;
         }
       }
@@ -64,6 +63,7 @@ export default function PaywallScreen({ route, navigation}: { route: any, naviga
     };
 
     React.useEffect(() => {
+
         findPaywall()
             .then((paywall) => {
                 navigation.setOptions({
@@ -95,7 +95,7 @@ export default function PaywallScreen({ route, navigation}: { route: any, naviga
       const userCanceled = result.userCanceled
       const success = result.success
 
-      Alert.alert('Result = ', JSON.stringify(result));
+      Alert.alert('Purchase Result = ', JSON.stringify(result));
     });
   };
 
@@ -105,7 +105,13 @@ export default function PaywallScreen({ route, navigation}: { route: any, naviga
 
     return products.flatMap((product) => {
 
-      if (product.oneTimePurchaseOffer != null) {
+      if (Platform.OS === 'ios') {
+        return {
+          productId: product.id,
+          price: product.price || 0,
+          formattedPrice: '$2.99'
+        }
+      } else if (product.oneTimePurchaseOffer != null) {
         return ([product.oneTimePurchaseOffer] || []).map((offer) => ({
           productId: product.id,
           price: offer.price,
@@ -131,7 +137,7 @@ export default function PaywallScreen({ route, navigation}: { route: any, naviga
               Alert.alert('Products', JSON.stringify(productsProps));
             }}> Paywall ID: { currentPaywall?.identifier }</Text>
       <Text> Experiment: { currentPaywall?.experimentName || 'N/A'}</Text>
-      <Text> Custom JSON: { currentPaywall?.json }</Text>
+      {/* <Text> Custom JSON: { currentPaywall?.json }</Text> */}
       <View style={styles.root}>
         <View style={styles.table}>
           <View style={styles.row}>

@@ -20,7 +20,8 @@ extension SKProduct {
 
       map["subscriptionPeriod"] = subscriptionPeriod?.toMap()
       map["introductoryPrice"] = introductoryPrice?.toMap()
-
+      map["id"] = productIdentifier
+      map["store"] = "app_store"
     return map as NSDictionary
   }
 }
@@ -52,6 +53,7 @@ extension ApphudProduct {
 
         map["name"] = name
         map["paywallIdentifier"] = paywallIdentifier
+        map["id"] = productId
 
         if let productMap = skProduct?.toMap() as? [String: Any] {
             map.merge(productMap, uniquingKeysWith: { old, new in return new})

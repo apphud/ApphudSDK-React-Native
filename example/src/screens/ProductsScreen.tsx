@@ -57,7 +57,7 @@ export default function ProductsScreen() {
           {products?.map((product: ApphudProduct, key: number) => (
             <View style={styles.row} key={key}>
               <View style={styles.col}>
-                <Text>{product.id}</Text>
+                <Text>{ product.id }</Text>
               </View>
               <View style={styles.col}>
                 <Text>{product.price || product.subscriptionOffers?.map( o => { return o.pricingPhases[0].formattedPrice } )}</Text>

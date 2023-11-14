@@ -21,8 +21,6 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,
-    "target": "esnext",
-    "ignoreDeprecations": "5.0",
-    "verbatimModuleSyntax": true
+    "target": "esnext"
   }
 }

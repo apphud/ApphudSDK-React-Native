@@ -138,9 +138,9 @@ export interface ApphudPaywall {
 export interface ApphudProduct {
   // Product ID: iOS and Android
   id: string;
-  name: string;
+  name?: string;
   store: string;
-  paywallIdentifier: string;
+  paywallIdentifier?: string;
 
   /* iOS and Android. 
 

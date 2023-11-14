@@ -42,7 +42,7 @@ class ApphudDataTransformer {
       payload.putString("name", apphudProduct.name)
       payload.putString("store", apphudProduct.store)
       payload.putString("paywallIdentifier", apphudProduct.paywall_identifier)
-
+      payload.putString("id", apphudProduct.product_id)
       apphudProduct.productDetails?.let {
         payload.merge(getProductMap(it) )
       }
@@ -167,6 +167,7 @@ class ApphudDataTransformer {
 
       item.putString("id", product.productId)
       item.putString("productType", product.productType)
+      item.putString("store", "play_store")
       item.putString("title", product.title)
       item.putString("subscriptionPeriodAndroid", product.subscriptionPeriod())
       item.putArray("subscriptionOffers", offersMaps)
