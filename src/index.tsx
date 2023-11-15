@@ -15,22 +15,22 @@ export * from './ApphudSdkType';
 
 export * from './ApphudSdkListenerEventsType';
 
-const eventSubscription0 = ApphudSdkEventEmitter.addListener(ApphudSdkListenerEvents.paywallsDidFullyLoad, (prds) => {
+ApphudSdkEventEmitter.addListener(ApphudSdkListenerEvents.paywallsDidFullyLoad, (prds) => {
     console.log('Received event paywallsDidFullyLoad:', prds);
   });
-  const eventSubscription1 = ApphudSdkEventEmitter.addListener(ApphudSdkListenerEvents.apphudDidSelectSurveyAnswer, (prds) => {
+  ApphudSdkEventEmitter.addListener(ApphudSdkListenerEvents.apphudDidSelectSurveyAnswer, (prds) => {
     console.log('Received event apphudDidSelectSurveyAnswer:', prds);
   });
-  const eventSubscription2 = ApphudSdkEventEmitter.addListener(ApphudSdkListenerEvents.apphudDidFailPurchase, (prds) => {
+  ApphudSdkEventEmitter.addListener(ApphudSdkListenerEvents.apphudDidFailPurchase, (prds) => {
     console.log('Received event apphudDidFailPurchase:', prds);
   });
-  const eventSubscription3 = ApphudSdkEventEmitter.addListener(ApphudSdkListenerEvents.apphudDidPurchase, (prds) => {
+  ApphudSdkEventEmitter.addListener(ApphudSdkListenerEvents.apphudDidPurchase, (prds) => {
     console.log('Received event apphudDidPurchase:', prds);
   });
-  const eventSubscription4 = ApphudSdkEventEmitter.addListener(ApphudSdkListenerEvents.apphudWillPurchase, (prds) => {
+  ApphudSdkEventEmitter.addListener(ApphudSdkListenerEvents.apphudWillPurchase, (prds) => {
     console.log('Received event apphudWillPurchase:', prds);
   });
 
-  const eventSubscription5 = ApphudSdkEventEmitter.addListener(ApphudSdkListenerEvents.apphudScreenDidAppear, (prds) => {
+  ApphudSdkEventEmitter.addListener(ApphudSdkListenerEvents.apphudScreenDidAppear, (prds) => {
     console.log('Received event apphudScreenDidAppear:', prds);
   });

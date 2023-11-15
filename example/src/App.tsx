@@ -8,6 +8,11 @@ import PaywallScreen from './screens/PaywallScreen';
 
 const Stack = createStackNavigator();
 
+import { Animated } from "react-native";
+
+const av = new Animated.Value(0);
+av.addListener(() => {return});
+
 function App() {
 
   return (
