@@ -15,6 +15,7 @@ class ApphudSdk: NSObject {
         let userID = options["userId"] as? String;
         let observerMode = options["observerMode"] as? Bool ?? true;
         DispatchQueue.main.async {
+//            ApphudUtils.enableAllLogs()
             Apphud.start(apiKey: apiKey, userID: userID, observerMode: observerMode);
         }
     }
@@ -188,22 +189,40 @@ class ApphudSdk: NSObject {
     @objc(addAttribution:)
     func addAttribution(options: NSDictionary) {
 
-        guard let data = options["data"] as? [AnyHashable : Any], let identifier = options["identifier"]  as? String, let idInteger = options["attributionProviderId"] as? Int, let provider = ApphudAttributionProvider(rawValue: idInteger) else {
-            print("Apphud Error: Invalid Attribution Options")
+        let data = options["data"] as? [AnyHashable : Any]
+        let identifier = options["identifier"]  as? String
+        let providerString = options["attributionProviderId"] as? String
+        let provider: ApphudAttributionProvider
+        switch providerString {
+        case "appsFlyer":
+            provider = .appsFlyer
+        case "adjust":
+            provider = .adjust
+        case "appleSearchAds":
+            provider = .appleAdsAttribution
+        case "firebase":
+            provider = .firebase
+        default:
             return
         }
 
         Apphud.addAttribution(data: data, from: provider, identifer: identifier) {  _ in }
     }
 
-    @objc(setUserProperty:withValue:withSetOnce:)
-    func setUserProperty(key: String, value: NSObject, setOnce: Bool) {
+    @objc(setUserProperty:)
+    func setUserProperty(options: NSDictionary) {
+        guard let key = options["key"] as? String else {return}
+        
+        let value = options["value"]
+        let setOnce: Bool = (options["setOnce"] as? Bool) ?? false
         let _key = ApphudUserPropertyKey.init(key)
         Apphud.setUserProperty(key: _key, value: value, setOnce: setOnce)
     }
     
-    @objc(incrementUserProperty:withBy:)
-    func incrementUserProperty(key: String, by: NSNumber) {
+    @objc(incrementUserProperty:)
+    func incrementUserProperty(options: NSDictionary) {
+        guard let key = options["key"] as? String, let by = options["by"] else {return}
+
         let _key = ApphudUserPropertyKey.init(key)
         Apphud.incrementUserProperty(key: _key, by: by)
     }

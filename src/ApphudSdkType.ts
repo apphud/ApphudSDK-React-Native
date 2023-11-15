@@ -147,7 +147,7 @@ export type ApphudSdkType = {
    * @param value - Value must be a number, string, boolean or null. Passing a null value removes the property.
    * @param setOnce - if true, the property will be set only once and then it won't be updated.
    */
-  setUserProperty(key: ApphudUserPropertyKey | string, value: any, setOnce: boolean): void;
+  setUserProperty(args: { key: ApphudUserPropertyKey | string, value: any, setOnce: boolean }): void;
 
   /**
    * Available on iOS and Android.
@@ -156,7 +156,7 @@ export type ApphudSdkType = {
    * @param key - You can use custom string keys or built-in user property keys described in ApphudUserPropertyKey.
    * @param by - Value must be a number.
    */
-  incrementUserProperty(key: ApphudUserPropertyKey | string, by: number): void;
+  incrementUserProperty(args: { key: ApphudUserPropertyKey | string, by: number }): void;
   
   /**
    * Available on Android only.
@@ -378,9 +378,10 @@ export interface ApphudSubscriptionOffer {
 
 /* Attribution */
 export enum ApphudAttributionProvider {
-  AppsFlyer,
-  Adjust,
-  AppleSearchAds,
+  AppsFlyer = 'appsFlyer',
+  Adjust = 'adjust',
+  AppleSearchAds = 'appleSearchAds', // iOS only
+  Firebase = 'firebase'
 }
 
 export interface AttributionProperties {

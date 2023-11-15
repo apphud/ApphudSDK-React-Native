@@ -50,8 +50,8 @@ RCT_EXTERN_METHOD(optOutOfTracking)
 RCT_EXTERN_METHOD(enableDebugLogs)
 RCT_EXTERN_METHOD(logout:(RCTPromiseResolveBlock)resolve)
 RCT_EXTERN_METHOD(addAttribution:(NSDictionary*)options)
-RCT_EXTERN_METHOD(setUserProperty:(NSString*)key withValue:(NSObject*)value withSetOnce:(BOOL)setOnce)
-RCT_EXTERN_METHOD(incrementUserProperty:(NSString*)key withBy:(NSNumber*)by)
+RCT_EXTERN_METHOD(setUserProperty:(NSDictionary*)options)
+RCT_EXTERN_METHOD(incrementUserProperty:(NSDictionary*)options)
 
 + (BOOL)requiresMainQueueSetup {
     return YES; // Requires setup on the main JavaScript thread

@@ -1,4 +1,6 @@
 package com.reactnativeapphudsdk
+import android.util.Log
+import androidx.annotation.RequiresPermission.Read
 import com.apphud.sdk.Apphud
 import com.apphud.sdk.ApphudAttributionProvider
 import com.apphud.sdk.ApphudUserPropertyKey
@@ -6,6 +8,7 @@ import com.apphud.sdk.domain.ApphudProduct
 import com.apphud.sdk.managers.HeadersInterceptor
 import com.facebook.react.bridge.*
 import com.facebook.react.bridge.UiThreadUtil.runOnUiThread
+import java.lang.Exception
 
 class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
@@ -43,6 +46,14 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       Apphud.start(this.reactApplicationContext, apiKey!!, userId, deviceId)
     }
   }
+
+  @ReactMethod
+  fun userId(promise: Promise) {
+    runOnUiThread {
+      promise.resolve(Apphud.userId())
+    }
+  }
+
 
   @ReactMethod
   fun hasActiveSubscription(promise: Promise) {
@@ -122,18 +133,23 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  fun userId(promise: Promise) {
-    promise.resolve(Apphud.userId())
-  }
-
-  @ReactMethod
   fun addAttribution(options: ReadableMap) {
     val data = options.getMap("data")
     val identifier = options.getString("identifier")
-    val provider = ApphudAttributionProvider.valueOf(
-      options.getString("attributionProviderId").toString()
-    )
-    Apphud.addAttribution(provider, data?.toHashMap(), identifier)
+    val providerString = options.getString("attributionProviderId") ?: "none"
+
+    val provider = stringToApphudAttributionProvider(providerString)
+    provider?.let {
+      Apphud.addAttribution(it, data?.toHashMap(), identifier)
+    } ?: run {
+      Log.d("AP", "Unsupported attribution provider ${providerString}, skipping")
+    }
+  }
+
+  private fun stringToApphudAttributionProvider(value: String): ApphudAttributionProvider? {
+    return enumValues<ApphudAttributionProvider>().find {
+      it.name == value
+    }
   }
 
   @ReactMethod
@@ -182,15 +198,28 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  fun setUserProperty(key: String, value: Any?, setOnce: Boolean) {
-    val label = getUserPropertyKey(key)
-    Apphud.setUserProperty(label, value, setOnce)
+  fun setUserProperty(args: ReadableMap) {
+    val hash = args.toHashMap()
+    val key = hash["key"] as? String
+    val value = hash["value"]
+    val setOnce = hash["setOnce"] as? Boolean
+
+    if (!key.isNullOrBlank() && setOnce != null) {
+      val label = getUserPropertyKey(key)
+      Apphud.setUserProperty(label, value, setOnce)
+    }
   }
 
   @ReactMethod
-  fun incrementUserProperty(key: String, by: Any) {
-    val label = getUserPropertyKey(key)
-    Apphud.incrementUserProperty(label, by)
+  fun incrementUserProperty(args: ReadableMap) {
+    val hash = args.toHashMap()
+    val key = hash["key"] as? String
+    val value = hash["by"]
+
+    if (!key.isNullOrBlank() && value != null) {
+      val label = getUserPropertyKey(key)
+      Apphud.incrementUserProperty(label, value)
+    }
   }
 
   @ReactMethod

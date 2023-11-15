@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { ListItem } from 'react-native-elements';
-import ApphudSdk, { ApphudAttributionProvider, ApphudUserPropertyKey } from '@apphud/react-native-apphud-sdk';
+import ApphudSdk, { ApphudAttributionProvider, ApphudSdkEventEmitter, ApphudSdkEvents, ApphudSdkListenerEvents, ApphudUserPropertyKey } from '@apphud/react-native-apphud-sdk';
 import type { ApphudPaywall } from '@apphud/react-native-apphud-sdk';
 import type { Props } from './LoginScreen';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -24,9 +24,17 @@ export default function ActionsScreen({ navigation }: Props) {
       navigation.setOptions({
         title: userId, // Set the new title here
       });
+
+      return () => {
+        eventSubscription.remove();
+      };
     })
-    
+
   }, [navigation]);
+
+  const eventSubscription = ApphudSdkEventEmitter.addListener(ApphudSdkListenerEvents.apphudDidLoadStoreProducts, (prds) => {
+    console.log('Received event data:', prds);
+  });
   
   React.useEffect(() => {
     const loadPaywalls = navigation.addListener('focus', () => {
@@ -43,8 +51,11 @@ export default function ActionsScreen({ navigation }: Props) {
 
   const [paywalls, setPaywalls] = React.useState<Array<ApphudPaywall>>();
 
-  const logAll = () => {
+  const callAll = () => {
     ApphudSdk.enableDebugLogs();
+
+    ApphudSdk.setAdvertisingIdentifier('42ed88fd-b446-4eb1-81ae-83e3025c04cf')
+    
     ApphudSdk.userId().then((userId) => console.log(`Apphud: userId: ${userId}`));
     ApphudSdk.hasActiveSubscription().then((hasActiveSubscription) => 
       console.log(`Apphud: hasActiveSubscription: ${hasActiveSubscription}`)
@@ -52,14 +63,17 @@ export default function ActionsScreen({ navigation }: Props) {
     ApphudSdk.hasPremiumAccess().then((hasPremiumAccess) => 
       console.log(`Apphud: hasPremiumAccess: ${hasPremiumAccess}`)
     );
-    ApphudSdk.setAdvertisingIdentifier('42ed88fd-b446-4eb1-81ae-83e3025c04cf')
-    ApphudSdk.setUserProperty('some_key', 'some_value', false)
-    ApphudSdk.setUserProperty('some_float_key', 0.35, true)
-    ApphudSdk.setUserProperty(ApphudUserPropertyKey.Email, 'user@apphud.com', false)
-    ApphudSdk.addAttribution({data: {network: 'Facebook', campaign: 'Campaign', adgroup: 'AdGroup', creative: 'Creative'}, identifier: 'abc-def', attributionProviderId: ApphudAttributionProvider.AppsFlyer})
-    ApphudSdk.addAttribution({data: null, identifier: 'abc-def-token', attributionProviderId: ApphudAttributionProvider.AppleSearchAds})
-    ApphudSdk.collectDeviceIdentifiers()
-    ApphudSdk.incrementUserProperty('some_float_key', 2.01)
+    
+    ApphudSdk.setUserProperty({key: 'some_string_key2', value: 'some_string_valueee', setOnce: true})
+    ApphudSdk.setUserProperty({key: 'some_float_key3', value: 1.45, setOnce: true})
+    ApphudSdk.incrementUserProperty({key: 'some2_float_ke2y', by: 2.01})
+    ApphudSdk.setUserProperty({key: ApphudUserPropertyKey.Email, value: 'user2@apphud.com', setOnce: false})
+    ApphudSdk.addAttribution({data: {network: 'Facebook2', campaign: 'Campaign', adgroup: 'AdGroup', creative: 'Creative'}, identifier: 'abc-defgee', attributionProviderId: ApphudAttributionProvider.AppsFlyer})
+    ApphudSdk.addAttribution({data: null, identifier: 'abc-xxcvcxv123345', attributionProviderId: ApphudAttributionProvider.Firebase})
+    ApphudSdk.addAttribution({data: null, identifier: 'abc22-def-token1235556', attributionProviderId: ApphudAttributionProvider.AppleSearchAds})
+    
+   ApphudSdk.collectDeviceIdentifiers()
+    
     ApphudSdk.isNonRenewingPurchaseActive('com.apphud.demo.nonconsumable.premium').then(value => { 
       console.log(`Apphud: isNonRenewingPurchaseActive: ${value}`)
      })
@@ -79,7 +93,9 @@ export default function ActionsScreen({ navigation }: Props) {
      ApphudSdk.products().then(products => {
       console.log(`Apphud: products: ${JSON.stringify(products)}`)
      })
-     ApphudSdk.optOutOfTracking()
+     
+    ApphudSdk.optOutOfTracking()
+     
      ApphudSdk.syncPurchasesInObserverMode().then(_ => {
       console.log(`sync purchases finished`)
      })
@@ -120,7 +136,7 @@ export default function ActionsScreen({ navigation }: Props) {
         <ListItem.Chevron />
       </ListItem>
           <ListItem
-            onPress={logAll}
+            onPress={callAll}
           >
             <ListItem.Content>
               <ListItem.Title>Log All Functions to Console</ListItem.Title>
