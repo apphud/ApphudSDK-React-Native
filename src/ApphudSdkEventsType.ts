@@ -42,6 +42,15 @@ export enum ApphudSdkListenerEvents {
   apphudNonRenewingPurchasesUpdated = 'apphudNonRenewingPurchasesUpdated',
 
   /**
+   * Called when a Rules Screen appeared.
+   * 
+   * @param screenName - the name of the Rules Screen.
+   * 
+   * Available on iOS only.
+   */
+  apphudScreenDidAppear = 'apphudScreenDidAppear',
+
+  /**
    * Called when user successfully purchases in a Rules Screen.
    * 
    * @param product - product interface of iOS SKProduct

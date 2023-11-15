@@ -10,6 +10,7 @@ enum ApphudSdkDelegateEvents: String, CaseIterable {
     case apphudSubscriptionsUpdated
     case apphudNonRenewingPurchasesUpdated
     case apphudProductIdentifiers
+    case apphudScreenDidAppear
     case apphudDidPurchase
     case apphudWillPurchase
     case apphudDidFailPurchase
@@ -96,7 +97,12 @@ extension ApphudSdkEvents: ApphudUIDelegate {
             "screenName": screenName
         ]);
     }
-    
+
+
+    func apphudScreenDidAppear(screenName: String) {
+        self.sendEvent(.apphudScreenDidAppear, body: ["screenName": screenName])
+    }
+
     func apphudDidFailPurchase(product: SKProduct, offerID: String?, errorCode: SKError.Code, screenName: String) {
         self.sendEvent(.apphudDidFailPurchase, body: [
             "product": DataTransformer.skProduct(product: product),

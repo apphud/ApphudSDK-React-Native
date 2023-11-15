@@ -24,17 +24,9 @@ export default function ActionsScreen({ navigation }: Props) {
       navigation.setOptions({
         title: userId, // Set the new title here
       });
-
-      return () => {
-        eventSubscription.remove();
-      };
     })
 
   }, [navigation]);
-
-  const eventSubscription = ApphudSdkEventEmitter.addListener(ApphudSdkListenerEvents.apphudDidLoadStoreProducts, (prds) => {
-    console.log('Received event data:', prds);
-  });
   
   React.useEffect(() => {
     const loadPaywalls = navigation.addListener('focus', () => {

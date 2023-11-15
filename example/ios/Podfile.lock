@@ -186,7 +186,7 @@ PODS:
     - React-cxxreact (= 0.63.5)
     - React-jsi (= 0.63.5)
   - React-jsinspector (0.63.5)
-  - react-native-apphud-sdk (1.3.0):
+  - react-native-apphud-sdk (2.0.0):
     - ApphudSDK (= 3.1.3)
     - React-Core
   - react-native-safe-area-context (3.1.9):
@@ -391,7 +391,7 @@ SPEC CHECKSUMS:
   React-jsi: 7d908b17758178b076a05a254523f1a4227b53d2
   React-jsiexecutor: e06a32e42affb2bd89e4c8369349b5fcf787710c
   React-jsinspector: fdbc08866b34ae8e1b788ea1cbd9f9d1ca2aa3d6
-  react-native-apphud-sdk: c732765bf2425c7aab4b0d2bf97c6bb7c6f99811
+  react-native-apphud-sdk: ebb93df3c8bc9e8b744752a7cc7f8386f171c9ac
   react-native-safe-area-context: b6e0e284002381d2ff29fa4fff42b4d8282e3c94
   React-RCTActionSheet: e911b99f0d6fa7711ffc2f62d236b12a32771835
   React-RCTAnimation: ad8b853170a059faf31d6add34f67d22391bbe01
