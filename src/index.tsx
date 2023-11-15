@@ -1,20 +1,19 @@
 import { NativeEventEmitter, NativeModules } from 'react-native';
 import type { ApphudSdkType } from './ApphudSdkType';
-import type { ApphudSdkEventsType } from './ApphudSdkEventsType';
-import { ApphudSdkListenerEvents } from './ApphudSdkEventsType';
+import type { ApphudSdkListenerEventsType } from './ApphudSdkListenerEventsType';
+import { ApphudSdkListenerEvents } from './ApphudSdkListenerEventsType';
 
 const { ApphudSdk, ApphudSdkEvents: _ApphudSdkEvents } = NativeModules;
 
 export const ApphudSdkEventEmitter = new NativeEventEmitter(_ApphudSdkEvents);
 
-export const ApphudSdkEvents = _ApphudSdkEvents as ApphudSdkEventsType;
+export const ApphudSdkEvents = _ApphudSdkEvents as ApphudSdkListenerEventsType;
 
 export default ApphudSdk as ApphudSdkType;
 
 export * from './ApphudSdkType';
 
-export * from './ApphudSdkEventsType';
-
+export * from './ApphudSdkListenerEventsType';
 
 const eventSubscription0 = ApphudSdkEventEmitter.addListener(ApphudSdkListenerEvents.paywallsDidFullyLoad, (prds) => {
     console.log('Received event paywallsDidFullyLoad:', prds);

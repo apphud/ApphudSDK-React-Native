@@ -207,10 +207,32 @@ export type ApphudSdkType = {
   enableDebugLogs(): void;
 };
 
+/**
+ * Properties for initializing Apphud SDK.
+ */
 export interface StartProperties {
   apiKey: string;
+
+  /**
+   * Optional. You can provide your own unique user identifier.
+   * If not provided then UUID will be generated.
+   */
   userId?: string;
+
+  /**
+   * Optional. Not recommended to use unless you know what you are doing.
+   * You can provide your own unique device identifier. 
+   * If not provided then UUID will be generated.
+   */
   deviceId?: string;
+
+  /**
+   * Optional. Sets SDK to Observer (Analytics) mode. 
+   * If you purchase products by your own code, then pass `true`. 
+   * If you purchase products using `Apphud.purchase(product)` method, then pass `false`. 
+   * 
+   * Default value is `false`.
+   */
   observerMode?: boolean;
 }
 
@@ -249,44 +271,143 @@ export interface ApphudPurchaseProps {
   isConsumable?: boolean;
 }
 
+
 export interface ApphudSubscription {
-  status: string;
-  productId: string;
-  expiresAt: number;
-  startedAt: number;
-  canceledAt?: number;
-  isInRetryBilling: boolean;
-  isAutoRenewEnabled: boolean;
-  isIntroductoryActivated: boolean;
+
+  /**
+  Use this value to detect whether to give or not premium content to the user.
+  
+  @returns: `true` when user should have access to premium content. Otherwise `false`.
+  */
   isActive: boolean;
+
+  /**
+   * Status of the subscription. It can only be in one state at any moment.
+   
+  * Possible values:
+
+  * `trial`: Free trial period.
+  * 
+  * `intro`: One of introductory offers: "Pay as you go" or "Pay up front".
+  * 
+  * `promo`: Custom promotional offer.
+  * 
+  * `regular`: Regular paid subscription.
+  * 
+  * `grace`: Custom grace period. Configurable in web.
+  * 
+  * `refunded`: Subscription was refunded. Developer should treat this subscription as never purchased.
+  * 
+  * `expired`: Subscription has expired because has been canceled manually by user or had unresolved billing issues.
+  */
+  status: string;
+
+  /**
+     Product identifier of this subscription
+     */
+  productId: string;
+
+  /**
+     Expiration date of subscription period. 
+     You shouldn't use this property to detect if subscription is active because user can change system date in iOS settings.
+    Check isActive() method instead.
+     */
+  expiresAt: number;
+
+  /**
+   * Date when user has purchased the subscription. Timestamp in seconds.
+   */
+  startedAt: number;
+
+  /**
+   * Date when the subscription was refunded. Timestamp in seconds.
+   */
+  canceledAt?: number;
+
+  /**
+     Subscriptiona has failed to renew, but Apple / Google will try to charge the user later.
+     */
+  isInRetryBilling: boolean;
+
+  /**
+   False value means that user has canceled the subscription from App Store / Google Play settings. 
+  */
+  isAutoRenewEnabled: boolean;
+
+  /**
+     True value means that user has already used introductory offer for this subscription
+      (free trial, pay as you go or pay up front).
+  */  
+  isIntroductoryActivated: boolean;
 }
 
 export interface ApphudNonRenewingPurchase {
+  /**
+    Product identifier of this purchase
+  */
   productId: string;
+
+  /**
+    Date when user bought regular in-app purchase. Timestamp in seconds.
+  */
   purchasedAt: string;
+
+  /**
+   * Date when the purchase has been refunded. Timestamp in seconds.
+   */
   canceledAt?: string;
+
+  /**
+     Returns `true` if purchase is not refunded.
+  */
   isActive: boolean;
 }
 
 export interface ApphudPurchaseResult {
 
-  /* iOS and Android 
-    Returns true if purchase was successful, false if not.
+  /**
+  * Available on iOS and Android.  
+  * 
+  * Returns `true` if purchase was successful, `false` if not.
   */
   success: boolean
 
-  /* iOS and Android: ApphudPurchaseResult class */
+  /**
+   * Available on iOS and Android.
+   * 
+   * Subscription object from the purchase result, if any.
+   */
   subscription?: ApphudSubscription;
+
+  /**
+   * Available on iOS and Android.
+   * 
+   * Non-renewing purchase object from the purchase result, if any.
+   */
   nonRenewingPurchase?: ApphudNonRenewingPurchase;
+
+  /**
+   * Available on iOS and Android.
+   * 
+   * Returns error object if purchase failed.
+   */
   error?: {
     code: number;
     message: string;
   }
 
-  // iOS and Android
-  // returns true if user canceled purchase, othwerise not set
+  /**
+   * Available on iOS and Android.
+   * 
+   * Returns true if user canceled purchase.
+   */
   userCanceled?: boolean;
 
+  /**
+   * Available on Android only.
+   * 
+   * Transction details from Google Play.
+   */
   playStoreTransaction?: {
     /* Android: Purchase class */
     orderId: string;
@@ -295,32 +416,79 @@ export interface ApphudPurchaseResult {
     purchaseToken: string;
   };
 
+  /**
+   * Available on iOS only.
+   * 
+   * Transction details from App Store.
+   */
   appStoreTransaction?: {
+    /**
+     * iOS: SKPaymentTransactionStatePurchasing = 0
+     * iOS: SKPaymentTransactionStatePurchased = 1
+     * iOS: SKPaymentTransactionStateFailed = 2
+     * iOS: SKPaymentTransactionStateRestored = 3
+     */
     state: number;
     productId: string;
+
     // these two values present only if state is purchased or restored (1 or 3)
-    id?: string;
-    date?: number;
+    id?: string; // Transaction Identifer
+    date?: number; // Timestanp in seconds.
   };
 }
 
+/**
+ * Available on iOS and Android.
+ * 
+ * Response from Restore Purchases method.
+ */
 export interface RestorePurchase {
   subscriptions: Array<ApphudSubscription>;
   purchases: Array<ApphudNonRenewingPurchase>;
   error: any;
 }
 
+/**
+ * Available on iOS and Android.
+ * 
+ * Paywall object from Apphud Dashboard > Product Hub > Paywalls.
+ */
 export interface ApphudPaywall {
+  /**
+   * Paywall identifier from Apphud Dashboard > Product Hub > Paywalls.
+   */
   identifier: string;
+
+  /**
+   * A/B experiment name, if any.
+   */
   experimentName?: string;
+
+  /**
+   * Custom JSON data from Paywall.
+   */
   json?: string;
+
+  /**
+   * Array of products from Paywall.
+   */
   products: Array<ApphudProduct>;
 }
+
+/**
+ * Available on iOS and Android.
+ */
 export interface ApphudProduct {
-  // Product ID: iOS and Android
+  /** Product identifier */
   id: string;
+
+  /** Product name */
   name?: string;
+
+  /** app_store or google_play */
   store: string;
+
+  /** Paywall Identifier */
   paywallIdentifier?: string;
 
   /* iOS and Android. 
@@ -330,7 +498,7 @@ export interface ApphudProduct {
   */
   price?: number;
 
-  /* iOS only */
+  /** Available on iOS only */
   localizeTitle?: string;
   priceLocale?: {
     currencySymbol: string;
@@ -351,7 +519,7 @@ export interface ApphudProduct {
     paymentMode: number;
   }
   
-  /* Android only */
+  /** Available on Android only */
   title?: string;
   productType?: string;
   subscriptionPeriodAndroid?: string;
@@ -359,7 +527,10 @@ export interface ApphudProduct {
   oneTimePurchaseOffer?: ApphudPricingPhase;
 }
 
-/* Android only */
+/** Available on Android only 
+ * 
+ * Pricing phase of subscription offer of `ProductDetails` object.
+*/
 export interface ApphudPricingPhase {
   price: number;
   priceCurrencyCode: string;
@@ -368,7 +539,11 @@ export interface ApphudPricingPhase {
   formattedPrice: string;
 }
 
-/* Android only */
+/** 
+ * Available on Android only.
+ * 
+ * Subscription offer of `ProductDetails` object.
+ */
 export interface ApphudSubscriptionOffer {
   offerToken: string;
   basePlanId: string;
@@ -376,7 +551,7 @@ export interface ApphudSubscriptionOffer {
   pricingPhases: Array<ApphudPricingPhase>;
 }
 
-/* Attribution */
+/** Available Attribution Providers */
 export enum ApphudAttributionProvider {
   AppsFlyer = 'appsFlyer',
   Adjust = 'adjust',
@@ -384,13 +559,18 @@ export enum ApphudAttributionProvider {
   Firebase = 'firebase'
 }
 
+/**
+ * Interface for submitting attribution data to Apphud from your attribution network provider.
+ */
 export interface AttributionProperties {
   data?: any;
   identifier: string;
   attributionProviderId: ApphudAttributionProvider
 }
 
-/* User Properties */
+/** 
+ * Platform reserved user properties.
+ */
 export enum ApphudUserPropertyKey {
   Age = '$age',
   Email = '$email',

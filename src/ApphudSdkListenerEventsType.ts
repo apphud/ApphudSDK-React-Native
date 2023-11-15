@@ -96,7 +96,7 @@ export enum ApphudSdkListenerEvents {
   apphudDidSelectSurveyAnswer = 'apphudDidSelectSurveyAnswer',
 }
 
-export type ApphudSdkEventsType = {
+export type ApphudSdkListenerEventsType = {
   /**
    * Specify a list of product identifiers to fetch from the App Store.
    * @param ids array of product identifiers
