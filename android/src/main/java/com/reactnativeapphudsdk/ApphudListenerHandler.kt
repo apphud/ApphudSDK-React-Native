@@ -12,10 +12,23 @@ import com.facebook.react.bridge.WritableNativeArray
 import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.modules.core.DeviceEventManagerModule
 
+enum class ApphudSdkDelegateEvents(val value: String) {
+  PAYWALLS_DID_FULLY_LOAD("paywallsDidFullyLoad"),
+  APPHUD_DID_LOAD_STORE_PRODUCTS("apphudDidLoadStoreProducts"),
+  APPHUD_DID_CHANGE_USER_ID("apphudDidChangeUserID"),
+  APPHUD_SUBSCRIPTIONS_UPDATED("apphudSubscriptionsUpdated"),
+  APPHUD_NON_RENEWING_PURCHASES_UPDATED("apphudNonRenewingPurchasesUpdated"),
+  APPHUD_PRODUCT_IDENTIFIERS("apphudProductIdentifiers"),
+  APPHUD_DID_PURCHASE("apphudDidPurchase"),
+  APPHUD_WILL_PURCHASE("apphudWillPurchase"),
+  APPHUD_DID_FAIL_PURCHASE("apphudDidFailPurchase"),
+  APPHUD_DID_SELECT_SURVEY_ANSWER("apphudDidSelectSurveyAnswer")
+}
 class ApphudListenerHandler(private val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext), ApphudListener {
+
   override fun apphudDidChangeUserID(userId: String) {
     reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-      .emit("apphudDidChangeUserID", userId)
+      .emit(ApphudSdkDelegateEvents.APPHUD_DID_CHANGE_USER_ID.value, userId)
   }
 
   override fun apphudFetchProductDetails(details: List<ProductDetails>) {
@@ -26,7 +39,7 @@ class ApphudListenerHandler(private val reactContext: ReactApplicationContext) :
     }
 
     reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-    .emit("apphudDidLoadStoreProducts", nativeProducts)
+    .emit(ApphudSdkDelegateEvents.APPHUD_DID_LOAD_STORE_PRODUCTS.value, nativeProducts)
   }
 
   override fun paywallsDidFullyLoad(paywalls: List<ApphudPaywall>) {
@@ -39,11 +52,11 @@ class ApphudListenerHandler(private val reactContext: ReactApplicationContext) :
 
     reactContext
       .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-      .emit("paywallsDidFullyLoad", nativeArray);
+      .emit(ApphudSdkDelegateEvents.PAYWALLS_DID_FULLY_LOAD.value, nativeArray);
   }
 
   override fun userDidLoad() {
-
+    // do nothing
   }
 
   override fun getName(): String {

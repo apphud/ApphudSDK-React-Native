@@ -6,39 +6,33 @@ class ApphudSdk: NSObject {
     
     override init() {
         ApphudHttpClient.shared.sdkType = "reactnative";
-        ApphudHttpClient.shared.sdkVersion = "1.3.0";
+        ApphudHttpClient.shared.sdkVersion = "2.0.0";
     }
 
-    @objc(start:withResolver:withRejecter:)
-    func start(options: NSDictionary, resolve: @escaping RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+    @objc(start:)
+    func start(options: NSDictionary) {
         let apiKey = options["apiKey"] as! String;
         let userID = options["userId"] as? String;
         let observerMode = options["observerMode"] as? Bool ?? true;
         DispatchQueue.main.async {
-            #if DEBUG
-            Apphud.enableDebugLogs()
-            #endif
             Apphud.start(apiKey: apiKey, userID: userID, observerMode: observerMode);
-            resolve(true);
         }
     }
     
-    @objc(startManually:withResolver:withRejecter:)
-    func startManually(options: NSDictionary, resolve: @escaping RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+    @objc(startManually:)
+    func startManually(options: NSDictionary) {
         let apiKey = options["apiKey"] as! String;
         let userID = options["userId"] as? String;
         let deviceID = options["deviceId"] as? String;
         let observerMode = options["observerMode"] as? Bool ?? true;
         DispatchQueue.main.async {
-            Apphud.startManually(apiKey: apiKey, userID: userID, deviceID: deviceID, observerMode: observerMode);
-            resolve(true);
+            Apphud.startManually(apiKey: apiKey, userID: userID, deviceID: deviceID, observerMode: observerMode)
         }
     }
     
-    @objc(logout:withRejecter:)
-    func logout(resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
-        Apphud.logout();
-        resolve(true);
+    @objc(logout)
+    func logout() {
+        Apphud.logout()
     }
     
     @objc(hasActiveSubscription:withRejecter:)
@@ -52,13 +46,10 @@ class ApphudSdk: NSObject {
     }
 
     @objc(products:withRejecter:)
-    func products(resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
-        let products:[SKProduct]? = Apphud.products;
-        resolve(
-            products?.map{ (product) -> NSDictionary in
-                DataTransformer.skProduct(product: product);
-            }
-        );
+    func products(resolve: @escaping RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+        Apphud.fetchProducts { products, error in
+            resolve(products.map { DataTransformer.skProduct(product: $0) });
+        }
     }
 
     @objc(purchase:withResolver:withRejecter:)
@@ -138,33 +129,7 @@ class ApphudSdk: NSObject {
             );
         }
     }
-    
-    @objc(submitPushNotificationsToken:withResolver:withRejecter:)
-    func submitPushNotificationsToken(token:String,  resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
 
-        guard let data: Data = token.data(using: .utf8) else {
-            reject("Error", "Invalid Push Token", nil)
-            return
-        }
-
-        Apphud.submitPushNotificationsToken(token: data) { result in
-            resolve(result);
-        }
-    }
-    
-    @objc(apsInfo:withResolver:withRejecter:)
-    func handlePushNotification(apsInfo: NSDictionary,  resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
-        var payload = [String: AnyHashable]();
-        apsInfo.allKeys.forEach { key in
-            if let prop: String = key as? String, let value = apsInfo[prop] as? AnyHashable {
-                payload[prop] = value
-            }
-        }
-        resolve(
-            Apphud.handlePushNotification(apsInfo: payload)
-        )
-    }
-    
     @objc(subscription:withRejecter:)
     func subscription(resolve: RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
         guard let subscription = Apphud.subscription() else {
@@ -188,7 +153,7 @@ class ApphudSdk: NSObject {
             Apphud.isNonRenewingPurchaseActive(productIdentifier: productIdentifier)
         );
     }
-    
+
     @objc(nonRenewingPurchases:withRejecter:)
     func nonRenewingPurchases(resolve: RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
         let purchases = Apphud.nonRenewingPurchases() ?? []
@@ -220,36 +185,27 @@ class ApphudSdk: NSObject {
         );
     }
     
-    @objc(addAttribution:withResolver:withRejecter:)
-    func addAttribution(options: NSDictionary, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+    @objc(addAttribution:)
+    func addAttribution(options: NSDictionary) {
 
         guard let data = options["data"] as? [AnyHashable : Any], let identifier = options["identifier"]  as? String, let idInteger = options["attributionProviderId"] as? Int, let provider = ApphudAttributionProvider(rawValue: idInteger) else {
-            reject("Error", "Invalid Attribution Options", nil)
+            print("Apphud Error: Invalid Attribution Options")
             return
         }
 
-        Apphud.addAttribution(data: data, from: provider, identifer: identifier) {  result in
-            resolve(result)
-        }
+        Apphud.addAttribution(data: data, from: provider, identifer: identifier) {  _ in }
     }
-    
-    @objc(appStoreReceipt:withRejecter:)
-    func appStoreReceipt(resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
-        resolve(
-            Apphud.appStoreReceipt()
-        );
-    }
-    
-    @objc(setUserProperty:withValue:withSetOnce:withResolver:withRejecter:)
-    func setUserProperty(key: String, value: String, setOnce: Bool, resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+
+    @objc(setUserProperty:withValue:withSetOnce:)
+    func setUserProperty(key: String, value: NSObject, setOnce: Bool) {
         let _key = ApphudUserPropertyKey.init(key)
-        resolve(Apphud.setUserProperty(key: _key, value: value, setOnce: setOnce));
+        Apphud.setUserProperty(key: _key, value: value, setOnce: setOnce)
     }
     
-    @objc(incrementUserProperty:withBy:withResolver:withRejecter:)
-    func incrementUserProperty(key: String, by: String, resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+    @objc(incrementUserProperty:withBy:)
+    func incrementUserProperty(key: String, by: NSNumber) {
         let _key = ApphudUserPropertyKey.init(key)
-        resolve(Apphud.incrementUserProperty(key: _key, by: by));
+        Apphud.incrementUserProperty(key: _key, by: by)
     }
 
     @objc(syncPurchasesInObserverMode:withRejecter:)
@@ -257,5 +213,25 @@ class ApphudSdk: NSObject {
         Apphud.restorePurchases { _, _, _ in
             resolve(true)
         }
+    }
+
+    @objc(setAdvertisingIdentifier:)
+    func setAdvertisingIdentifier(idfa: String) {
+        Apphud.setAdvertisingIdentifier(idfa)
+    }
+
+    @objc(enableDebugLogs)
+    func enableDebugLogs() {
+        Apphud.enableDebugLogs()
+    }
+
+    @objc(optOutOfTracking)
+    func optOutOfTracking() {
+        Apphud.optOutOfTracking()
+    }
+
+    @objc(collectDeviceIdentifiers)
+    func collectDeviceIdentifiers() {
+        // do nothing
     }
 }

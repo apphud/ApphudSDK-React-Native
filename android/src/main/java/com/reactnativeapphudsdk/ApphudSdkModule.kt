@@ -19,36 +19,29 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   init {
     HeadersInterceptor.X_SDK = "reactnative"
-    HeadersInterceptor.X_SDK_VERSION = "1.3.0"
+    HeadersInterceptor.X_SDK_VERSION = "2.0.0"
     listener = ApphudListenerHandler(reactContext)
     listener?.let { Apphud.setListener(it) }
   }
 
   @ReactMethod
-  fun start(options: ReadableMap, promise: Promise) {
+  fun start(options: ReadableMap) {
+      startManually(options)
+  }
 
+  @ReactMethod
+  fun startManually(options: ReadableMap) {
     val apiKey = options.getString("apiKey")
     val userId = options.getString("userId")
     val deviceId = options.getString("deviceId")
 
     if (apiKey.isNullOrEmpty()) {
-      promise.reject("Error", "Api Key not set")
       return
-    }
-
-    if (BuildConfig.DEBUG) {
-        Apphud.enableDebugLogs()
     }
 
     runOnUiThread {
       Apphud.start(this.reactApplicationContext, apiKey!!, userId, deviceId)
-      promise.resolve(true)
     }
-  }
-
-  @ReactMethod
-  fun startManually(options: ReadableMap, promise: Promise) {
-    this.start(options, promise)
   }
 
   @ReactMethod
@@ -67,11 +60,6 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       }
       promise.resolve(result)
     }
-  }
-
-  @ReactMethod
-  fun willPurchaseFromPaywall(identifier: String, promise: Promise) {
-    promise.reject("Error",unSupportMethodMsg)
   }
 
   @ReactMethod
@@ -139,26 +127,24 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  fun addAttribution(options: ReadableMap, promise: Promise) {
+  fun addAttribution(options: ReadableMap) {
     val data = options.getMap("data")
     val identifier = options.getString("identifier")
     val provider = ApphudAttributionProvider.valueOf(
       options.getString("attributionProviderId").toString()
     )
     Apphud.addAttribution(provider, data?.toHashMap(), identifier)
-    promise.resolve(true)
   }
 
   @ReactMethod
   fun products(promise: Promise) {
-    val result = WritableNativeArray()
-    val products = Apphud.products()
-    if (products != null) {
-      for (product in products) {
+    Apphud.productsFetchCallback {
+      val result = WritableNativeArray()
+      for (product in it) {
         result.pushMap(ApphudDataTransformer.getProductMap(product))
       }
+      promise.resolve(result)
     }
-    promise.resolve(result)
   }
 
   @ReactMethod
@@ -196,27 +182,15 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  fun product(productIdentifier: String, promise: Promise) {
-    val product = Apphud.product(productIdentifier)
-    if (product != null) {
-      promise.resolve(ApphudDataTransformer.getProductMap(product))
-    } else {
-      promise.reject("product", "product not found")
-    }
-  }
-
-  @ReactMethod
-  fun setUserProperty(key: String, value: String, setOnce: Boolean, promise: Promise) {
+  fun setUserProperty(key: String, value: Any?, setOnce: Boolean) {
     val label = getUserPropertyKey(key)
     Apphud.setUserProperty(label, value, setOnce)
-    promise.resolve(true)
   }
 
   @ReactMethod
-  fun incrementUserProperty(key: String, by: String, promise: Promise) {
+  fun incrementUserProperty(key: String, by: Any) {
     val label = getUserPropertyKey(key)
     Apphud.incrementUserProperty(label, by)
-    promise.resolve(true)
   }
 
   @ReactMethod
@@ -247,25 +221,34 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   @ReactMethod
   fun syncPurchasesInObserverMode(promise: Promise) {
-    Apphud.restorePurchases { _, _, _ ->
-      promise.resolve(true)
+    Apphud.restorePurchases { _, _, error ->
+      promise.resolve(error == null)
     }
   }
 
   @ReactMethod
-  fun optOutOfTracking(promise: Promise) {
-    promise.resolve(Apphud.optOutOfTracking())
+  fun optOutOfTracking() {
+    Apphud.optOutOfTracking()
   }
 
   @ReactMethod
-  fun collectDeviceIdentifiers(promise: Promise) {
-    promise.resolve(Apphud.collectDeviceIdentifiers())
+  fun collectDeviceIdentifiers() {
+    Apphud.collectDeviceIdentifiers()
   }
 
   @ReactMethod
-  fun logout(promise: Promise) {
+  fun setAdvertisingIdentifier(idfa: String) {
+    Apphud.collectDeviceIdentifiers()
+  }
+
+  @ReactMethod
+  fun enableDebugLogs() {
+    Apphud.enableDebugLogs()
+  }
+
+  @ReactMethod
+  fun logout() {
     Apphud.logout()
-    promise.resolve(true)
   }
 
   private fun getUserPropertyKey(key: String): ApphudUserPropertyKey {
@@ -278,11 +261,5 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       "phone" -> ApphudUserPropertyKey.Phone
       else -> ApphudUserPropertyKey.CustomProperty(key)
     }
-  }
-
-  @ReactMethod
-  fun enableDebugLogs(promise: Promise) {
-    Apphud.enableDebugLogs()
-    promise.resolve(true)
   }
 }

@@ -1,9 +1,9 @@
 import * as React from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { ListItem } from 'react-native-elements';
-import ApphudSdk from '@apphud/react-native-apphud-sdk';
+import ApphudSdk, { ApphudAttributionProvider, ApphudUserPropertyKey } from '@apphud/react-native-apphud-sdk';
 import type { ApphudPaywall } from '@apphud/react-native-apphud-sdk';
-import type { Props } from './HomeScreen';
+import type { Props } from './LoginScreen';
 import { ScrollView } from 'react-native-gesture-handler';
 
 const boldStyles = StyleSheet.create({
@@ -18,7 +18,7 @@ const boldStyles = StyleSheet.create({
 
 
 export default function ActionsScreen({ navigation }: Props) {
-  const errorHandler = (err: Error) => Alert.alert('error', err.message);
+
   React.useEffect(() => {
     ApphudSdk.userId().then(userId => {
       navigation.setOptions({
@@ -43,6 +43,52 @@ export default function ActionsScreen({ navigation }: Props) {
 
   const [paywalls, setPaywalls] = React.useState<Array<ApphudPaywall>>();
 
+  const logAll = () => {
+    ApphudSdk.enableDebugLogs();
+    ApphudSdk.userId().then((userId) => console.log(`Apphud: userId: ${userId}`));
+    ApphudSdk.hasActiveSubscription().then((hasActiveSubscription) => 
+      console.log(`Apphud: hasActiveSubscription: ${hasActiveSubscription}`)
+      );
+    ApphudSdk.hasPremiumAccess().then((hasPremiumAccess) => 
+      console.log(`Apphud: hasPremiumAccess: ${hasPremiumAccess}`)
+    );
+    ApphudSdk.setAdvertisingIdentifier('42ed88fd-b446-4eb1-81ae-83e3025c04cf')
+    ApphudSdk.setUserProperty('some_key', 'some_value', false)
+    ApphudSdk.setUserProperty('some_float_key', 0.35, true)
+    ApphudSdk.setUserProperty(ApphudUserPropertyKey.Email, 'user@apphud.com', false)
+    ApphudSdk.addAttribution({data: {network: 'Facebook', campaign: 'Campaign', adgroup: 'AdGroup', creative: 'Creative'}, identifier: 'abc-def', attributionProviderId: ApphudAttributionProvider.AppsFlyer})
+    ApphudSdk.addAttribution({data: null, identifier: 'abc-def-token', attributionProviderId: ApphudAttributionProvider.AppleSearchAds})
+    ApphudSdk.collectDeviceIdentifiers()
+    ApphudSdk.incrementUserProperty('some_float_key', 2.01)
+    ApphudSdk.isNonRenewingPurchaseActive('com.apphud.demo.nonconsumable.premium').then(value => { 
+      console.log(`Apphud: isNonRenewingPurchaseActive: ${value}`)
+     })
+
+     ApphudSdk.nonRenewingPurchases().then(purchases => {
+      console.log(`Apphud: nonRenewingPurchases: ${JSON.stringify(purchases)}`)
+     })
+     ApphudSdk.subscription().then(s => {
+      console.log(`Apphud: subscription: ${JSON.stringify(s)}`)
+     })
+     ApphudSdk.subscriptions().then(ss => {
+      console.log(`Apphud: subscriptions: ${JSON.stringify(ss)}`)
+     })
+     ApphudSdk.paywalls().then(paywalls => {
+      console.log(`Apphud: paywalls: ${JSON.stringify(paywalls)}`)
+     })
+     ApphudSdk.products().then(products => {
+      console.log(`Apphud: products: ${JSON.stringify(products)}`)
+     })
+     ApphudSdk.optOutOfTracking()
+     ApphudSdk.syncPurchasesInObserverMode().then(_ => {
+      console.log(`sync purchases finished`)
+     })
+     ApphudSdk.restorePurchases().then(result => {
+      console.log(`restore purchases finished ${JSON.stringify(result)}`)
+     })
+     
+  }
+
   return (
     <ScrollView>
     <View style={{ flex: 1 }}>
@@ -54,9 +100,7 @@ export default function ActionsScreen({ navigation }: Props) {
       {  
         paywalls?.map((paywall, index) => (
           <ListItem key={index} onPress={() => {
-           //updatePaywall(paywall)
             navigation.navigate('Paywall', { paywallId: paywall.identifier })
-            //navigation.navigation.navigate('Paywall', { paywall: paywall });
           }}>
             <ListItem.Content>
               <ListItem.Title style={boldStyles.italicText}> {'->>>'} { paywall.identifier } ({paywall.products.length}) </ListItem.Title>  
@@ -75,79 +119,22 @@ export default function ActionsScreen({ navigation }: Props) {
         </ListItem.Content>
         <ListItem.Chevron />
       </ListItem>
-
-      <ListItem
-        onPress={() =>
-          ApphudSdk.hasActiveSubscription()
-            .then((bool) =>
-              Alert.alert('hasActiveSubscription', bool ? 'Yes' : 'No')
-            )
-            .catch(errorHandler)
-        }
-      >
-        <ListItem.Content>
-          <ListItem.Title>ApphudSdk.hasActiveSubscription</ListItem.Title>
-        </ListItem.Content>
-      </ListItem>
-      
-      
-      <ListItem
-        onPress={() => {
-          ApphudSdk.nonRenewingPurchases()
-            .then((purchases) => {
-              Alert.alert('purchases', JSON.stringify(purchases));
-
-              if (purchases.length > 0) {
-                ApphudSdk.isNonRenewingPurchaseActive(purchases[0].productId).then(result => {
-                  console.log(`PURCHASE IS ACTIVE: ${result}`)
-                })                  
-              }
-
-            })
-            .catch(errorHandler);
-        }}
-      >
-        <ListItem.Content>
-          <ListItem.Title>ApphudSdk.nonRenewingPurchases</ListItem.Title>
-        </ListItem.Content>
-      </ListItem>
-      <ListItem
-            onPress={() => {
-              ApphudSdk.subscription()
-                .then((subscription) => {
-                  Alert.alert('subscription', JSON.stringify(subscription));
-                })
-                .catch(errorHandler);
-            }}
+          <ListItem
+            onPress={logAll}
           >
             <ListItem.Content>
-              <ListItem.Title>ApphudSdk.subscription</ListItem.Title>
-            </ListItem.Content>
-          </ListItem>      
-      <ListItem
-            onPress={() => {
-              ApphudSdk.subscriptions()
-                .then((subscriptions) => {
-                  Alert.alert('subscriptions', JSON.stringify(subscriptions));
-                })
-                .catch(errorHandler);
-            }}
-          >
-            <ListItem.Content>
-              <ListItem.Title>ApphudSdk.subscriptions</ListItem.Title>
+              <ListItem.Title>Log All Functions to Console</ListItem.Title>
             </ListItem.Content>
           </ListItem>
+
           <ListItem
-            onPress={() => {
-              ApphudSdk.restorePurchases()
-                .then(() => {
-                  Alert.alert('Restore purchases', 'success');
-                })
-                .catch(errorHandler);
+            onPress={ () => {
+              ApphudSdk.logout()
+              navigation.navigate('Home')
             }}
           >
             <ListItem.Content>
-              <ListItem.Title>ApphudSdk.restorePurchases</ListItem.Title>
+              <ListItem.Title>Log Out</ListItem.Title>
             </ListItem.Content>
           </ListItem>
     </View>
