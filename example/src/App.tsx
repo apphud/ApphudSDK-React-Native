@@ -1,30 +1,27 @@
 import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import HomeScreen from './screens/HomeScreen';
+import LoginScreen from './screens/LoginScreen';
 import ActionsScreen from './screens/ActionsScreen';
-import PurchaseScreen from './screens/PurchaseScreen';
-import CheckIsNonRenewingPurchaseScreen from './screens/CheckIsNonRenewingPurchaseScreen';
-import AddAttributionScreen from './screens/AddAttributionScreen';
 import ProductsScreen from './screens/ProductsScreen';
-import UserPropertyScreen from './screens/UserPropertyScreen';
+import PaywallScreen from './screens/PaywallScreen';
 
 const Stack = createStackNavigator();
 
+import { Animated } from "react-native";
+
+const av = new Animated.Value(0);
+av.addListener(() => {return});
+
 function App() {
+
   return (
     <NavigationContainer>
       <Stack.Navigator>
-        <Stack.Screen name="Login" component={HomeScreen} />
+        <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Actions" component={ActionsScreen} />
-        <Stack.Screen name="Purchase" component={PurchaseScreen} />
         <Stack.Screen name="Products" component={ProductsScreen} />
-        <Stack.Screen name="AddAttribution" component={AddAttributionScreen} />
-        <Stack.Screen name="UserProperty" component={UserPropertyScreen} />
-        <Stack.Screen
-          name="CheckIsNonRenewingPurchase"
-          component={CheckIsNonRenewingPurchaseScreen}
-        />
+        <Stack.Screen name="Paywall" component={PaywallScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

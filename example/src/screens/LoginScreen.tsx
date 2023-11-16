@@ -1,7 +1,9 @@
 import * as React from 'react';
 import { 
   View,
-  KeyboardAvoidingView
+  Platform,
+  KeyboardAvoidingView,
+  NativeModules
 } from 'react-native';
 import { Input, Button } from 'react-native-elements';
 import ApphudSdk from '@apphud/react-native-apphud-sdk';
@@ -9,21 +11,18 @@ import type { StackScreenProps } from '@react-navigation/stack';
 
 export type Props = StackScreenProps<any>;
 
-export default function HomeScreen({ navigation }: Props) {
-  const [apiKey, setApiKey] = React.useState<string>(
-    'app_4sY9cLggXpMDDQMmvc5wXUPGReMp8G'
-  );
+export default function LoginScreen({ navigation }: Props) {
+
+  const [apiKey, setApiKey] = React.useState<string>('app_4sY9cLggXpMDDQMmvc5wXUPGReMp8G');
+
   const [userId, setUserId] = React.useState<any>(null);
   const [deviceId, setDeviceId] = React.useState<any>(null);
+
   const onStartHandler = () => {
-    ApphudSdk.start({
-      apiKey,
-      userId,
-      deviceId,
-    }).then(() => {
-      navigation.navigate('Actions');
-    });
-  };
+    ApphudSdk.start({ apiKey, userId, deviceId, observerMode: false })
+    navigation.navigate('Actions')
+  }
+
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
       <Input placeholder="apiKey" value={apiKey} onChangeText={setApiKey} />

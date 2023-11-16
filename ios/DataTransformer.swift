@@ -11,46 +11,55 @@ import ApphudSDK
 
 extension SKProduct {
   func toMap() -> NSDictionary {
-    let map: NSDictionary = [
-        "id": productIdentifier,
+
+    var map = [
         "localizedTitle": localizedTitle,
-        "localizedDescription": localizedDescription,
         "priceLocale": priceLocale.toMap(),
         "price": price.floatValue,
-        "subscriptionPeriod": subscriptionPeriod?.toMap() as Any,
-        "introductoryPrice": introductoryPrice?.toMap() as Any,
-    ]
-    return map
+    ] as [String : Any]
+
+      map["subscriptionPeriod"] = subscriptionPeriod?.toMap()
+      map["introductoryPrice"] = introductoryPrice?.toMap()
+      map["id"] = productIdentifier
+      map["store"] = "app_store"
+    return map as NSDictionary
   }
 }
 
 extension ApphudPaywall {
     func toMap() -> NSDictionary {
-        let map: NSDictionary = [
+        var map = [
             "identifier": identifier,
             "isDefault": isDefault,
-            "experimentName": experimentName,
-            "variationName": variationName,
-            "json": json,
             "products": products.map({ product in
                 return product.toMap();
             })
-        ]
-        return map;
+        ] as [String : Any]
+
+        map["json"] = json
+        map["experimentName"] = experimentName
+        map["variationName"] = variationName
+
+        return map as NSDictionary;
     }
 }
 
 extension ApphudProduct {
     func toMap() -> NSDictionary {
-        let map: NSDictionary = [
-            "productId": productId,
-            "name": name,
+
+        var map = [
             "store": store,
-            "paywallId": paywallId,
-            "paywallIdentifier": paywallIdentifier,
-            "product": skProduct?.toMap(),
-        ];
-        return map;
+        ] as [String: Any]
+
+        map["name"] = name
+        map["paywallIdentifier"] = paywallIdentifier
+        map["id"] = productId
+
+        if let productMap = skProduct?.toMap() as? [String: Any] {
+            map.merge(productMap, uniquingKeysWith: { old, new in return new})
+        }
+
+        return map as NSDictionary;
     }
 }
 
@@ -64,7 +73,6 @@ extension Locale {
   }
 }
 
-@available(iOS 11.2, *)
 extension SKProductSubscriptionPeriod {
   func toMap() -> NSDictionary {
     return [
@@ -74,12 +82,10 @@ extension SKProductSubscriptionPeriod {
   }
 }
 
-@available(iOS 11.2, *)
 extension SKProductDiscount {
   func toMap() -> NSDictionary {
     return [
         "price": price.floatValue,
-        "priceLocale": ["":""],
         "numberOfPeriods": numberOfPeriods,
         "subscriptionPeriod": subscriptionPeriod.toMap(),
         "paymentMode": paymentMode.rawValue,
@@ -87,43 +93,53 @@ extension SKProductDiscount {
   }
 }
 
+extension ApphudSubscriptionStatus {
+    func toString() -> String {
+        switch self {
+        case .trial:
+            return "trial"
+        case .intro:
+            return "intro"
+        case .regular:
+            return "regular"
+        case .promo:
+            return "promo"
+        case .grace:
+            return "grace"
+        case .expired:
+            return "expired"
+        case .refunded:
+            return "refunded"
+        }
+    }
+}
+
 public class DataTransformer {
     public static func skProduct(product: SKProduct) -> NSDictionary {
         return product.toMap();
     }
     
-    public static func apphudSubscription(subscription: ApphudSubscription?) -> NSDictionary {
-        var result:NSDictionary = NSDictionary();
-        if (subscription != nil) {
-            result = [
-                "productId": subscription!.productId as Any,
-                "expiresDate": subscription!.expiresDate.timeIntervalSince1970 as Any,
-                "startedAt": subscription!.startedAt.timeIntervalSince1970 as Any,
-                "canceledAt": subscription?.canceledAt?.timeIntervalSince1970 as Any,
-                "isInRetryBilling": subscription!.isInRetryBilling as Any,
-                "isAutorenewEnabled": subscription!.isAutorenewEnabled as Any,
-                "isIntroductoryActivated": subscription!.isIntroductoryActivated as Any,
-                "isActive":  subscription!.isActive() as Any,
-                "status": subscription!.status.rawValue as Any,
-                "isLocal": subscription!.isLocal as Any,
-                "isSandbox": subscription!.isSandbox as Any
-            ]
-        }
-        return result;
+    public static func apphudSubscription(subscription: ApphudSubscription) -> NSDictionary {
+        [
+            "productId": subscription.productId,
+            "expiresAt": subscription.expiresDate.timeIntervalSince1970,
+            "startedAt": subscription.startedAt.timeIntervalSince1970,
+            "canceledAt": subscription.canceledAt?.timeIntervalSince1970 as Any,
+            "isInRetryBilling": subscription.isInRetryBilling,
+            "isAutorenewEnabled": subscription.isAutorenewEnabled,
+            "isIntroductoryActivated": subscription.isIntroductoryActivated,
+            "isActive":  subscription.isActive(),
+            "status": subscription.status.toString(),
+            ] as NSDictionary
     }
     
-    public static func nonRenewingPurchase(nonRenewingPurchase: ApphudNonRenewingPurchase?) -> NSDictionary {
-        var result:NSDictionary = NSDictionary();
-        if (nonRenewingPurchase != nil) {
-            result = [
-                "productId": nonRenewingPurchase!.productId as Any,
-                "purchasedAt": nonRenewingPurchase!.purchasedAt.timeIntervalSince1970 as Any,
-                "canceledAt": nonRenewingPurchase?.canceledAt?.timeIntervalSince1970 as Any,
-                "isLocal": nonRenewingPurchase!.isLocal as Any,
-                "isSandbox": nonRenewingPurchase!.isSandbox as Any
-            ]
-        }
-        return result;
+    public static func nonRenewingPurchase(nonRenewingPurchase: ApphudNonRenewingPurchase) -> NSDictionary {
+        [
+            "productId": nonRenewingPurchase.productId,
+            "purchasedAt": nonRenewingPurchase.purchasedAt.timeIntervalSince1970,
+            "canceledAt": nonRenewingPurchase.canceledAt?.timeIntervalSince1970 as Any,
+            "isActive": nonRenewingPurchase.isActive()
+        ] as NSDictionary
     }
 }
 
