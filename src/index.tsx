@@ -1,7 +1,6 @@
 import { NativeEventEmitter, NativeModules } from 'react-native';
 
 import type { ApphudSdkListenerEventsType } from './ApphudSdkListenerEventsType';
-import { ApphudSdkListenerEvents } from './ApphudSdkListenerEventsType';
 import type { ApphudSdkType } from './ApphudSdkType';
 
 const { ApphudSdk } = NativeModules;
@@ -11,11 +10,15 @@ export const ApphudSdkEventEmitter = new NativeEventEmitter(_ApphudSdkEvents);
 export const ApphudSdkEvents = _ApphudSdkEvents as ApphudSdkListenerEventsType;
 export default ApphudSdk as ApphudSdkType;
 
+/**
+* See ApphudSDKType.ts for more information
+* See ApphudSDKListenerEventsType.ts for more information
+*/
+
 export * from './ApphudSdkType';
 export * from './ApphudSdkListenerEventsType';
 
-console.log('DID LOAD NATIVE MODULES');
-
+/** Uncomment to listen to events
 ApphudSdkEventEmitter.addListener(ApphudSdkListenerEvents.paywallsDidFullyLoad, (prds) => {
     console.log('Received event paywallsDidFullyLoad:', prds);
   });
@@ -35,3 +38,5 @@ ApphudSdkEventEmitter.addListener(ApphudSdkListenerEvents.paywallsDidFullyLoad, 
   ApphudSdkEventEmitter.addListener(ApphudSdkListenerEvents.apphudScreenDidAppear, (prds) => {
     console.log('Received event apphudScreenDidAppear:', prds);
   });
+
+  */

@@ -1,8 +1,7 @@
 import * as React from 'react';
-import { View, Text, StyleSheet, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import type { ApphudProduct } from '@apphud/react-native-apphud-sdk';
 import ApphudSdk from '@apphud/react-native-apphud-sdk';
-import { Button } from 'react-native-elements';
 
 const styles = StyleSheet.create({
   root: {
@@ -60,7 +59,7 @@ export default function ProductsScreen() {
                 <Text>{ product.id }</Text>
               </View>
               <View style={styles.col}>
-                <Text>{product.price || product.subscriptionOffers?.map( o => { return o.pricingPhases[0].formattedPrice } )}</Text>
+                <Text>{product.price || product.subscriptionOffers?.map( o => { return o.pricingPhases[0]?.formattedPrice } )}</Text>
               </View>
             </View>
           ))}

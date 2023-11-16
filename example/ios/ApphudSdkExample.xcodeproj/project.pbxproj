@@ -645,6 +645,7 @@
 			baseConfigurationReference = 47F7ED3B7971BE374F7B8635 /* Pods-ApphudSdkExample.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = ApphudSdkExample/ApphudSdkExample.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
@@ -676,6 +677,7 @@
 			baseConfigurationReference = E00ACF0FDA8BF921659E2F9A /* Pods-ApphudSdkExample.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = ApphudSdkExample/ApphudSdkExample.entitlements;
 				CURRENT_PROJECT_VERSION = 1;

@@ -109,7 +109,7 @@ export default function PaywallScreen({ route, navigation}: { route: any, naviga
         return {
           productId: product.id,
           price: product.price || 0,
-          formattedPrice: '$2.99'
+          formattedPrice: `${product.price || 0} ${product.priceLocale?.currencyCode || '$'}`
         }
       } else if (product.oneTimePurchaseOffer != null) {
         return ([product.oneTimePurchaseOffer] || []).map((offer) => ({
@@ -120,8 +120,8 @@ export default function PaywallScreen({ route, navigation}: { route: any, naviga
       } else {
         return (product.subscriptionOffers || []).map((offer) => ({
           productId: product.id,
-          price: offer.pricingPhases?.[0].price || product.price || 0,
-          formattedPrice: offer.pricingPhases?.[0].formattedPrice || product.price?.toString() || '',
+          price: offer.pricingPhases?.[0]?.price || product.price || 0,
+          formattedPrice: offer.pricingPhases?.[0]?.formattedPrice || product.price?.toString() || '',
           basePlanId: offer.basePlanId,
           offerToken: offer.offerToken,
           offerId: offer.offerId,

@@ -15,7 +15,6 @@ class ApphudSdk: NSObject {
         let userID = options["userId"] as? String;
         let observerMode = options["observerMode"] as? Bool ?? true;
         DispatchQueue.main.async {
-//            ApphudUtils.enableAllLogs()
             Apphud.start(apiKey: apiKey, userID: userID, observerMode: observerMode);
         }
     }
@@ -252,5 +251,19 @@ class ApphudSdk: NSObject {
     @objc(collectDeviceIdentifiers)
     func collectDeviceIdentifiers() {
         // do nothing
+    }
+
+    @objc(submitPushNotificationsToken:)
+    func submitPushNotificationsToken(token:String) {
+        Apphud.submitPushNotificationsTokenString(string: token, callback: nil)
+    }
+
+    @objc(handlePushNotification:)
+    func handlePushNotification(apsInfo: NSDictionary) -> Void {
+        if let payload = apsInfo as? [AnyHashable: Any] {
+            DispatchQueue.main.async {
+                Apphud.handlePushNotification(apsInfo: payload)
+            }
+        }
     }
 }

@@ -276,6 +276,16 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
+  fun submitPushNotificationsToken(token: String) {
+    // do nothing
+  }
+
+  @ReactMethod
+  fun handlePushNotification(apsInfo: ReadableMap) {
+    // do nothing
+  }
+
+  @ReactMethod
   fun logout() {
     Apphud.logout()
   }

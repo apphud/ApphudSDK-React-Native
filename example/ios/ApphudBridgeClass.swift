@@ -9,6 +9,10 @@ import Foundation
 
 import ApphudSDK
 
+/**
+* This is example bridge class for Apphud SDK.
+*/
+
 class ApphudBridgeClass: NSObject {
 
   @objc
@@ -23,7 +27,7 @@ class ApphudBridgeClass: NSObject {
     }
   }
 
-  @objc
+  @MainActor @objc
   static func initializeWith(_ apiKey: String) {
     Apphud.start(apiKey: apiKey)
   }

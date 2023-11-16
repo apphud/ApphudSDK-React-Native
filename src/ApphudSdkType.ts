@@ -205,6 +205,22 @@ export type ApphudSdkType = {
    * Enable debug logs in the console. Should be called in debug mode only.
    */
   enableDebugLogs(): void;
+
+  /**
+   * Available on iOS only.
+   * 
+   * Provide your push notifications token to Apphud SDK. Required for Rules & Screens.
+   * 
+   * **Important**: string must be hexadecimal string representation of NSData / Data.
+   */
+  submitPushNotificationsToken(token: string): void;
+
+  /**
+   * Available on iOS only.
+   * 
+   * Pass push notification payload to Apphud SDK. Required for Rules & Screens.
+   */
+  handlePushNotification(payload: any): void;
 };
 
 /**
