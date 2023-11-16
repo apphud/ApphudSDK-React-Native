@@ -58,7 +58,7 @@ export default function ActionsScreen({ navigation }: Props) {
     
     ApphudSdk.setUserProperty({key: 'some_string_key2', value: 'some_string_valueee', setOnce: true})
     ApphudSdk.setUserProperty({key: 'some_float_key3', value: 1.45, setOnce: true})
-    ApphudSdk.incrementUserProperty({key: 'some2_float_ke2y', by: 2.01})
+    // ApphudSdk.incrementUserProperty({key: 'some2_float_ke2y', by: 2.01})
     ApphudSdk.setUserProperty({key: ApphudUserPropertyKey.Email, value: 'user2@apphud.com', setOnce: false})
     ApphudSdk.addAttribution({data: {network: 'Facebook2', campaign: 'Campaign', adgroup: 'AdGroup', creative: 'Creative'}, identifier: 'abc-defgee', attributionProviderId: ApphudAttributionProvider.AppsFlyer})
     ApphudSdk.addAttribution({data: null, identifier: 'abc-xxcvcxv123345', attributionProviderId: ApphudAttributionProvider.Firebase})
@@ -91,9 +91,9 @@ export default function ActionsScreen({ navigation }: Props) {
      ApphudSdk.syncPurchasesInObserverMode().then(_ => {
       console.log(`sync purchases finished`)
      })
-     ApphudSdk.restorePurchases().then(result => {
-      console.log(`restore purchases finished ${JSON.stringify(result)}`)
-     })
+    //  ApphudSdk.restorePurchases().then(result => {
+    //   console.log(`restore purchases finished ${JSON.stringify(result)}`)
+    //  })
      
   }
 

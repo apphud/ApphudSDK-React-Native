@@ -2,7 +2,8 @@ import * as React from 'react';
 import { 
   View,
   Platform,
-  KeyboardAvoidingView
+  KeyboardAvoidingView,
+  NativeModules
 } from 'react-native';
 import { Input, Button } from 'react-native-elements';
 import ApphudSdk from '@apphud/react-native-apphud-sdk';

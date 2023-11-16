@@ -1,7 +1,7 @@
 {
   "name": "react-native-apphud-sdk-example",
   "description": "Example app for react-native-apphud-sdk",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "android": "export NODE_OPTIONS=--openssl-legacy-provider && react-native run-android",
@@ -10,10 +10,12 @@
   },
   "dependencies": {
     "@react-native-community/masked-view": "^0.1.11",
+    "@react-native/metro-config": "^0.73.2",
     "@react-navigation/native": "^6.1.9",
     "@react-navigation/stack": "^6.3.20",
     "react": "18.2.0",
-    "react-native": "0.70",
+    "react-native": "0.71",
+    "react-native-eject": "^0.2.0",
     "react-native-elements": "^3.4.3",
     "react-native-gesture-handler": "^2.13.4",
     "react-native-reanimated": "^3.5.4",
@@ -25,6 +27,7 @@
     "@babel/core": "^7.23.3",
     "@babel/runtime": "^7.23.2",
     "babel-plugin-module-resolver": "^5.0.0",
-    "metro-react-native-babel-preset": "^0.77.0"
+    "metro-react-native-babel-preset": "^0.77.0",
+    "react-native-svg-transformer": "^1.1.0"
   }
 }
