@@ -164,7 +164,12 @@ android {
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }
-    // applicationVariants are e.g. debug, release
+  packagingOptions {
+    jniLibs {
+      pickFirsts += ['lib/x86/libc++_shared.so', 'lib/x86_64/libc++_shared.so', 'lib/arm64-v8a/libc++_shared.so', 'lib/armeabi-v7a/libc++_shared.so', 'lib/x86/libfbjni.so', 'lib/x86_64/libfbjni.so', 'lib/arm64-v8a/libfbjni.so', 'lib/armeabi-v7a/libfbjni.so']
+    }
+  }
+// applicationVariants are e.g. debug, release
     applicationVariants.all { variant ->
         variant.outputs.each { output ->
             // For each separate APK per architecture, set a unique version code as described here:
@@ -178,16 +183,7 @@ android {
 
         }
     }
-    packagingOptions {
-        pickFirst 'lib/x86/libc++_shared.so'
-        pickFirst 'lib/x86_64/libc++_shared.so'
-        pickFirst 'lib/arm64-v8a/libc++_shared.so'
-        pickFirst 'lib/armeabi-v7a/libc++_shared.so'
-        pickFirst 'lib/x86/libfbjni.so'
-        pickFirst 'lib/x86_64/libfbjni.so'
-        pickFirst 'lib/arm64-v8a/libfbjni.so'
-        pickFirst 'lib/armeabi-v7a/libfbjni.so'
-    }
+  namespace 'com.apphud.demo'
 }
 
 dependencies {

@@ -144,6 +144,7 @@
     ]
   },
   "dependencies": {
+    "react-native-reanimated": "^3.5.4",
     "react-native-vector-icons": "^9.2.0"
   }
 }
