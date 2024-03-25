@@ -1,6 +1,6 @@
 {
   "name": "@apphud/react-native-apphud-sdk",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Apphud SDK for react native",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
