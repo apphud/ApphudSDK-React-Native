@@ -221,6 +221,14 @@ export type ApphudSdkType = {
    * Pass push notification payload to Apphud SDK. Required for Rules & Screens.
    */
   handlePushNotification(payload: any): void;
+    /**
+   * Available on iOS only.
+   * 
+   * Check eligibility for introductory offer
+   */
+  checkEligibilitiesForIntroductoryOffer(
+    productIdentifier: string
+  ): Promise<boolean>;
 };
 
 /**
