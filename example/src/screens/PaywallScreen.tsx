@@ -53,6 +53,7 @@ export default function PaywallScreen({ route, navigation}: { route: any, naviga
       for (const paywall of paywalls) {
         if (paywall.identifier === route.params.paywallId) {
           setCurrentPaywall(paywall);
+          await ApphudSdk.paywallShown(paywall.identifier);
           const productsPropsList: ProductProps[] = preparedProducts(paywall.products);
           setProductsProps(productsPropsList);
           return paywall;

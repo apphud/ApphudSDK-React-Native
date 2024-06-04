@@ -6,7 +6,7 @@ class ApphudSdk: NSObject {
     
     override init() {
         ApphudHttpClient.shared.sdkType = "reactnative";
-        ApphudHttpClient.shared.sdkVersion = "2.0.0";
+        ApphudHttpClient.shared.sdkVersion = "2.1.0";
     }
 
     @objc(start:)
@@ -15,6 +15,9 @@ class ApphudSdk: NSObject {
         let userID = options["userId"] as? String;
         let observerMode = options["observerMode"] as? Bool ?? true;
         DispatchQueue.main.async {
+            #if DEBUG
+            ApphudUtils.enableAllLogs()
+            #endif
             Apphud.start(apiKey: apiKey, userID: userID, observerMode: observerMode);
         }
     }
@@ -127,6 +130,25 @@ class ApphudSdk: NSObject {
                     return paywall.toMap();
                 })
             );
+        }
+    }
+
+    @objc(paywallShown:)
+    func paywallShown(identifier: String) {
+        print("Paywall Shown: \(identifier)")
+        Task {
+            if let paywall = await Apphud.paywalls().first(where: { $0.identifier == identifier }) {
+                Apphud.paywallShown(paywall)
+            }
+        }
+    }
+
+     @objc(paywallClosed:)
+    func paywallClosed(identifier: String) {
+        Task {
+            if let paywall = await Apphud.paywalls().first(where: { $0.identifier == identifier }) {
+                Apphud.paywallClosed(paywall)
+            }
         }
     }
 

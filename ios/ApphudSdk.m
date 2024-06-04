@@ -46,6 +46,8 @@ RCT_EXTERN_METHOD(userId:(RCTPromiseResolveBlock)resolve
 
 RCT_EXTERN_METHOD(collectDeviceIdentifiers)
 RCT_EXTERN_METHOD(setAdvertisingIdentifier:(NSString*)idfa)
+RCT_EXTERN_METHOD(paywallShown:(NSString*)identifier)
+RCT_EXTERN_METHOD(paywallClosed:(NSString*)identifier)
 RCT_EXTERN_METHOD(optOutOfTracking)
 RCT_EXTERN_METHOD(enableDebugLogs)
 RCT_EXTERN_METHOD(logout:(RCTPromiseResolveBlock)resolve)

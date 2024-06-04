@@ -22,7 +22,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   init {
     HeadersInterceptor.X_SDK = "reactnative"
-    HeadersInterceptor.X_SDK_VERSION = "2.0.0"
+    HeadersInterceptor.X_SDK_VERSION = "2.1.0"
     listener = ApphudListenerHandler(reactContext)
     listener?.let { Apphud.setListener(it) }
   }
@@ -74,6 +74,22 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
+  fun paywallShown(identifier: String) {
+      val paywall = Apphud.paywalls().firstOrNull { it.identifier == identifier }
+      paywall?.let {
+          Apphud.paywallShown(it)
+      }
+  }
+
+  @ReactMethod
+  fun paywallClosed(identifier: String) {
+      val paywall = Apphud.paywalls().firstOrNull { it.identifier == identifier }
+      paywall?.let {
+          Apphud.paywallClosed(it)
+      }
+  }
+
+  @ReactMethod
   fun purchase(args: ReadableMap, promise: Promise) {
     val productId = args.getString("productId")
     if (productId.isNullOrEmpty()) {
@@ -96,7 +112,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
     val isSub = product?.productDetails?.productType?.lowercase() == "subs"
     val offerToken = args.getString("offerToken")
-    val isConsumable = args.getBoolean("isConsumable")
+    val isConsumable = if (args.hasKey("isConsumable")) args.getBoolean("isConsumable") else false
 
     if (product == null) {
       promise.reject("Error", "Product not found")
@@ -269,6 +285,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   fun setAdvertisingIdentifier(idfa: String) {
     Apphud.collectDeviceIdentifiers()
   }
+
 
   @ReactMethod
   fun enableDebugLogs() {
