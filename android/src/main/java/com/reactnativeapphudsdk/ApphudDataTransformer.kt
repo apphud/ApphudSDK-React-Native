@@ -52,7 +52,6 @@ class ApphudDataTransformer {
 
     fun getApphudPaywallMap(paywall: ApphudPaywall): WritableNativeMap {
       val result: WritableNativeMap = WritableNativeMap()
-      Apphud.enableDebugLogs()
       result.putString("identifier", paywall.identifier)
       result.putBoolean("isDefault", paywall.default)
       result.putString("experimentName", paywall.experimentName)

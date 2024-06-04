@@ -44,17 +44,13 @@ export default function ActionsScreen({ navigation }: Props) {
   const [paywalls, setPaywalls] = React.useState<Array<ApphudPaywall>>();
 
   const callAll = () => {
-    // ApphudSdk.enableDebugLogs();
+    ApphudSdk.enableDebugLogs();
 
     // ApphudSdk.setAdvertisingIdentifier('42ed88fd-b446-4eb1-81ae-83e3025c04cf')
     
     // ApphudSdk.userId().then((userId) => console.log(`Apphud: userId: ${userId}`));
-    // ApphudSdk.hasActiveSubscription().then((hasActiveSubscription) => 
-    //   console.log(`Apphud: hasActiveSubscription: ${hasActiveSubscription}`)
-    //   );
-    // ApphudSdk.hasPremiumAccess().then((hasPremiumAccess) => 
-    //   console.log(`Apphud: hasPremiumAccess: ${hasPremiumAccess}`)
-    // );
+    ApphudSdk.hasActiveSubscription().then((active) => console.log('START Has Active Subscription: = ' + active));
+    
     
     // ApphudSdk.setUserProperty({key: 'some_string_key2', value: 'some_string_valueee', setOnce: true})
     // ApphudSdk.setUserProperty({key: 'some_float_key3', value: 1.45, setOnce: true})
