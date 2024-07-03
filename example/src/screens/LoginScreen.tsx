@@ -19,7 +19,9 @@ export default function LoginScreen({ navigation }: Props) {
   const [deviceId, setDeviceId] = React.useState<any>(null);
 
   const onStartHandler = () => {
-    ApphudSdk.start({ apiKey, userId, deviceId, observerMode: false })
+    ApphudSdk.start({ apiKey, userId, deviceId, observerMode: false });
+
+    ApphudSdk.collectAppleSearchAdsAttribution();
 
     // ApphudSdk.hasActiveSubscription().then((active) => console.log('START Has Active Subscription: = ' + hasActive));
     

@@ -1,12 +1,13 @@
 import ApphudSDK
 import StoreKit
+import AdServices
 
 @objc(ApphudSdk)
 class ApphudSdk: NSObject {
     
     override init() {
         ApphudHttpClient.shared.sdkType = "reactnative";
-        ApphudHttpClient.shared.sdkVersion = "2.1.0";
+        ApphudHttpClient.shared.sdkVersion = "2.1.1";
     }
 
     @objc(start:)
@@ -273,6 +274,19 @@ class ApphudSdk: NSObject {
     @objc(collectDeviceIdentifiers)
     func collectDeviceIdentifiers() {
         // do nothing
+    }
+
+    @objc(collectAppleSearchAdsAttribution)
+    func collectAppleSearchAdsAttribution() {
+        if #available(iOS 14.3, *) {
+            Task {
+                if let asaToken = try? AAAttribution.attributionToken() {
+                    Apphud.addAttribution(data: nil, from: .appleAdsAttribution, identifer: asaToken, callback: nil)
+                } else {
+                    print("[Apphud] No Apple Search Ads Token available for this installation, but the integration set up correctly.")
+                }
+            }
+        }
     }
 
     @objc(submitPushNotificationsToken:)

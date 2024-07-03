@@ -22,7 +22,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   init {
     HeadersInterceptor.X_SDK = "reactnative"
-    HeadersInterceptor.X_SDK_VERSION = "2.1.0"
+    HeadersInterceptor.X_SDK_VERSION = "2.1.1"
     listener = ApphudListenerHandler(reactContext)
     listener?.let { Apphud.setListener(it) }
   }
@@ -279,6 +279,11 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   @ReactMethod
   fun collectDeviceIdentifiers() {
     Apphud.collectDeviceIdentifiers()
+  }
+
+  @ReactMethod
+  fun collectAppleSearchAdsAttribution() {
+    // do nothing 
   }
 
   @ReactMethod

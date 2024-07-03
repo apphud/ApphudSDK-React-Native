@@ -152,6 +152,13 @@ export type ApphudSdkType = {
   addAttribution(options: AttributionProperties): void;
 
   /**
+   * Available on iOS only.
+   * 
+   * Automatically collects Apple Search Ads attribution.
+   */
+  collectAppleSearchAdsAttribution(): void;
+
+  /**
    * Available on iOS and Android.
    * 
    * Set custom user property.
@@ -583,7 +590,7 @@ export interface ApphudSubscriptionOffer {
 export enum ApphudAttributionProvider {
   AppsFlyer = 'appsFlyer',
   Adjust = 'adjust',
-  AppleSearchAds = 'appleSearchAds', // iOS only
+  // AppleSearchAds = 'appleSearchAds', // use 'collectAppleSearchAdsAttribution' method instead.
   Firebase = 'firebase'
 }
 
