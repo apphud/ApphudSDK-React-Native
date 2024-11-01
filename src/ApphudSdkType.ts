@@ -34,7 +34,19 @@ export type ApphudSdkType = {
    * Method returns immediately if paywalls are cached or already loaded.
    * @returns paywalls configured in Apphud Dashboard > Product Hub > Paywalls.
    */
-  paywalls(): Promise<Array<ApphudPaywall>>;
+    paywalls(): Promise<Array<ApphudPaywall>>;
+
+  /**
+   * Available on iOS and Android
+   * Logs a "Paywall Shown" (Paywall View) event which is required for A/B Testing Analytics.
+   */
+  paywallShown(identifier: string): void;
+
+  /**
+   * Available on iOS and Android
+   * Logs a "Paywall Closed" event. Optional.
+   */
+  paywallClosed(identifier: string): void;
 
   /**
    * Available on iOS and Android.
