@@ -107,13 +107,6 @@ export default function PaywallScreen({
     // Alert.alert('will purchase ', JSON.stringify(options));
 
     ApphudSdk.purchase(options).then((result) => {
-      const sub = result.subscription;
-      const non = result.nonRenewingPurchase;
-      const error = result.error;
-      const transaction = result.playStoreTransaction;
-      const userCanceled = result.userCanceled;
-      const success = result.success;
-
       Alert.alert('Purchase Result = ', JSON.stringify(result));
     });
   };
