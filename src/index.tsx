@@ -11,9 +11,9 @@ export const ApphudSdkEvents = _ApphudSdkEvents as ApphudSdkListenerEventsType;
 export default ApphudSdk as ApphudSdkType;
 
 /**
-* See ApphudSDKType.ts for more information
-* See ApphudSDKListenerEventsType.ts for more information
-*/
+ * See ApphudSDKType.ts for more information
+ * See ApphudSDKListenerEventsType.ts for more information
+ */
 
 export * from './ApphudSdkType';
 export * from './ApphudSdkListenerEventsType';
