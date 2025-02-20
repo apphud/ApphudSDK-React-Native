@@ -6,7 +6,7 @@ class ApphudSdk: NSObject {
     
     override init() {
         ApphudHttpClient.shared.sdkType = "reactnative";
-        ApphudHttpClient.shared.sdkVersion = "2.1.0";
+        ApphudHttpClient.shared.sdkVersion = "2.2.0";
     }
 
     @objc(start:)
@@ -35,7 +35,9 @@ class ApphudSdk: NSObject {
     
     @objc(logout)
     func logout() {
-        Apphud.logout()
+      Task {
+        await Apphud.logout()
+      }
     }
     
     @objc(hasActiveSubscription:withRejecter:)
@@ -54,7 +56,18 @@ class ApphudSdk: NSObject {
             resolve(products.map { DataTransformer.skProduct(product: $0) });
         }
     }
-
+  
+  
+  func paywalls() async -> [ApphudPaywall] {
+    await withCheckedContinuation { continuation in
+      Task { @MainActor in
+        Apphud.paywallsDidLoadCallback { paywalls, _ in
+          continuation.resume(returning: paywalls)
+        }
+      }
+    }
+  }
+  
     @objc(purchase:withResolver:withRejecter:)
     func purchase(args: NSDictionary, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
 
@@ -64,9 +77,9 @@ class ApphudSdk: NSObject {
         }
         let paywallId = args["paywallId"] as? String
 
-        Task {
+      Task { @MainActor in
             var product: ApphudProduct?
-            let paywalls = await Apphud.paywalls()
+            let paywalls = await paywalls()
 
             for paywall in paywalls where product == nil {
                 product = paywall.products.first { product in
@@ -124,35 +137,36 @@ class ApphudSdk: NSObject {
    
     @objc(paywalls:withRejecter:)
     func paywalls(resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
-        Apphud.paywallsDidLoadCallback { paywalls in
-            resolve(
-                paywalls.map({ paywall in
-                    return paywall.toMap();
-                })
-            );
-        }
+      Task {
+        let paywalls = await paywalls()
+        resolve(
+            paywalls.map({ paywall in
+                return paywall.toMap();
+            })
+        );
+      }
     }
 
     @objc(paywallShown:)
     func paywallShown(identifier: String) {
         print("Paywall Shown: \(identifier)")
         Task {
-            if let paywall = await Apphud.paywalls().first(where: { $0.identifier == identifier }) {
+            if let paywall = await paywalls().first(where: { $0.identifier == identifier }) {
                 Apphud.paywallShown(paywall)
             }
         }
     }
 
-     @objc(paywallClosed:)
-    func paywallClosed(identifier: String) {
-        Task {
-            if let paywall = await Apphud.paywalls().first(where: { $0.identifier == identifier }) {
-                Apphud.paywallClosed(paywall)
-            }
-        }
-    }
+   @objc(paywallClosed:)
+  func paywallClosed(identifier: String) {
+      Task {
+          if let paywall = await paywalls().first(where: { $0.identifier == identifier }) {
+              Apphud.paywallClosed(paywall)
+          }
+      }
+  }
 
-    @objc(subscription:withRejecter:)
+  @MainActor @objc(subscription:withRejecter:)
     func subscription(resolve: RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
         guard let subscription = Apphud.subscription() else {
             reject("Error", "User has no subscriptions", nil)
@@ -162,28 +176,29 @@ class ApphudSdk: NSObject {
         resolve(DataTransformer.apphudSubscription(subscription: subscription));
     }
 
-    @objc(subscriptions:withRejecter:)
+    
+  @MainActor @objc(subscriptions:withRejecter:)
     func subscriptions(resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
         let subs = Apphud.subscriptions() ?? []
         let array: Array = subs.map { DataTransformer.apphudSubscription(subscription: $0) }
         resolve(array as NSArray)
     }
 
-    @objc(isNonRenewingPurchaseActive:withResolver:withRejecter:)
+  @MainActor @objc(isNonRenewingPurchaseActive:withResolver:withRejecter:)
     func isNonRenewingPurchaseActive(productIdentifier: String, resolve: RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
         resolve(
             Apphud.isNonRenewingPurchaseActive(productIdentifier: productIdentifier)
         );
     }
 
-    @objc(nonRenewingPurchases:withRejecter:)
+  @MainActor @objc(nonRenewingPurchases:withRejecter:)
     func nonRenewingPurchases(resolve: RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
         let purchases = Apphud.nonRenewingPurchases() ?? []
         let array: Array = purchases.map { DataTransformer.nonRenewingPurchase(nonRenewingPurchase: $0) }
         resolve(array)
     }
     
-    @objc(restorePurchases:withRejecter:)
+  @MainActor @objc(restorePurchases:withRejecter:)
     func restorePurchases(resolve: @escaping RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
         Apphud.restorePurchases { (subscriptions, purchases, error) in
             resolve([
@@ -200,7 +215,7 @@ class ApphudSdk: NSObject {
         }
     }
     
-    @objc(userId:withRejecter:)
+  @MainActor @objc(userId:withRejecter:)
     func userId(resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
         resolve(
             Apphud.userID()
@@ -229,6 +244,17 @@ class ApphudSdk: NSObject {
 
         Apphud.addAttribution(data: data, from: provider, identifer: identifier) {  _ in }
     }
+  
+  @MainActor @objc(attributeFromWeb:withResolver:withRejecter:)
+  func attributeFromWeb(options: NSDictionary, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+    guard let options = options as? [String: Any] else {
+      reject("Invalid argument", "options must be a dictionary", nil)
+      return
+    }
+    Apphud.attributeFromWeb(data: options) { result, user in
+      resolve(["result": result, "user_id": user?.userId ?? "", "is_premium": Apphud.hasPremiumAccess()])
+    }
+  }
 
     @objc(setUserProperty:)
     func setUserProperty(options: NSDictionary) {
@@ -248,7 +274,7 @@ class ApphudSdk: NSObject {
         Apphud.incrementUserProperty(key: _key, by: by)
     }
 
-    @objc(syncPurchasesInObserverMode:withRejecter:)
+  @MainActor @objc(syncPurchasesInObserverMode:withRejecter:)
     func syncPurchasesInObserverMode(resolve: @escaping RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
         Apphud.restorePurchases { _, _, _ in
             resolve(true)
@@ -257,12 +283,12 @@ class ApphudSdk: NSObject {
 
     @objc(setAdvertisingIdentifier:)
     func setAdvertisingIdentifier(idfa: String) {
-        Apphud.setAdvertisingIdentifier(idfa)
+      Apphud.setDeviceIdentifiers(idfa: idfa, idfv: UIDevice.current.identifierForVendor?.uuidString)
     }
 
     @objc(enableDebugLogs)
     func enableDebugLogs() {
-        Apphud.enableDebugLogs()
+      ApphudUtils.enableAllLogs()
     }
 
     @objc(optOutOfTracking)

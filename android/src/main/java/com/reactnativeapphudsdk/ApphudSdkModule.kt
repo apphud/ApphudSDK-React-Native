@@ -173,6 +173,29 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
   }
 
+  @ReactMethod
+  fun attributeFromWeb(options: ReadableMap, promise: Promise) {
+    val data = options.toHashMap()?.let {
+      val result = mutableMapOf<String, Any>()
+
+      for ((key, value) in it) {
+        value?.let {
+          result[key] = it
+        }
+      }
+
+      return@let result
+    }
+
+    Apphud.attributeFromWeb(data) { result, user ->
+      val result: WritableNativeMap = WritableNativeMap()
+      result.putString("user_id", user?.userId ?: "")
+      result.putBoolean("is_premium", Apphud.hasPremiumAccess())
+      result.putBoolean("result", result)
+      promise.resolve(result)
+    }
+  }
+
   private fun stringToApphudAttributionProvider(value: String): ApphudAttributionProvider? {
     return enumValues<ApphudAttributionProvider>().find {
       it.name == value

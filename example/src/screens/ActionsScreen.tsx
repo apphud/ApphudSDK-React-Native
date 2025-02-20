@@ -50,6 +50,10 @@ export default function ActionsScreen({ navigation }: Props) {
       console.log('START Has Active Subscription: = ' + active)
     );
 
+    ApphudSdk.attributeFromWeb({"apphud_user_id": "aaf48728-6854-4a37-9f3b-6ab59e66b4da"}).then((result) =>
+      console.log('attribute from web result: = ' + JSON.stringify(result, null, 2))
+    );
+
     // ApphudSdk.setUserProperty({key: 'some_string_key2', value: 'some_string_valueee', setOnce: true})
     // ApphudSdk.setUserProperty({key: 'some_float_key3', value: 1.45, setOnce: true})
     // // ApphudSdk.incrementUserProperty({key: 'some2_float_ke2y', by: 2.01})
