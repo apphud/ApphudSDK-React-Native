@@ -28,7 +28,7 @@ DerivedData
 *.ipa
 *.xcuserstate
 project.xcworkspace
-
+exampple/ios/.xcode.env.local
 # Android/IJ
 #
 .idea
@@ -39,6 +39,8 @@ android.iml
 # Cocoapods
 #
 example/ios/Pods
+example/vendor/bundle/
+
 
 # node.js
 #
@@ -53,6 +55,7 @@ buck-out/
 \.buckd/
 android/app/libs
 android/keystores/debug.keystore
+example/android/app/.cxx
 
 # Expo
 .expo/*

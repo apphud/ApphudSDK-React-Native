@@ -1,10 +1,3 @@
-//
-//  ApphudBridgeClass.swift
-//  ApphudSdkExample
-//
-//  Created by Renat Kurbanov on 15.11.2023.
-//
-
 import Foundation
 
 import ApphudSDK
@@ -21,10 +14,8 @@ class ApphudBridgeClass: NSObject {
   }
 
   @objc
-  static func handleUserInfo(dict: NSDictionary) {
-    if let dict = dict as? [AnyHashable: Any] {
-      Apphud.handlePushNotification(apsInfo: dict)
-    }
+  static func handleUserInfo(dict: [AnyHashable: Any]) {
+    Apphud.handlePushNotification(apsInfo: dict)
   }
 
   @MainActor @objc

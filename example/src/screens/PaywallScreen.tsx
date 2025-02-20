@@ -1,9 +1,19 @@
 import * as React from 'react';
-import { View, Text, StyleSheet, Alert, ScrollView, Platform } from 'react-native';
-import type { ApphudPaywall, ApphudProduct } from '@apphud/react-native-apphud-sdk';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Alert,
+  ScrollView,
+  Platform,
+} from 'react-native';
+import type {
+  ApphudPaywall,
+  ApphudProduct,
+  ApphudPurchaseProps,
+} from '@apphud/react-native-apphud-sdk';
 import ApphudSdk from '@apphud/react-native-apphud-sdk';
 import { Button } from 'react-native-elements';
-import type { ApphudPurchaseProps } from '@apphud/react-native-apphud-sdk';
 
 const styles = StyleSheet.create({
   root: {
@@ -37,92 +47,96 @@ const styles = StyleSheet.create({
 interface ProductProps {
   productId: string;
   price: number;
-  formattedPrice: string
+  formattedPrice: string;
   basePlanId?: string;
   offerToken?: string;
   offerId?: string;
 }
 
-export default function PaywallScreen({ route, navigation}: { route: any, navigation: any}) {
+export default function PaywallScreen({
+  route,
+  navigation,
+}: {
+  route: any;
+  navigation: any;
+}) {
+  const [currentPaywall, setCurrentPaywall] = React.useState<ApphudPaywall>();
+  const [productsProps, setProductsProps] = React.useState<Array<ProductProps>>(
+    []
+  );
 
-    const [currentPaywall, setCurrentPaywall] = React.useState<ApphudPaywall>();
-    const [productsProps, setProductsProps] = React.useState<Array<ProductProps>>([]);
-
-    const findPaywall = async () => {
-      const paywalls = await ApphudSdk.paywalls();
-      for (const paywall of paywalls) {
-        if (paywall.identifier === route.params.paywallId) {
-          setCurrentPaywall(paywall);
-          await ApphudSdk.paywallShown(paywall.identifier);
-          const productsPropsList: ProductProps[] = preparedProducts(paywall.products);
-          setProductsProps(productsPropsList);
-          return paywall;
-        }
+  const findPaywall = async () => {
+    const paywalls = await ApphudSdk.paywalls();
+    for (const paywall of paywalls) {
+      if (paywall.identifier === route.params.paywallId) {
+        setCurrentPaywall(paywall);
+        await ApphudSdk.paywallShown(paywall.identifier);
+        const productsPropsList: ProductProps[] = preparedProducts(
+          paywall.products
+        );
+        setProductsProps(productsPropsList);
+        return paywall;
       }
+    }
 
-      throw new Error("Paywall not found");
-    };
+    throw new Error('Paywall not found');
+  };
 
-    React.useEffect(() => {
-
-        findPaywall()
-            .then((paywall) => {
-                navigation.setOptions({
-                    title: paywall.identifier || 'Paywall',
-                });
-            })
-            .catch((error) => {
-                console.error(error);
-            });
-    }, [navigation]);
+  React.useEffect(() => {
+    findPaywall()
+      .then((paywall) => {
+        navigation.setOptions({
+          title: paywall.identifier || 'Paywall',
+        });
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }, [navigation]);
 
   const onPurchase = (product: ProductProps) => {
-
     const options: ApphudPurchaseProps = {
       productId: product.productId,
       paywallId: currentPaywall?.identifier,
       offerToken: product?.offerToken,
-      isConsumable: !product.basePlanId && product.productId !== 'com.apphud.demo.nonconsumable.premium',
-    }
+      isConsumable:
+        !product.basePlanId &&
+        product.productId !== 'com.apphud.demo.nonconsumable.premium',
+    };
 
     // Alert.alert('will purchase ', JSON.stringify(options));
 
     ApphudSdk.purchase(options).then((result) => {
-      
-      const sub = result.subscription
-      const non = result.nonRenewingPurchase
-      const error = result.error
-      const transaction = result.playStoreTransaction
-      const userCanceled = result.userCanceled
-      const success = result.success
-
       Alert.alert('Purchase Result = ', JSON.stringify(result));
     });
   };
 
   const preparedProducts = (products: ApphudProduct[]) => {
-
     // Alert.alert('paywall products= ', JSON.stringify(products));
 
     return products.flatMap((product) => {
-
       if (Platform.OS === 'ios') {
         return {
           productId: product.id,
           price: product.price || 0,
-          formattedPrice: `${product.price || 0} ${product.priceLocale?.currencyCode || '$'}`
-        }
+          formattedPrice: `${product.price || 0} ${
+            product.priceLocale?.currencyCode || '$'
+          }`,
+        };
       } else if (product.oneTimePurchaseOffer != null) {
         return ([product.oneTimePurchaseOffer] || []).map((offer) => ({
           productId: product.id,
           price: offer.price,
-          formattedPrice: offer.formattedPrice || ''
+          formattedPrice: offer.formattedPrice || '',
         }));
       } else {
         return (product.subscriptionOffers || []).map((offer) => ({
           productId: product.id,
           price: offer.pricingPhases?.[0]?.price || product.price || 0,
-          formattedPrice: offer.pricingPhases?.[0]?.formattedPrice || product.price?.toString() || '',
+          formattedPrice:
+            offer.pricingPhases?.[0]?.formattedPrice ||
+            product.price?.toString() ||
+            '',
           basePlanId: offer.basePlanId,
           offerToken: offer.offerToken,
           offerId: offer.offerId,
@@ -130,30 +144,37 @@ export default function PaywallScreen({ route, navigation}: { route: any, naviga
       }
     });
   };
-  
+
   return (
     <ScrollView>
-
-      <Text onPress={() => {
-              Alert.alert('Products', JSON.stringify(productsProps));
-            }}> Paywall ID: { currentPaywall?.identifier }</Text>
-      <Text> Experiment: { currentPaywall?.experimentName || 'N/A'}</Text>
+      <Text
+        onPress={() => {
+          Alert.alert('Products', JSON.stringify(productsProps));
+        }}
+      >
+        {' '}
+        Paywall ID: {currentPaywall?.identifier}
+      </Text>
+      <Text> Experiment: {currentPaywall?.experimentName || 'N/A'}</Text>
       {/* <Text> Custom JSON: { currentPaywall?.json }</Text> */}
       <View style={styles.root}>
         <View style={styles.table}>
-          <View style={styles.row}>
-          </View>
-          { productsProps.map((product: ProductProps, key: number) => (
-            <View  key={key}>
-                <Text style={styles.row}>
-                ProductId: {product.productId}{'\n'}
-                BasePlanId: {product.basePlanId || 'N/A'}{'\n'}
-                OfferId: {product.offerId || 'N/A'}{'\n'}
-                </Text>
-                <Button
-                  title={`Buy for ${product.formattedPrice}`}
-                  onPress={() => onPurchase(product)} />
-                <Text>{'\n\n'}</Text>
+          <View style={styles.row}></View>
+          {productsProps.map((product: ProductProps, key: number) => (
+            <View key={key}>
+              <Text style={styles.row}>
+                ProductId: {product.productId}
+                {'\n'}
+                BasePlanId: {product.basePlanId || 'N/A'}
+                {'\n'}
+                OfferId: {product.offerId || 'N/A'}
+                {'\n'}
+              </Text>
+              <Button
+                title={`Buy for ${product.formattedPrice}`}
+                onPress={() => onPurchase(product)}
+              />
+              <Text>{'\n\n'}</Text>
             </View>
           ))}
         </View>
