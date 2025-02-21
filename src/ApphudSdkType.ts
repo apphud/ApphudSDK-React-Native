@@ -151,12 +151,18 @@ export type ApphudSdkType = {
   addAttribution(options: AttributionProperties): void;
 
   /**
-    *  Web-to-Web flow only. Attempts to attribute the user with the provided attribution data.
-    * If the `options` parameter contains either `apphud_user_id`, `email` or `apphud_user_email`, 
-    * the SDK will submit this information to the Apphud server.
-    * The server will return ApphudWebRestoreResult.
-        */
-  attributeFromWeb(options: any): Promise<ApphudWebRestoreResult>;
+   *  Web-to-Web flow only. Attempts to attribute the user with the provided attribution data.
+   * If the `options` parameter contains either `apphud_user_id`, `email` or `apphud_user_email`,
+   * the SDK will submit this information to the Apphud server.
+   * The server will return ApphudWebRestoreResult.
+   */
+  attributeFromWeb(
+    options: Partial<{
+      apphud_user_id: string;
+      email: string;
+      apphud_user_email: string;
+    }>
+  ): Promise<ApphudWebRestoreResult>;
 
   /**
    * Available on iOS and Android.
@@ -628,7 +634,7 @@ export interface ApphudWebRestoreResult {
   /**
     Apphud User ID.
   */
-  user_id: string;
+  user_id?: string;
 
   /**
      Returns `true` if user has premium access.

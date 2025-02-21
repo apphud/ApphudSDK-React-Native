@@ -314,4 +314,21 @@ class ApphudSdk: NSObject {
             }
         }
     }
+  
+  @MainActor @objc(attributeFromWeb:withResolver:)
+  func attributeFromWeb(data: [AnyHashable: Any], resolve: @escaping RCTPromiseResolveBlock) {
+    Apphud.attributeFromWeb(data: data) { success, user in
+      
+      var result: [String: Any] = [:]
+      
+      if let userId = user?.userId {
+        result["user_id"] = userId
+      }
+      
+      result["is_premium"] = Apphud.hasPremiumAccess()
+      result["result"] = success
+      
+      resolve(result)
+    }
+  }
 }

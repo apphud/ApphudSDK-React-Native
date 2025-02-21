@@ -64,9 +64,14 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   @ReactMethod
   fun paywalls(promise: Promise) {
-    Apphud.paywallsDidLoadCallback {
+    Apphud.paywallsDidLoadCallback { list, error ->
+      if (error != null) {
+        promise.reject(error)
+        return@paywallsDidLoadCallback
+      }
+
       val result = WritableNativeArray()
-      for (paywall in it) {
+      for (paywall in list) {
         result.pushMap(ApphudDataTransformer.getApphudPaywallMap(paywall))
       }
       promise.resolve(result)
@@ -75,18 +80,24 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   @ReactMethod
   fun paywallShown(identifier: String) {
-      val paywall = Apphud.paywalls().firstOrNull { it.identifier == identifier }
+    Apphud.paywallsDidLoadCallback { apphudPaywalls, _ ->
+      val paywall = apphudPaywalls.firstOrNull { it.identifier == identifier }
+
       paywall?.let {
-          Apphud.paywallShown(it)
+        Apphud.paywallShown(it)
       }
+    }
   }
 
   @ReactMethod
   fun paywallClosed(identifier: String) {
-      val paywall = Apphud.paywalls().firstOrNull { it.identifier == identifier }
+    Apphud.paywallsDidLoadCallback { apphudPaywalls, _ ->
+      val paywall = apphudPaywalls.firstOrNull { it.identifier == identifier }
+
       paywall?.let {
-          Apphud.paywallClosed(it)
+        Apphud.paywallClosed(it)
       }
+    }
   }
 
   @ReactMethod
@@ -100,31 +111,36 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     val paywallId = args.getString("paywallId")
 
     var product: ApphudProduct? = null
-    val paywalls = Apphud.paywalls()
 
-    for (paywall in paywalls) {
-      if (product == null) {
-        product = paywall.products?.firstOrNull { p ->
-          p.product_id == productId && (paywallId.isNullOrEmpty() || p.paywall_identifier == paywallId)
+    Apphud.paywallsDidLoadCallback { paywalls, apphudError ->
+      if (apphudError != null) {
+        promise.reject(apphudError)
+      }
+
+      for (paywall in paywalls) {
+        if (product == null) {
+          product = paywall.products?.firstOrNull { p ->
+            p.productId == productId && (paywallId.isNullOrEmpty() || p.paywallIdentifier == paywallId)
+          }
         }
       }
-    }
 
-    val isSub = product?.productDetails?.productType?.lowercase() == "subs"
-    val offerToken = args.getString("offerToken")
-    val isConsumable = if (args.hasKey("isConsumable")) args.getBoolean("isConsumable") else false
+      val isSub = product?.productDetails?.productType?.lowercase() == "subs"
+      val offerToken = args.getString("offerToken")
+      val isConsumable = if (args.hasKey("isConsumable")) args.getBoolean("isConsumable") else false
 
-    if (product == null) {
-      promise.reject("Error", "Product not found")
-      return
-    }
+      if (product == null) {
+        promise.reject("Error", "Product not found")
+        return@paywallsDidLoadCallback
+      }
 
-    if (isSub && offerToken.isNullOrEmpty()) {
-      promise.reject("Error", "Offer Token not found")
-    } else if (!offerToken.isNullOrEmpty()) {
-      purchaseSubscription(product, offerToken, promise)
-    } else {
-      purchaseOneTimeProduct(product, isConsumable, promise)
+      if (isSub && offerToken.isNullOrEmpty()) {
+        promise.reject("Error", "Offer Token not found")
+      } else if (!offerToken.isNullOrEmpty()) {
+        purchaseSubscription(product!!, offerToken, promise)
+      } else {
+        purchaseOneTimeProduct(product!!, isConsumable, promise)
+      }
     }
   }
 
@@ -175,23 +191,26 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   @ReactMethod
   fun attributeFromWeb(options: ReadableMap, promise: Promise) {
-    val data = options.toHashMap()?.let {
+    val data = options.toHashMap().let {
       val result = mutableMapOf<String, Any>()
 
       for ((key, value) in it) {
-        value?.let {
-          result[key] = it
+        value?.let { x ->
+          result[key] = x
         }
       }
 
       return@let result
     }
 
-    Apphud.attributeFromWeb(data) { result, user ->
-      val result: WritableNativeMap = WritableNativeMap()
-      result.putString("user_id", user?.userId ?: "")
+    Apphud.attributeFromWeb(data) { success, user ->
+      val result = WritableNativeMap()
+
+      user?.userId?.let {
+        result.putString("user_id", it)
+      }
       result.putBoolean("is_premium", Apphud.hasPremiumAccess())
-      result.putBoolean("result", result)
+      result.putBoolean("result", success)
       promise.resolve(result)
     }
   }

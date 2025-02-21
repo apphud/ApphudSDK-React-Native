@@ -58,6 +58,11 @@ RCT_EXTERN_METHOD(incrementUserProperty:(NSDictionary*)options)
 RCT_EXTERN_METHOD(submitPushNotificationsToken:(NSString*)token)
 RCT_EXTERN_METHOD(handlePushNotification:(NSDictionary*)apsInfo)
 
+RCT_EXTERN_METHOD(attributeFromWeb:(NSDictionary*)args
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
+
 + (BOOL)requiresMainQueueSetup {
     return YES; // Requires setup on the main JavaScript thread
 }
