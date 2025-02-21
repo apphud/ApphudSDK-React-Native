@@ -38,11 +38,11 @@ class ApphudDataTransformer {
     }
 
     fun getApphudProductMap(apphudProduct: ApphudProduct): WritableNativeMap {
-      val payload: WritableNativeMap = WritableNativeMap()
+      val payload = WritableNativeMap()
       payload.putString("name", apphudProduct.name)
       payload.putString("store", apphudProduct.store)
-      payload.putString("paywallIdentifier", apphudProduct.paywall_identifier)
-      payload.putString("id", apphudProduct.product_id)
+      payload.putString("paywallIdentifier", apphudProduct.paywallIdentifier)
+      payload.putString("id", apphudProduct.productId)
       apphudProduct.productDetails?.let {
         payload.merge(getProductMap(it) )
       }

@@ -2,9 +2,12 @@ package com.reactnativeapphudsdk
 
 import android.util.Log
 import com.android.billingclient.api.ProductDetails
+import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.SkuDetails
 import com.apphud.sdk.ApphudListener
 import com.apphud.sdk.domain.ApphudPaywall
+import com.apphud.sdk.domain.ApphudPlacement
+import com.apphud.sdk.domain.ApphudUser
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.WritableMap
@@ -55,7 +58,15 @@ class ApphudListenerHandler(private val reactContext: ReactApplicationContext) :
       .emit(ApphudSdkDelegateEvents.PAYWALLS_DID_FULLY_LOAD.value, nativeArray);
   }
 
-  override fun userDidLoad() {
+  override fun placementsDidFullyLoad(placements: List<ApphudPlacement>) {
+    // do nothing
+  }
+
+  override fun userDidLoad(user: ApphudUser) {
+    // do nothing
+  }
+
+  override fun apphudDidReceivePurchase(purchase: Purchase) {
     // do nothing
   }
 

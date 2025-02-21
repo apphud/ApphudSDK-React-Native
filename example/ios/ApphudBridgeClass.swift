@@ -13,7 +13,7 @@ class ApphudBridgeClass: NSObject {
     Apphud.submitPushNotificationsToken(token: data, callback: nil)
   }
 
-  @objc
+  @MainActor @objc
   static func handleUserInfo(dict: [AnyHashable: Any]) {
     Apphud.handlePushNotification(apsInfo: dict)
   }
