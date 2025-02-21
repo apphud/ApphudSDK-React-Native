@@ -1,6 +1,5 @@
 package com.reactnativeapphudsdk
 import android.util.Log
-import androidx.annotation.RequiresPermission.Read
 import com.apphud.sdk.Apphud
 import com.apphud.sdk.ApphudAttributionProvider
 import com.apphud.sdk.ApphudUserPropertyKey
@@ -8,7 +7,6 @@ import com.apphud.sdk.domain.ApphudProduct
 import com.apphud.sdk.managers.HeadersInterceptor
 import com.facebook.react.bridge.*
 import com.facebook.react.bridge.UiThreadUtil.runOnUiThread
-import java.lang.Exception
 
 class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
@@ -115,6 +113,8 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     Apphud.paywallsDidLoadCallback { paywalls, apphudError ->
       if (apphudError != null) {
         promise.reject(apphudError)
+
+        return@paywallsDidLoadCallback
       }
 
       for (paywall in paywalls) {
