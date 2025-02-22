@@ -26,22 +26,24 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  fun start(options: ReadableMap) {
-      startManually(options)
+  fun start(options: ReadableMap, promise: Promise) {
+      startManually(options, promise)
   }
 
   @ReactMethod
-  fun startManually(options: ReadableMap) {
+  fun startManually(options: ReadableMap, promise: Promise) {
     val apiKey = options.getString("apiKey")
     val userId = options.getString("userId")
     val deviceId = options.getString("deviceId")
 
     if (apiKey.isNullOrEmpty()) {
+      promise.reject("Error", "apiKey not set")
       return
     }
 
     runOnUiThread {
       Apphud.start(this.reactApplicationContext, apiKey!!, userId, deviceId)
+      promise.resolve(null)
     }
   }
 
@@ -356,8 +358,9 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  fun logout() {
+  fun logout(promise: Promise) {
     Apphud.logout()
+    promise.resolve(null)
   }
 
   private fun getUserPropertyKey(key: String): ApphudUserPropertyKey {

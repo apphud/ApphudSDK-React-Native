@@ -148,8 +148,9 @@ export default function ActionsScreen({ navigation }: Props) {
 
         <ListItem
           onPress={() => {
-            ApphudSdk.logout();
-            navigation.popToTop();
+            ApphudSdk.logout().then(() => {
+              navigation.popToTop();
+            });
           }}
         >
           <ListItem.Content>

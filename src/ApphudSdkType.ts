@@ -9,7 +9,7 @@ export type ApphudSdkType = {
    * Initializes Apphud SDK. You should call it during app launch.
    * @param options - object with apiKey and optional userId, deviceId, observerMode. See `StartProperties` for details.
    */
-  start(options: StartProperties): void;
+  start(options: StartProperties): Promise<void>;
 
   /**
    * Available on iOS and Android.
@@ -17,7 +17,7 @@ export type ApphudSdkType = {
    * Initializes Apphud SDK with User ID & Device ID pair. Not recommended for use unless you know what you are doing.
    * @param options - object with apiKey and optional userId, deviceId, observerMode. See `StartProperties` for details.
    */
-  startManually(options: StartProperties): void;
+  startManually(options: StartProperties): Promise<void>;
 
   /**
    * Available on iOS and Android.
@@ -229,7 +229,7 @@ export type ApphudSdkType = {
    * the new logged-in user can still restore purchases on this device
    * and both users will be merged under the previous paid one, because Apple ID / Google Account is tied to a device.
    */
-  logout(): void;
+  logout(): Promise<void>;
 
   /**
    * Available on iOS and Android.
