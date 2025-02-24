@@ -305,7 +305,7 @@ export interface ApphudPurchaseProps {
   paywallId?: string;
 
   /**
-   * Offer token is **mandatory** for purchasing subscriptions on Android.
+   * Offer token is for purchasing subscriptions on Android. If not passed, then SDK will fallback to the first available one.
    *
    * Available on Android only.
    */

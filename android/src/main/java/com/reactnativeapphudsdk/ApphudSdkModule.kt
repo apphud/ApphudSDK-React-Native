@@ -3,6 +3,7 @@ import android.util.Log
 import com.apphud.sdk.Apphud
 import com.apphud.sdk.ApphudAttributionProvider
 import com.apphud.sdk.ApphudUserPropertyKey
+import com.apphud.sdk.ApphudUtils
 import com.apphud.sdk.domain.ApphudProduct
 import com.apphud.sdk.managers.HeadersInterceptor
 import com.facebook.react.bridge.*
@@ -20,7 +21,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   init {
     HeadersInterceptor.X_SDK = "reactnative"
-    HeadersInterceptor.X_SDK_VERSION = "2.1.0"
+    HeadersInterceptor.X_SDK_VERSION = "2.2.0"
     listener = ApphudListenerHandler(reactContext)
     listener?.let { Apphud.setListener(it) }
   }
@@ -42,8 +43,9 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
 
     runOnUiThread {
-      Apphud.start(this.reactApplicationContext, apiKey!!, userId, deviceId)
-      promise.resolve(null)
+      Apphud.start(this.reactApplicationContext, apiKey, userId, deviceId) { _ ->
+        promise.resolve(null)
+      }
     }
   }
 
@@ -136,9 +138,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         return@paywallsDidLoadCallback
       }
 
-      if (isSub && offerToken.isNullOrEmpty()) {
-        promise.reject("Error", "Offer Token not found")
-      } else if (!offerToken.isNullOrEmpty()) {
+      if (isSub || product?.productDetails == null) {
         purchaseSubscription(product!!, offerToken, promise)
       } else {
         purchaseOneTimeProduct(product!!, isConsumable, promise)
@@ -146,7 +146,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
   }
 
-  private fun purchaseSubscription(product: ApphudProduct, offerToken: String, promise: Promise) {
+  private fun purchaseSubscription(product: ApphudProduct, offerToken: String?, promise: Promise) {
     this.currentActivity?.let {
       Apphud.purchase(it, product, offerToken) { res ->
         promise.resolve(ApphudDataTransformer.getPurchaseMap(res))
@@ -344,7 +344,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   @ReactMethod
   fun enableDebugLogs() {
-    Apphud.enableDebugLogs()
+    ApphudUtils.enableAllLogs()
   }
 
   @ReactMethod
