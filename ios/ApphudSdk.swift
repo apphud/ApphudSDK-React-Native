@@ -22,9 +22,10 @@ class ApphudSdk: NSObject {
 #if DEBUG
       ApphudUtils.enableAllLogs()
 #endif
-      Apphud.start(apiKey: apiKey, userID: userID, observerMode: observerMode);
-          
-      resolve(nil)
+      Apphud.start(apiKey: apiKey, userID: userID, observerMode: observerMode) { _ in
+        resolve(nil)
+      }
+      Apphud.setDeviceIdentifiers(idfa: nil, idfv: UIDevice.current.identifierForVendor?.uuidString)
     }
   }
     
@@ -45,9 +46,10 @@ class ApphudSdk: NSObject {
           userID: userID,
           deviceID: deviceID,
           observerMode: observerMode
-        )
-      
-      resolve(nil)
+        ) { _ in
+          resolve(nil)
+        }
+      Apphud.setDeviceIdentifiers(idfa: nil, idfv: UIDevice.current.identifierForVendor?.uuidString)
     }
   }
     
