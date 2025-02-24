@@ -46,9 +46,17 @@ export default function ActionsScreen({ navigation }: Props) {
     // ApphudSdk.setAdvertisingIdentifier('42ed88fd-b446-4eb1-81ae-83e3025c04cf')
 
     // ApphudSdk.userId().then((userId) => console.log(`Apphud: userId: ${userId}`));
-    ApphudSdk.hasActiveSubscription().then((active) =>
-      console.log('START Has Active Subscription: = ' + active)
-    );
+    ApphudSdk.hasActiveSubscription().then((active) => {
+      console.log('START Has Active Subscription: = ' + active);
+    });
+
+    ApphudSdk.attributeFromWeb({
+      apphud_user_id: 'aaf48728-6854-4a37-9f3b-6ab59e66b4da',
+    }).then((result) => {
+      console.log(
+        'attribute from web result: = ' + JSON.stringify(result, null, 2)
+      );
+    });
 
     // ApphudSdk.setUserProperty({key: 'some_string_key2', value: 'some_string_valueee', setOnce: true})
     // ApphudSdk.setUserProperty({key: 'some_float_key3', value: 1.45, setOnce: true})
@@ -140,8 +148,9 @@ export default function ActionsScreen({ navigation }: Props) {
 
         <ListItem
           onPress={() => {
-            ApphudSdk.logout();
-            navigation.navigate('Home');
+            ApphudSdk.logout().then(() => {
+              navigation.popToTop();
+            });
           }}
         >
           <ListItem.Content>

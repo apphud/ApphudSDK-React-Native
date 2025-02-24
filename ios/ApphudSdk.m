@@ -2,9 +2,13 @@
 
 @interface RCT_EXTERN_MODULE(ApphudSdk, NSObject)
 
-RCT_EXTERN_METHOD(start:(NSDictionary*)options)
+RCT_EXTERN_METHOD(start:(NSDictionary*)options
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
 
-RCT_EXTERN_METHOD(startManually:(NSDictionary*)options)
+RCT_EXTERN_METHOD(startManually:(NSDictionary*)options
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(hasPremiumAccess:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
@@ -50,12 +54,18 @@ RCT_EXTERN_METHOD(paywallShown:(NSString*)identifier)
 RCT_EXTERN_METHOD(paywallClosed:(NSString*)identifier)
 RCT_EXTERN_METHOD(optOutOfTracking)
 RCT_EXTERN_METHOD(enableDebugLogs)
-RCT_EXTERN_METHOD(logout:(RCTPromiseResolveBlock)resolve)
+RCT_EXTERN_METHOD(logout: (RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(addAttribution:(NSDictionary*)options)
 RCT_EXTERN_METHOD(setUserProperty:(NSDictionary*)options)
 RCT_EXTERN_METHOD(incrementUserProperty:(NSDictionary*)options)
 RCT_EXTERN_METHOD(submitPushNotificationsToken:(NSString*)token)
 RCT_EXTERN_METHOD(handlePushNotification:(NSDictionary*)apsInfo)
+
+RCT_EXTERN_METHOD(attributeFromWeb:(NSDictionary*)args
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
 
 + (BOOL)requiresMainQueueSetup {
     return YES; // Requires setup on the main JavaScript thread

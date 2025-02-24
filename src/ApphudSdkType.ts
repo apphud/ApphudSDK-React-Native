@@ -9,7 +9,7 @@ export type ApphudSdkType = {
    * Initializes Apphud SDK. You should call it during app launch.
    * @param options - object with apiKey and optional userId, deviceId, observerMode. See `StartProperties` for details.
    */
-  start(options: StartProperties): void;
+  start(options: StartProperties): Promise<void>;
 
   /**
    * Available on iOS and Android.
@@ -17,7 +17,7 @@ export type ApphudSdkType = {
    * Initializes Apphud SDK with User ID & Device ID pair. Not recommended for use unless you know what you are doing.
    * @param options - object with apiKey and optional userId, deviceId, observerMode. See `StartProperties` for details.
    */
-  startManually(options: StartProperties): void;
+  startManually(options: StartProperties): Promise<void>;
 
   /**
    * Available on iOS and Android.
@@ -151,6 +151,20 @@ export type ApphudSdkType = {
   addAttribution(options: AttributionProperties): void;
 
   /**
+   *  Web-to-Web flow only. Attempts to attribute the user with the provided attribution data.
+   * If the `options` parameter contains either `apphud_user_id`, `email` or `apphud_user_email`,
+   * the SDK will submit this information to the Apphud server.
+   * The server will return ApphudWebRestoreResult.
+   */
+  attributeFromWeb(
+    options: Partial<{
+      apphud_user_id: string;
+      email: string;
+      apphud_user_email: string;
+    }>
+  ): Promise<ApphudWebRestoreResult>;
+
+  /**
    * Available on iOS and Android.
    *
    * Set custom user property.
@@ -215,7 +229,7 @@ export type ApphudSdkType = {
    * the new logged-in user can still restore purchases on this device
    * and both users will be merged under the previous paid one, because Apple ID / Google Account is tied to a device.
    */
-  logout(): void;
+  logout(): Promise<void>;
 
   /**
    * Available on iOS and Android.
@@ -291,7 +305,7 @@ export interface ApphudPurchaseProps {
   paywallId?: string;
 
   /**
-   * Offer token is **mandatory** for purchasing subscriptions on Android.
+   * Offer token is for purchasing subscriptions on Android. If not passed, then SDK will fallback to the first available one.
    *
    * Available on Android only.
    */
@@ -609,4 +623,21 @@ export enum ApphudUserPropertyKey {
   Cohort = '$cohort',
   Gender = '$gender',
   Phone = '$phone',
+}
+
+export interface ApphudWebRestoreResult {
+  /**
+    Returns true if found a user with given email or Apphud User ID.
+  */
+  result: boolean;
+
+  /**
+    Apphud User ID.
+  */
+  user_id?: string;
+
+  /**
+     Returns `true` if user has premium access.
+  */
+  is_premium: boolean;
 }
