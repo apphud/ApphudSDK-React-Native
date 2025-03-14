@@ -15,17 +15,28 @@ class ApphudSdk: NSObject {
     resolve: @escaping RCTPromiseResolveBlock,
     reject: RCTPromiseRejectBlock
   ) {
-    let apiKey = options["apiKey"] as! String;
+    
+    guard let apiKey = options["apiKey"] as? String else {
+      reject("Error", "apiKey not set", nil)
+      return
+    }
+    
     let userID = options["userId"] as? String;
     let observerMode = options["observerMode"] as? Bool ?? true;
+    
     DispatchQueue.main.async {
 #if DEBUG
       ApphudUtils.enableAllLogs()
 #endif
-      Apphud.start(apiKey: apiKey, userID: userID, observerMode: observerMode) { _ in
-        resolve(nil)
-      }
-      Apphud.setDeviceIdentifiers(idfa: nil, idfv: UIDevice.current.identifierForVendor?.uuidString)
+      
+      Apphud
+        .start(
+          apiKey: apiKey,
+          userID: userID,
+          observerMode: observerMode
+        ) { user in
+          resolve(user.toMap())
+        }
     }
   }
     
@@ -35,7 +46,11 @@ class ApphudSdk: NSObject {
     resolve: @escaping RCTPromiseResolveBlock,
     reject: RCTPromiseRejectBlock
   ) {
-    let apiKey = options["apiKey"] as! String;
+    guard let apiKey = options["apiKey"] as? String else {
+      reject("Error", "apiKey not set", nil)
+      return
+    }
+
     let userID = options["userId"] as? String;
     let deviceID = options["deviceId"] as? String;
     let observerMode = options["observerMode"] as? Bool ?? true;
@@ -46,10 +61,9 @@ class ApphudSdk: NSObject {
           userID: userID,
           deviceID: deviceID,
           observerMode: observerMode
-        ) { _ in
-          resolve(nil)
+        ) { user in
+          resolve(user.toMap())
         }
-      Apphud.setDeviceIdentifiers(idfa: nil, idfv: UIDevice.current.identifierForVendor?.uuidString)
     }
   }
     
@@ -77,7 +91,7 @@ class ApphudSdk: NSObject {
   @objc(products:withRejecter:)
   func products(resolve: @escaping RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
     Apphud.fetchProducts { products, error in
-      resolve(products.map { DataTransformer.skProduct(product: $0) });
+      resolve(products.map { $0.toMap() });
     }
   }
   
@@ -128,11 +142,9 @@ class ApphudSdk: NSObject {
           response["success"] = result.error == nil
 
           let sub = result.subscription.map {
-            DataTransformer.apphudSubscription(subscription: $0)
+            $0.toMap()
           }
-          let non = result.nonRenewingPurchase.map {
-            DataTransformer.nonRenewingPurchase(nonRenewingPurchase: $0)
-          }
+          let non = result.nonRenewingPurchase.map { $0.toMap() }
 
           if let skError = result.error as? SKError, skError.code == .paymentCancelled {
             response["userCanceled"] = NSNumber(booleanLiteral: true)
@@ -209,16 +221,14 @@ class ApphudSdk: NSObject {
       return
     }
 
-    resolve(DataTransformer.apphudSubscription(subscription: subscription));
+    resolve(subscription.toMap());
   }
 
     
   @MainActor @objc(subscriptions:withRejecter:)
   func subscriptions(resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
     let subs = Apphud.subscriptions() ?? []
-    let array: Array = subs.map {
-      DataTransformer.apphudSubscription(subscription: $0)
-    }
+    let array: Array = subs.map { $0.toMap() }
     resolve(array as NSArray)
   }
 
@@ -232,9 +242,7 @@ class ApphudSdk: NSObject {
   @MainActor @objc(nonRenewingPurchases:withRejecter:)
   func nonRenewingPurchases(resolve: RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
     let purchases = Apphud.nonRenewingPurchases() ?? []
-    let array: Array = purchases.map {
-      DataTransformer.nonRenewingPurchase(nonRenewingPurchase: $0)
-    }
+    let array: Array = purchases.map { $0.toMap() }
     resolve(array)
   }
     
@@ -242,8 +250,7 @@ class ApphudSdk: NSObject {
   func restorePurchases(resolve: @escaping RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
     Apphud.restorePurchases { (subscriptions, purchases, error) in
       resolve([
-        "subscriptions": subscriptions?
-          .map{ DataTransformer.apphudSubscription(subscription: $0) } as Any,
+        "subscriptions": subscriptions?.map{ $0.toMap() } as Any,
         "purchases": purchases?.map {
           [
             "productId": $0.productId,
@@ -316,13 +323,12 @@ class ApphudSdk: NSObject {
     }
   }
 
-  @objc(setAdvertisingIdentifier:)
-  func setAdvertisingIdentifier(idfa: String) {
-    Apphud
-      .setDeviceIdentifiers(
-        idfa: idfa,
-        idfv: UIDevice.current.identifierForVendor?.uuidString
-      )
+  @objc(setDeviceIdentifiers:)
+  func setDeviceIdentifiers(options: NSDictionary) {
+    let idfa = options["idfa"] as? String
+    let idfv = options["idfv"] as? String
+    
+    Apphud.setDeviceIdentifiers(idfa: idfa, idfv: idfv)
   }
 
   @objc(enableDebugLogs)
@@ -373,4 +379,25 @@ class ApphudSdk: NSObject {
         resolve(result)
       }
     }
+  
+  @MainActor @objc(placements:withRejecter:)
+  func placements(
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject: @escaping RCTPromiseRejectBlock
+  ) {
+    
+    Apphud.fetchPlacements { placements, error in
+      if let error {
+        reject("Error", error.localizedDescription, nil)
+        return
+      }
+      
+      resolve(placements.map({ $0.toMap() }))
+    }
+  }
+  
+  @objc(idfv:withRejecter:)
+  func idfv(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+    resolve(UIDevice.current.identifierForVendor?.uuidString)
+  }
 }

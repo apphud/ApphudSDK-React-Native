@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { ListItem } from 'react-native-elements';
-import ApphudSdk from '@apphud/react-native-apphud-sdk';
+import { ApphudSdk } from '@apphud/react-native-apphud-sdk';
 import type { ApphudPaywall } from '@apphud/react-native-apphud-sdk';
 import type { Props } from './LoginScreen';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -140,16 +140,27 @@ export default function ActionsScreen({ navigation }: Props) {
           </ListItem.Content>
           <ListItem.Chevron />
         </ListItem>
+        <ListItem onPress={() => navigation.navigate('Placements')}>
+          <ListItem.Content>
+            <ListItem.Title>View Placements</ListItem.Title>
+          </ListItem.Content>
+          <ListItem.Chevron />
+        </ListItem>
         <ListItem onPress={callAll}>
           <ListItem.Content>
             <ListItem.Title>Log All Functions to Console</ListItem.Title>
+          </ListItem.Content>
+        </ListItem>
+        <ListItem onPress={() => navigation.navigate('EventEmitter')}>
+          <ListItem.Content>
+            <ListItem.Title>Event emitter</ListItem.Title>
           </ListItem.Content>
         </ListItem>
 
         <ListItem
           onPress={() => {
             ApphudSdk.logout().then(() => {
-              navigation.popToTop();
+              navigation.reset({ routes: [{ name: 'Login' }] });
             });
           }}
         >

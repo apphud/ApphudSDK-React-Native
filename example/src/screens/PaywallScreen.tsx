@@ -12,7 +12,7 @@ import type {
   ApphudProduct,
   ApphudPurchaseProps,
 } from '@apphud/react-native-apphud-sdk';
-import ApphudSdk from '@apphud/react-native-apphud-sdk';
+import { ApphudSdk } from '@apphud/react-native-apphud-sdk';
 import { Button } from 'react-native-elements';
 
 const styles = StyleSheet.create({

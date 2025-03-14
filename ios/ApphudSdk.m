@@ -49,7 +49,7 @@ RCT_EXTERN_METHOD(userId:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(collectDeviceIdentifiers)
-RCT_EXTERN_METHOD(setAdvertisingIdentifier:(NSString*)idfa)
+RCT_EXTERN_METHOD(setDeviceIdentifiers:(NSDictionary*)options)
 RCT_EXTERN_METHOD(paywallShown:(NSString*)identifier)
 RCT_EXTERN_METHOD(paywallClosed:(NSString*)identifier)
 RCT_EXTERN_METHOD(optOutOfTracking)
@@ -66,6 +66,10 @@ RCT_EXTERN_METHOD(attributeFromWeb:(NSDictionary*)args
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
+RCT_EXTERN_METHOD(placements:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(idfv:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
 
 + (BOOL)requiresMainQueueSetup {
     return YES; // Requires setup on the main JavaScript thread
