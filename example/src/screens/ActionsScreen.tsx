@@ -2,7 +2,7 @@ import * as React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { ListItem } from 'react-native-elements';
 import { ApphudSdk } from '@apphud/react-native-apphud-sdk';
-import type { ApphudPaywall } from '@apphud/react-native-apphud-sdk';
+import type { ApphudPlacement } from '@apphud/react-native-apphud-sdk';
 import type { Props } from './LoginScreen';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useFocusEffect } from '@react-navigation/native';
@@ -18,6 +18,8 @@ const boldStyles = StyleSheet.create({
 });
 
 export default function ActionsScreen({ navigation }: Props) {
+  const [placements, setPlacements] = React.useState<ApphudPlacement[]>([]);
+
   React.useEffect(() => {
     ApphudSdk.userId().then((userId) => {
       navigation.setOptions({
@@ -28,11 +30,9 @@ export default function ActionsScreen({ navigation }: Props) {
 
   useFocusEffect(
     React.useCallback(() => {
-      ApphudSdk.paywalls().then(setPaywalls);
+      ApphudSdk.placements().then(setPlacements);
     }, [])
   );
-
-  const [paywalls, setPaywalls] = React.useState<Array<ApphudPaywall>>();
 
   const callAll = () => {
     ApphudSdk.enableDebugLogs();
@@ -102,21 +102,26 @@ export default function ActionsScreen({ navigation }: Props) {
       <View style={{ flex: 1 }}>
         <ListItem>
           <ListItem.Title style={boldStyles.customText}>
-            Paywalls ({paywalls?.length}){' '}
+            Placements ({placements.length}){' '}
           </ListItem.Title>
         </ListItem>
 
-        {paywalls?.map((paywall, index) => (
+        {placements.map((placement, index) => (
           <ListItem
             key={index}
             onPress={() => {
-              navigation.navigate('Paywall', { paywallId: paywall.identifier });
+              if (placement.paywall?.identifier) {
+                navigation.navigate('Paywall', {
+                  paywallId: placement.paywall?.identifier,
+                });
+              }
             }}
           >
             <ListItem.Content>
               <ListItem.Title style={boldStyles.italicText}>
                 {' '}
-                {'->>>'} {paywall.identifier} ({paywall.products.length}){' '}
+                {'->>>'} {placement.identifier} (
+                {placement.paywall?.products.length}){' '}
               </ListItem.Title>
             </ListItem.Content>
             <ListItem.Chevron />
@@ -131,6 +136,12 @@ export default function ActionsScreen({ navigation }: Props) {
         <ListItem onPress={() => navigation.navigate('Products')}>
           <ListItem.Content>
             <ListItem.Title>View All Products</ListItem.Title>
+          </ListItem.Content>
+          <ListItem.Chevron />
+        </ListItem>
+        <ListItem onPress={() => navigation.navigate('Paywalls')}>
+          <ListItem.Content>
+            <ListItem.Title>View Paywalls</ListItem.Title>
           </ListItem.Content>
           <ListItem.Chevron />
         </ListItem>
