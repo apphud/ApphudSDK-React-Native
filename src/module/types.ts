@@ -62,45 +62,79 @@ export interface ApphudPurchaseProps {
   isConsumable?: boolean;
 }
 
+/**
+ * Status of the subscription. It can only be in one state at any moment.
+ */
+export enum ApphudSubscriptionStatus {
+  /**
+   * Free trial period
+   */
+  trial = 'trial',
+
+  /**
+   * One of introductory offers: "Pay as you go" or "Pay up front".
+   */
+  intro = 'intro',
+
+  /**
+   * Custom promotional offer.
+   */
+  promo = 'promo',
+
+  /**
+   * Regular paid subscription.
+   */
+  regular = 'regular',
+
+  /**
+   * Custom grace period. Configurable in web.
+   */
+  grace = 'grace',
+
+  /**
+   * Subscription was refunded by Apple Care. Developer should treat this subscription as never purchased.
+   */
+  refunded = 'refunded',
+
+  /**
+   * Subscription has expired because has been canceled manually by user or had unresolved billing issues.
+   */
+  expired = 'expired',
+
+  /**
+   * Available on Android onlu
+   */
+  none = 'none',
+}
+
+export enum ApphudKind {
+  autorenewable = 'autorenewable',
+  nonrenewable = 'nonrenewable',
+  none = 'none',
+}
+
 export interface ApphudSubscription {
   /**
-    Use this value to detect whether to give or not premium content to the user.
-    
-    @returns: `true` when user should have access to premium content. Otherwise `false`.
-    */
+   * Use this value to detect whether to give or not premium content to the user.
+   * @returns: `true` when user should have access to premium content. Otherwise `false`.
+   */
   isActive: boolean;
 
   /**
-     * Status of the subscription. It can only be in one state at any moment.
-     
-    * Possible values:
-  
-    * `trial`: Free trial period.
-    * 
-    * `intro`: One of introductory offers: "Pay as you go" or "Pay up front".
-    * 
-    * `promo`: Custom promotional offer.
-    * 
-    * `regular`: Regular paid subscription.
-    * 
-    * `grace`: Custom grace period. Configurable in web.
-    * 
-    * `refunded`: Subscription was refunded. Developer should treat this subscription as never purchased.
-    * 
-    * `expired`: Subscription has expired because has been canceled manually by user or had unresolved billing issues.
-    */
-  status: string;
+   * Status of the subscription. It can only be in one state at any moment.
+   */
+  status: ApphudSubscriptionStatus;
 
   /**
-       Product identifier of this subscription
-       */
+   * Product identifier of this subscription
+   */
   productId: string;
 
   /**
-       Expiration date of subscription period. 
-       You shouldn't use this property to detect if subscription is active because user can change system date in iOS settings.
-      Check isActive() method instead.
-       */
+   * Expiration date of subscription period.
+   * You shouldn't use this property to detect if subscription is active because user can change system date in iOS settings.
+   * Check isActive() method instead.
+   */
   expiresAt: number;
 
   /**
@@ -114,52 +148,90 @@ export interface ApphudSubscription {
   canceledAt?: number;
 
   /**
-       Subscriptiona has failed to renew, but Apple / Google will try to charge the user later.
-       */
+   * Purchase Token
+   * Available on Android
+   */
+  purchaseToken?: string;
+
+  /**
+   * Returns `true` if subscription is made in test environment, i.e. sandbox or local purchase.
+   * Available on iOS
+   */
+  isSandbox?: boolean;
+
+  /**
+   * Returns `true` if subscription was made using Local StoreKit Configuration File. Read more: https://docs.apphud.com/docs/testing-troubleshooting#local-storekit-testing
+   * Available on iOS
+   */
+  isLocal?: boolean;
+
+  /**
+   * Subscriptiona has failed to renew, but Apple / Google will try to charge the user later.
+   */
   isInRetryBilling: boolean;
 
   /**
-     False value means that user has canceled the subscription from App Store / Google Play settings. 
-    */
+   * False value means that user has canceled the subscription from App Store / Google Play settings.
+   */
   isAutoRenewEnabled: boolean;
 
   /**
-       True value means that user has already used introductory offer for this subscription
-        (free trial, pay as you go or pay up front).
-    */
+   * Available on iOS
+   */
+  kind?: ApphudKind;
+
+  /**
+   * Available on Android
+   */
+  groupId?: string;
+
+  /**
+   * True value means that user has already used introductory offer for this subscription
+   * (free trial, pay as you go or pay up front).
+   */
   isIntroductoryActivated: boolean;
 }
 
 export interface ApphudNonRenewingPurchase {
   /**
-      Product identifier of this purchase
-    */
+   * Product identifier of this purchase
+   */
   productId: string;
 
   /**
-      Date when user bought regular in-app purchase. Timestamp in seconds.
-    */
-  purchasedAt: string;
+   * Date when user bought regular in-app purchase. Timestamp in seconds.
+   */
+  purchasedAt: number;
 
   /**
    * Date when the purchase has been refunded. Timestamp in seconds.
    */
-  canceledAt?: string;
+  canceledAt?: number;
 
   /**
-       Returns `true` if purchase is not refunded.
-    */
+   * Purchase Token
+   * Available on Android
+   */
+  purchaseToken?: string;
+
+  /**
+   * Returns true if purchase was consumed
+   * Available on Android
+   */
+  isConsumable?: boolean;
+
+  /**
+   * Returns `true` if purchase was made using Local StoreKit Configuration File. Read more: https://docs.apphud.com/docs/testing-troubleshooting#local-storekit-testing
+   */
+  isLocal?: boolean;
+
+  /**
+   * Returns `true` if purchase is not refunded.
+   */
   isActive: boolean;
 }
 
 export interface ApphudPurchaseResult {
-  /**
-   * Available on iOS and Android.
-   *
-   * Returns `true` if purchase was successful, `false` if not.
-   */
-  success: boolean;
-
   /**
    * Available on iOS and Android.
    *
@@ -196,7 +268,7 @@ export interface ApphudPurchaseResult {
    *
    * Transction details from Google Play.
    */
-  playStoreTransaction?: {
+  purchase?: {
     /* Android: Purchase class */
     orderId: string;
     purchaseState: number;
@@ -209,7 +281,7 @@ export interface ApphudPurchaseResult {
    *
    * Transction details from App Store.
    */
-  appStoreTransaction?: {
+  transaction?: {
     /**
      * iOS: SKPaymentTransactionStatePurchasing = 0
      * iOS: SKPaymentTransactionStatePurchased = 1
@@ -260,48 +332,32 @@ export interface ApphudPaywall {
   /**
    * Custom JSON data from Paywall.
    */
-  json?: string;
+  json?: Record<string, any>;
 
   /**
    * Array of products from Paywall.
    */
-  products: Array<ApphudProduct>;
+  products: ApphudProduct[];
 }
 
 /**
- * Available on iOS and Android.
+ * Available on iOS
  */
-export interface ApphudProduct {
-  /** Product identifier */
-  id: string;
-
-  /** Product name */
-  name?: string;
-
-  /** app_store or google_play */
-  store: string;
-
-  /** Paywall Identifier */
-  paywallIdentifier?: string;
-
-  /* iOS and Android. 
-  
-    For Android subscriptions, it returns a price for a first base plan. 
-    Do not use this property if you have multiple base plans per subscription, get price from `subscriptionOffers` instead.
-    */
-  price?: number;
-
-  /** Available on iOS only */
-  localizeTitle?: string;
-  priceLocale?: {
+export interface SKProduct {
+  localizedTitle?: string;
+  priceLocale: {
     currencySymbol: string;
     currencyCode: string;
     countryCode: string;
   };
+
+  price: number;
+
   subscriptionPeriod?: {
     numberOfUnits: number;
     unit: number;
   };
+
   introductoryPrice?: {
     price: number;
     numberOfPeriods: number;
@@ -311,13 +367,56 @@ export interface ApphudProduct {
     };
     paymentMode: number;
   };
+}
 
-  /** Available on Android only */
-  title?: string;
-  productType?: string;
-  subscriptionPeriodAndroid?: string;
-  subscriptionOffers?: Array<ApphudSubscriptionOffer>;
+/**
+ * Available on Android
+ */
+export interface ProductDetails {
+  id: string;
+  productType: string;
+  store: string;
+  title: string;
+  subscriptionPeriod: string;
+  subscriptionOffers: ApphudSubscriptionOffer[];
   oneTimePurchaseOffer?: ApphudPricingPhase;
+  price?: number;
+}
+
+/**
+ * Available on iOS and Android.
+ */
+export interface ApphudProduct {
+  /** Product identifier */
+  productId: string;
+
+  /** Product name */
+  name?: string;
+
+  /** app_store or google_play */
+  store: string;
+
+  /**
+   * Base Plan Id of the product from Google Play Console
+   *
+   * Available on Android
+   */
+  basePlanId?: string;
+
+  /**
+   * Available on iOS
+   */
+  skProduct?: SKProduct;
+
+  /**
+   * When paywalls are successfully loaded, productDetails model will always be present if Google Play returned model for this product id. getPaywalls method will return callback only when Google Play products are fetched and mapped with Apphud products. May be null if product identifier is invalid, or product is not available in Google Play
+   *
+   * Available on Android
+   */
+  productDetails?: ProductDetails;
+
+  /** Paywall Identifier */
+  paywallIdentifier?: string;
 }
 
 /** Available on Android only

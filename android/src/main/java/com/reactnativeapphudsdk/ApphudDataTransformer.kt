@@ -4,6 +4,7 @@ import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.ProductDetails.OneTimePurchaseOfferDetails
 import com.android.billingclient.api.ProductDetails.PricingPhase
 import com.android.billingclient.api.ProductDetails.SubscriptionOfferDetails
+import com.android.billingclient.api.Purchase
 import com.apphud.sdk.ApphudPurchaseResult
 import com.apphud.sdk.domain.ApphudNonRenewingPurchase
 import com.apphud.sdk.domain.ApphudPaywall
@@ -14,6 +15,54 @@ import com.apphud.sdk.domain.ApphudUser
 import com.apphud.sdk.managers.subscriptionPeriod
 import com.facebook.react.bridge.WritableNativeArray
 import com.facebook.react.bridge.WritableNativeMap
+
+internal fun Map<String, Any>.toWritableNativeMap(): WritableNativeMap {
+  val writableMap = WritableNativeMap()
+
+  for ((key, value) in this) {
+    when (value) {
+      is String -> writableMap.putString(key, value)
+      is Int -> writableMap.putInt(key, value)
+      is Double -> writableMap.putDouble(key, value)
+      is Boolean -> writableMap.putBoolean(key, value)
+      is Map<*, *> ->
+        (value as? Map<String, Any>)?.let {
+          writableMap.putMap(key, it.toWritableNativeMap())
+        }
+      is List<*> ->
+        (value as? List<Any>)?.let {
+          writableMap.putArray(key, value.toWritableNativeArray())
+        }
+    }
+  }
+
+  return writableMap
+}
+
+internal fun List<Any>.toWritableNativeArray(): WritableNativeArray {
+  val writableArray = WritableNativeArray()
+
+  for (value in this) {
+    when (value) {
+      is String -> writableArray.pushString(value)
+      is Int -> writableArray.pushInt(value)
+      is Double -> writableArray.pushDouble(value)
+      is Boolean -> writableArray.pushBoolean(value)
+      is Map<*, *> ->
+        (value as? Map<String, Any>)?.let {
+          writableArray.pushMap(it.toWritableNativeMap())
+        }
+
+      is List<*> ->
+        (value as? List<Any>)?.let {
+          writableArray.pushArray(it.toWritableNativeArray())
+        }
+      else -> throw IllegalArgumentException("Unsupported type: ${value::class.simpleName}")
+    }
+  }
+
+  return writableArray
+}
 
 internal inline fun <T> Iterable<T>.toWritableNativeArray(mapper: (item: T) -> WritableNativeMap): WritableNativeArray {
   val arr = WritableNativeArray()
@@ -28,6 +77,7 @@ internal inline fun <T> Iterable<T>.toWritableNativeArray(mapper: (item: T) -> W
 internal fun ApphudSubscription.toMap(): WritableNativeMap {
   val result = WritableNativeMap()
 
+  result.putString("status", status.toString().lowercase())
   result.putString("productId", productId)
   result.putDouble("expiresAt", expiresAt.toDouble())
   result.putDouble("startedAt", startedAt.toDouble())
@@ -36,90 +86,113 @@ internal fun ApphudSubscription.toMap(): WritableNativeMap {
     result.putDouble("canceledAt", it.toDouble())
   }
 
+  result.putString("purchaseToken", purchaseToken)
   result.putBoolean("isInRetryBilling", isInRetryBilling)
   result.putBoolean("isAutoRenewEnabled", isAutoRenewEnabled)
-  result.putBoolean("isIntroductoryActivated", isIntroductoryActivated)
+
+  result.putString("kind", kind.source)
+  result.putString("groupId", groupId)
+
   result.putBoolean("isActive", isActive())
-  result.putString("status", status.toString().lowercase())
 
   return result
 }
 
 internal fun ApphudProduct.toMap(): WritableNativeMap {
-  val payload = WritableNativeMap()
-  payload.putString("name", name)
-  payload.putString("store", store)
-  payload.putString("paywallIdentifier", paywallIdentifier)
-  payload.putString("id", productId)
+  val result = WritableNativeMap()
+
+  result.putString("productId", productId)
+  result.putString("name", name)
+  result.putString("store", store)
+  result.putString("basePlanId", basePlanId)
 
   productDetails?.let {
-    payload.merge(it.toMap())
+    result.putMap("productDetails", it.toMap())
   }
 
-  return payload
+  result.putString("placementIdentifier", placementIdentifier)
+  result.putString("paywallIdentifier", paywallIdentifier)
+
+  return result
 }
 
 internal fun ApphudPaywall.toMap(): WritableNativeMap {
   val result = WritableNativeMap()
 
+  result.putString("name", name)
   result.putString("identifier", identifier)
-  result.putBoolean("isDefault", default)
-  result.putString("experimentName", experimentName)
-  result.putString("variationName", variationName)
-  result.putString("json", json.toString())
+  result.putBoolean("default", default)
+
+  json?.let {
+    result.putMap("json", it.toWritableNativeMap())
+  }
 
   result.putArray(
     "products",
     products?.toWritableNativeArray { it.toMap() } ?: WritableNativeArray())
 
+  result.putString("experimentName", experimentName)
+  result.putString("variationName", variationName)
+  result.putString("parentPaywallIdentifier", parentPaywallIdentifier)
+  result.putString("placementIdentifier", placementIdentifier)
+
   return result
 }
 
 internal fun ApphudNonRenewingPurchase.toMap(): WritableNativeMap {
-  val item = WritableNativeMap()
-  item.putString("productId", productId)
-  item.putDouble("purchasedAt", purchasedAt.toDouble())
+  val result = WritableNativeMap()
+
+  result.putString("productId", productId)
+  result.putDouble("purchasedAt", purchasedAt.toDouble())
 
   canceledAt?.let {
-    item.putDouble("canceledAt", it.toDouble())
+    result.putDouble("canceledAt", it.toDouble())
   }
 
-  item.putBoolean("isActive", isActive())
-  return item
+  result.putString("purchaseToken", purchaseToken)
+  result.putBoolean("isConsumable", isConsumable)
+
+  result.putBoolean("isActive", isActive())
+
+  return result
+}
+
+internal fun Purchase.toMap(): WritableNativeMap {
+  val result = WritableNativeMap()
+
+  result.putString("orderId", orderId)
+  result.putInt("purchaseState", purchaseState)
+  result.putDouble("purchaseTime", purchaseTime.toDouble())
+  result.putString("purchaseToken", purchaseToken)
+
+  return result
 }
 
 internal fun ApphudPurchaseResult.toMap(): WritableNativeMap {
-  val resultItem = WritableNativeMap()
-  val purchase = purchase
-
-  if (purchase != null) {
-    val item = WritableNativeMap()
-    item.putString("orderId", purchase.orderId)
-    item.putInt("purchaseState", purchase.purchaseState)
-    item.putDouble("purchaseTime", purchase.purchaseTime.toDouble())
-    item.putString("purchaseToken", purchase.purchaseToken)
-    resultItem.putMap("playStoreTransaction", item)
-  }
-
-  resultItem.putBoolean("success", error == null)
-  resultItem.putBoolean("userCanceled", userCanceled())
+  val result = WritableNativeMap()
 
   subscription?.let {
-    resultItem.putMap("subscription", it.toMap())
+    result.putMap("subscription", it.toMap())
   }
 
   nonRenewingPurchase?.let {
-    resultItem.putMap("nonRenewingPurchase", it.toMap())
+    result.putMap("nonRenewingPurchase", it.toMap())
+  }
+
+  purchase?.let {
+    result.putMap("purchase", it.toMap())
   }
 
   error?.let {
     val errorMap = WritableNativeMap()
     errorMap.putInt("code", it.errorCode ?: 0)
     errorMap.putString("message", it.message)
-    resultItem.putMap("error", errorMap)
+    result.putMap("error", errorMap)
   }
 
-  return resultItem
+  result.putBoolean("userCanceled", userCanceled())
+
+  return result
 
 }
 
@@ -171,7 +244,7 @@ internal fun ProductDetails.toMap(): WritableNativeMap {
   item.putString("productType", productType)
   item.putString("store", "play_store")
   item.putString("title", title)
-  item.putString("subscriptionPeriodAndroid", subscriptionPeriod())
+  item.putString("subscriptionPeriod", subscriptionPeriod())
   item.putArray("subscriptionOffers", offersMaps)
   val details = oneTimePurchaseOfferDetails
 

@@ -32,17 +32,16 @@ extension SKProduct : RNAdapter {
 
 extension ApphudPaywall : RNAdapter {
   func toMap() -> NSDictionary {
-    var map = [
-      "identifier": identifier,
-      "isDefault": isDefault,
-      "products": products.map({ product in
-        return product.toMap();
-      })
-    ] as [String : Any]
-
-    map["json"] = json
+    var map: [String: Any] = [:]
+    
+    map["products"] = products.map({ $0.toMap() })
+    map["identifier"] = identifier
+    map["isDefault"] = isDefault
     map["experimentName"] = experimentName
     map["variationName"] = variationName
+    map["parentPaywallIdentifier"] = parentPaywallIdentifier
+    map["placementIdentifier"] = placementIdentifier
+    map["json"] = json
 
     return map as NSDictionary;
   }
@@ -50,19 +49,14 @@ extension ApphudPaywall : RNAdapter {
 
 extension ApphudProduct : RNAdapter {
   func toMap() -> NSDictionary {
-
-    var map = [
-      "store": store,
-    ] as [String: Any]
-
+    var map: [String: Any] = [:]
+    
+    map["productId"] = productId
     map["name"] = name
+    map["store"] = store
+    map["skProduct"] = skProduct?.toMap()
     map["paywallIdentifier"] = paywallIdentifier
-    map["id"] = productId
-
-    if let productMap = skProduct?.toMap() as? [String: Any] {
-      map.merge(productMap, uniquingKeysWith: { old, new in return new})
-    }
-
+  
     return map as NSDictionary;
   }
 }
@@ -120,15 +114,18 @@ extension ApphudPlacement : RNAdapter {
 extension ApphudSubscription : RNAdapter {
   func toMap() -> NSDictionary {
     [
+      "isActive": isActive(),
+      "status": status.toString(),
       "productId": productId,
       "expiresAt": expiresDate.timeIntervalSince1970,
       "startedAt": startedAt.timeIntervalSince1970,
       "canceledAt": canceledAt?.timeIntervalSince1970 as Any,
+      "isSandbox": isSandbox,
+      "isLocal": isLocal,
       "isInRetryBilling": isInRetryBilling,
       "isAutorenewEnabled": isAutorenewEnabled,
-      "isIntroductoryActivated": isIntroductoryActivated,
-      "isActive":  isActive(),
-      "status": status.toString(),
+      "kind": "autorenewable",
+      "isIntroductoryActivated": isIntroductoryActivated
     ] as NSDictionary
   }
 }
@@ -139,6 +136,8 @@ extension ApphudNonRenewingPurchase : RNAdapter {
       "productId": productId,
       "purchasedAt": purchasedAt.timeIntervalSince1970,
       "canceledAt": canceledAt?.timeIntervalSince1970 as Any,
+      "isSandbox": isSandbox,
+      "isLocal": isLocal,
       "isActive": isActive()
     ] as NSDictionary
   }

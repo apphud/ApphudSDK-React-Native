@@ -5,6 +5,7 @@ import { ApphudSdk } from '@apphud/react-native-apphud-sdk';
 import type { ApphudPaywall } from '@apphud/react-native-apphud-sdk';
 import type { Props } from './LoginScreen';
 import { ScrollView } from 'react-native-gesture-handler';
+import { useFocusEffect } from '@react-navigation/native';
 
 const boldStyles = StyleSheet.create({
   customText: {
@@ -25,18 +26,11 @@ export default function ActionsScreen({ navigation }: Props) {
     });
   }, [navigation]);
 
-  React.useEffect(() => {
-    const loadPaywalls = navigation.addListener('focus', () => {
-      // This function will be called when the view appears
-      paywallsLoaded;
-    });
-
-    return loadPaywalls;
-  }, []);
-
-  const paywallsLoaded = ApphudSdk.paywalls().then((data) => {
-    setPaywalls(data);
-  });
+  useFocusEffect(
+    React.useCallback(() => {
+      ApphudSdk.paywalls().then(setPaywalls);
+    }, [])
+  );
 
   const [paywalls, setPaywalls] = React.useState<Array<ApphudPaywall>>();
 

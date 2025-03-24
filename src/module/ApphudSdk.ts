@@ -281,6 +281,13 @@ interface IApphudSdk {
    */
   placements(): Promise<ApphudPlacement[]>;
 
+  /**
+   * Available on iOS
+   *
+   * Returns the native identifierForVendor UUID or null. On Android always returns null
+   *
+   * See full description https://developer.apple.com/documentation/uikit/uidevice/identifierforvendor
+   */
   idfv(): Promise<string | null>;
 }
 

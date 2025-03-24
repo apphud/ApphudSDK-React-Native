@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
 import type { ApphudProduct } from '@apphud/react-native-apphud-sdk';
 import { ApphudSdk } from '@apphud/react-native-apphud-sdk';
 import { common } from './styles';
@@ -18,6 +18,7 @@ export default function ProductsScreen() {
       setProducts(data);
     });
   }, []);
+
   return (
     <ScrollView>
       <View style={styles.root}>
@@ -30,21 +31,30 @@ export default function ProductsScreen() {
               <Text style={common.th}>Price</Text>
             </View>
           </View>
-          {products?.map((product: ApphudProduct, key: number) => (
-            <View style={common.row} key={key}>
-              <View style={common.col}>
-                <Text>{product.id}</Text>
+          {products?.map((product: ApphudProduct, key: number) => {
+            return (
+              <View style={common.row} key={key}>
+                <View style={common.col}>
+                  <Text>{product.productId}</Text>
+                </View>
+                <View style={common.col}>
+                  {Platform.OS === 'ios' &&
+                    Boolean(product.skProduct?.price) && (
+                      <Text>{product.skProduct?.price}</Text>
+                    )}
+                  <Text>
+                    {Platform.OS === 'android' && (
+                      <Text>
+                        {product.productDetails?.subscriptionOffers.map(
+                          (x) => x.pricingPhases[0]?.formattedPrice
+                        )}
+                      </Text>
+                    )}
+                  </Text>
+                </View>
               </View>
-              <View style={common.col}>
-                <Text>
-                  {product.price ||
-                    product.subscriptionOffers?.map((o) => {
-                      return o.pricingPhases[0]?.formattedPrice;
-                    })}
-                </Text>
-              </View>
-            </View>
-          ))}
+            );
+          })}
         </View>
       </View>
     </ScrollView>

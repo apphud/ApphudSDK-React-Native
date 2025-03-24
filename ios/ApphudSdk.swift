@@ -165,7 +165,7 @@ class ApphudSdk: NSObject {
           }
 
           if let transaction = result.transaction {
-            response["appStoreTransaction"] = [
+            response["transaction"] = [
               "state": transaction.transactionState.rawValue,
               "id": transaction.transactionIdentifier as Any,
               "date": transaction.transactionDate?.timeIntervalSince1970 as Any,
