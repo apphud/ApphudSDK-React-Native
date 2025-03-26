@@ -170,28 +170,20 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun addAttribution(options: ReadableMap) {
-    val data = options.getMap("data")?.toHashMap()?.let {
-      val result = mutableMapOf<String, Any>()
-
-      for ((key, value) in it) {
-        value?.let {
-          result[key] = it
-        }
-      }
-
-      return@let result
+  fun setAttribution(options: ReadableMap, promise: Promise) {
+    val attributionParams = options.getAttributionParams() ?: run {
+      promise.reject("Error", "Options not valid")
+      return
     }
 
-    val identifier = options.getString("identifier")
-    val providerString = options.getString("attributionProviderId") ?: "none"
+    Apphud.setAttribution(
+      data = attributionParams.data,
+      identifier = attributionParams.identifier,
+      provider = attributionParams.provider
+    )
 
-    val provider = stringToApphudAttributionProvider(providerString)
-    provider?.let {
-      Apphud.addAttribution(it, data, identifier)
-    } ?: run {
-      Log.d("AP", "Unsupported attribution provider ${providerString}, skipping")
-    }
+//    TODO: узнать почему отличается от ios
+    promise.resolve(true)
   }
 
   @ReactMethod

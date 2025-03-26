@@ -164,3 +164,70 @@ extension ApphudSubscriptionStatus {
   }
 }
 
+struct AttributionParams {
+  let identifier: String?
+  let provider: ApphudAttributionProvider
+  let data: ApphudAttributionData
+}
+
+fileprivate extension String {
+  func toApphudAttributionProvider() -> ApphudAttributionProvider? {
+    switch self {
+    case "appsFlyer":
+      return .appsFlyer
+    case "adjust":
+      return .adjust
+    case "appleAdsAttribution":
+      return .appleAdsAttribution
+    case "branch":
+      return .branch
+    case "firebase":
+      return .firebase
+    case "facebook":
+      return .facebook
+    case "singular":
+      return .singular
+    case "tenjin":
+      return .tenjin
+    case "tiktok":
+      return .tiktok
+    case "voluum":
+      return .voluum
+    case "custom":
+      return .custom
+      
+    default:
+      return nil
+    }
+  }
+}
+
+extension NSDictionary {
+  func getAttributionParams() -> AttributionParams? {
+    let identifier = self["identifier"] as? String
+    
+    guard let attributionProviderId = self["attributionProviderId"] as? String, let provider = attributionProviderId.toApphudAttributionProvider(), let data = self["data"] as? [AnyHashable : Any] else {
+      return nil
+    }
+    
+    let rawData = data["rawData"] as? [AnyHashable : Any] ?? [:]
+
+    let attributionData = ApphudAttributionData(
+      rawData: rawData,
+      adNetwork: data["adNetwork"] as? String,
+      channel: data["channel"] as? String,
+      campaign: data["campaign"] as? String,
+      adSet: data["adSet"] as? String,
+      creative: data["creative"] as? String,
+      keyword: data["keyword"] as? String,
+      custom1: data["custom1"] as? String,
+      custom2: data["custom2"] as? String
+    )
+
+    return AttributionParams(
+      identifier: identifier,
+      provider: provider,
+      data: attributionData
+    )
+  }
+}

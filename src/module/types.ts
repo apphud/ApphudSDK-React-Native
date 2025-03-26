@@ -445,18 +445,58 @@ export interface ApphudSubscriptionOffer {
 
 /** Available Attribution Providers */
 export enum ApphudAttributionProvider {
-  AppsFlyer = 'appsFlyer',
-  Adjust = 'adjust',
-  AppleSearchAds = 'appleSearchAds', // iOS only
-  Firebase = 'firebase',
+  appsFlyer = 'appsFlyer',
+  adjust = 'adjust',
+  appleAdsAttribution = 'appleAdsAttribution',
+  branch = 'branch',
+  firebase = 'firebase',
+  facebook = 'facebook',
+  singular = 'singular',
+  tenjin = 'tenjin',
+  tiktok = 'tiktok',
+  voluum = 'voluum',
+
+  /**
+  Pass custom attribution data to Apphud. Contact your support manager for details.
+  */
+  custom = 'custom',
+}
+
+export interface ApphudAttributionData {
+  /** Raw attribution data received from MMPs, such as AppsFlyer or Branch. */
+  rawData: Record<string, any>;
+
+  /** Overridden ad network responsible for user acquisition (e.g., "Meta Ads", "Google Ads"). */
+  adNetwork?: string;
+
+  /** Overridden channel that drove the user acquisition (e.g., "Instagram Feed", "Google UAC"). */
+  channel?: string;
+
+  /** Overridden campaign name associated with the attribution data. */
+  campaign?: string;
+
+  /** Overridden ad set name within the campaign. */
+  adSet?: string;
+
+  /** Overridden specific ad creative used in the campaign. */
+  creative?: string;
+
+  /** Overridden keyword associated with the ad campaign (if applicable). */
+  keyword?: string;
+
+  /** Custom attribution parameter for additional tracking or mapping. */
+  custom1?: string;
+
+  /** Another custom attribution parameter for extended tracking or mapping. */
+  custom2?: string;
 }
 
 /**
  * Interface for submitting attribution data to Apphud from your attribution network provider.
  */
 export interface AttributionProperties {
-  data?: any;
-  identifier: string;
+  data: ApphudAttributionData;
+  identifier?: string;
   attributionProviderId: ApphudAttributionProvider;
 }
 

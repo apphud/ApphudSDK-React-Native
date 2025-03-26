@@ -270,30 +270,23 @@ class ApphudSdk: NSObject {
     );
   }
     
-  @objc(addAttribution:)
-  func addAttribution(options: NSDictionary) {
-
-    let data = options["data"] as? [AnyHashable : Any]
-    let identifier = options["identifier"]  as? String
-    let providerString = options["attributionProviderId"] as? String
-    let provider: ApphudAttributionProvider
-    switch providerString {
-    case "appsFlyer":
-      provider = .appsFlyer
-    case "adjust":
-      provider = .adjust
-    case "appleSearchAds":
-      provider = .appleAdsAttribution
-    case "firebase":
-      provider = .firebase
-    default:
+  @objc(setAttribution:withResolver:withRejecter:)
+  func setAttribution(
+    options: NSDictionary,
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject:RCTPromiseRejectBlock
+  ) {
+    guard let attributionParams = options.getAttributionParams() else {
+      reject("Error", "Options not valid", nil)
       return
     }
 
     Apphud
-      .addAttribution(data: data, from: provider, identifer: identifier) {
-        _ in
-      }
+      .setAttribution(
+        data: attributionParams.data,
+        from: attributionParams.provider,
+        identifer: attributionParams.identifier
+      ) { resolve($0) }
   }
 
   @objc(setUserProperty:)

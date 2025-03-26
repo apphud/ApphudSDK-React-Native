@@ -160,9 +160,9 @@ interface IApphudSdk {
    * Available on iOS and Android.
    *
    * Submit attribution data to Apphud from your attribution network provider.
-   * @param options - object with data, identifier, attributionProviderId. See `AttributionProperties` for details.
+   * @param {AttributionProperties} options.
    */
-  addAttribution(options: AttributionProperties): void;
+  setAttribution(options: AttributionProperties): Promise<boolean>;
 
   /**
    *  Web-to-Web flow only. Attempts to attribute the user with the provided attribution data.

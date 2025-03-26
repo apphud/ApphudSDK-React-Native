@@ -1,5 +1,5 @@
 PODS:
-  - ApphudSDK (3.5.9)
+  - ApphudSDK (3.6.0)
   - boost (1.84.0)
   - DoubleConversion (1.1.6)
   - fast_float (6.1.4)
@@ -1212,7 +1212,7 @@ PODS:
     - React-RCTFBReactNativeSpec
     - ReactCommon/turbomodule/core
   - react-native-apphud-sdk (2.2.0):
-    - ApphudSDK (= 3.5.9)
+    - ApphudSDK (= 3.6.0)
     - React-Core
   - react-native-safe-area-context (5.2.0):
     - DoubleConversion
@@ -1932,7 +1932,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  ApphudSDK: 4aad14717e9029d9e9defc205d75b4836cbed559
+  ApphudSDK: c921b8009755fc3b576956b6db4c19c174cf7a4a
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6
@@ -1969,7 +1969,7 @@ SPEC CHECKSUMS:
   React-logger: 1935d6e6461e9c8be4c87af56c56a4876021171e
   React-Mapbuffer: 212171f037e3b22e6c2df839aa826806da480b85
   React-microtasksnativemodule: 72564d5469003687d39bfc4efad281df8efc0684
-  react-native-apphud-sdk: 101e802e81c69f1ca8998ce2ec8c5fd961a52729
+  react-native-apphud-sdk: bed6f33d6cab46dc0dfb1d6712deac9b140757b8
   react-native-safe-area-context: 9c33120e9eac7741a5364cc2d9f74665049b76b3
   React-nativeconfig: cb207ebba7cafce30657c7ad9f1587a8f32e4564
   React-NativeModulesApple: 82a8bee52df9f5b378195a500f22be3a6ef0f890
@@ -2005,8 +2005,8 @@ SPEC CHECKSUMS:
   RNReanimated: ef80cf675203a39bb5e5464234cb08a0f0040ac2
   RNVectorIcons: 14a0c42f16a26bcc3e79a19bc1c5718284b1d469
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
-  Yoga: 1fd059161b449018342943b095a6d4e69bcaa719
+  Yoga: 2957d0e744897870b5a377f26522e3f08cadd7ac
 
-PODFILE CHECKSUM: a12992b818b7dbdfe9a7e215f41593babfb4de2e
+PODFILE CHECKSUM: 2c7d669236187b7275cab0753ae90952fbda4778
 
-COCOAPODS: 1.16.2
+COCOAPODS: 1.15.2

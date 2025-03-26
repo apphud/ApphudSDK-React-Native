@@ -56,7 +56,9 @@ RCT_EXTERN_METHOD(optOutOfTracking)
 RCT_EXTERN_METHOD(enableDebugLogs)
 RCT_EXTERN_METHOD(logout: (RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
-RCT_EXTERN_METHOD(addAttribution:(NSDictionary*)options)
+RCT_EXTERN_METHOD(setAttribution:(NSDictionary*)options
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(setUserProperty:(NSDictionary*)options)
 RCT_EXTERN_METHOD(incrementUserProperty:(NSDictionary*)options)
 RCT_EXTERN_METHOD(submitPushNotificationsToken:(NSString*)token)
