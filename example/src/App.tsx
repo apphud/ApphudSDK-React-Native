@@ -8,6 +8,7 @@ import ProductsScreen from './screens/ProductsScreen';
 import PaywallScreen from './screens/PaywallScreen';
 import PlacementsScreen from './screens/PlacementsScreen';
 import PaywallsScreen from './screens/PaywallsScreen';
+import SetAttributionScreen from './screens/SetAttributionScreen';
 
 const Stack = createStackNavigator();
 
@@ -61,6 +62,7 @@ function App() {
         <Stack.Screen name="Paywall" component={PaywallScreen} />
         <Stack.Screen name="Placements" component={PlacementsScreen} />
         <Stack.Screen name="Paywalls" component={PaywallsScreen} />
+        <Stack.Screen name="SetAttribution" component={SetAttributionScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

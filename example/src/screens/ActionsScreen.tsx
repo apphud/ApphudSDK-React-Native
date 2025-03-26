@@ -156,9 +156,9 @@ export default function ActionsScreen({ navigation }: Props) {
             <ListItem.Title>Log All Functions to Console</ListItem.Title>
           </ListItem.Content>
         </ListItem>
-        <ListItem onPress={() => navigation.navigate('EventEmitter')}>
+        <ListItem onPress={() => navigation.navigate('SetAttribution')}>
           <ListItem.Content>
-            <ListItem.Title>Event emitter</ListItem.Title>
+            <ListItem.Title>SetAttribution test</ListItem.Title>
           </ListItem.Content>
         </ListItem>
 
