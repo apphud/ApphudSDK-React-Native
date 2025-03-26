@@ -123,7 +123,7 @@ extension ApphudSubscription : RNAdapter {
       "isSandbox": isSandbox,
       "isLocal": isLocal,
       "isInRetryBilling": isInRetryBilling,
-      "isAutorenewEnabled": isAutorenewEnabled,
+      "isAutoRenewEnabled": isAutorenewEnabled,
       "kind": "autorenewable",
       "isIntroductoryActivated": isIntroductoryActivated
     ] as NSDictionary
