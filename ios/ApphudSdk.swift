@@ -192,23 +192,36 @@ class ApphudSdk: NSObject {
   }
 
   @objc(paywallShown:)
-  func paywallShown(identifier: String) {
-    print("Paywall Shown: \(identifier)")
+  func paywallShown(options: [AnyHashable : Any]) {
+    let placementIdentifier = options["placementIdentifier"] as? String
+    let paywallIdentifier = options["paywallIdentifier"] as? String
+    
+    if placementIdentifier == nil && paywallIdentifier == nil {
+      return
+    }
+    
     Task {
-      if let paywall = await paywalls().first(
-        where: { $0.identifier == identifier
-        }) {
+      var paywall = await ApphudPaywallsHelper.getPaywall(paywallIdentifier: paywallIdentifier, placementIdentifier: placementIdentifier)
+      
+      if let paywall {
         Apphud.paywallShown(paywall)
       }
     }
   }
 
   @objc(paywallClosed:)
-  func paywallClosed(identifier: String) {
+  func paywallClosed(options: [AnyHashable : Any]) {
+    let placementIdentifier = options["placementIdentifier"] as? String
+    let paywallIdentifier = options["paywallIdentifier"] as? String
+    
+    if placementIdentifier == nil && paywallIdentifier == nil {
+      return
+    }
+
     Task {
-      if let paywall = await paywalls().first(
-        where: { $0.identifier == identifier
-        }) {
+      var paywall = await ApphudPaywallsHelper.getPaywall(paywallIdentifier: paywallIdentifier, placementIdentifier: placementIdentifier)
+      
+      if let paywall {
         Apphud.paywallClosed(paywall)
       }
     }

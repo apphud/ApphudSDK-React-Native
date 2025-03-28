@@ -14,6 +14,7 @@ import type {
   ApphudUser,
   ApphudPlacement,
   Identifiers,
+  PaywallLogsInfo,
 } from './types';
 
 interface IApphudSdk {
@@ -42,24 +43,34 @@ interface IApphudSdk {
   /**
    * Available on iOS and Android.
    *
+   * Returns the placements from Product Hub > Placements, potentially altered based on the user's involvement in A/ B testing, if applicable
+   *
+   */
+  placements(): Promise<ApphudPlacement[]>;
+
+  /**
+   * Available on iOS and Android.
+   *
+   * @deprecated Will be removed in the future
+   *
    * Each paywall contains an array of `ApphudProduct` objects that you use for purchase.
    * `ApphudProduct` is Apphud's wrapper around `SKProduct`/ `ProductDetails` models.
    * Method returns immediately if paywalls are cached or already loaded.
    * @returns paywalls configured in Apphud Dashboard > Product Hub > Paywalls.
    */
-  paywalls(): Promise<Array<ApphudPaywall>>;
+  paywalls(): Promise<ApphudPaywall[]>;
 
   /**
    * Available on iOS and Android
    * Logs a "Paywall Shown" (Paywall View) event which is required for A/B Testing Analytics.
    */
-  paywallShown(identifier: string): void;
+  paywallShown(options: PaywallLogsInfo): void;
 
   /**
    * Available on iOS and Android
    * Logs a "Paywall Closed" event. Optional.
    */
-  paywallClosed(identifier: string): void;
+  paywallClosed(options: PaywallLogsInfo): void;
 
   /**
    * Available on iOS and Android.
@@ -272,14 +283,6 @@ interface IApphudSdk {
    * Pass push notification payload to Apphud SDK. Required for Rules & Screens.
    */
   handlePushNotification(payload: any): void;
-
-  /**
-   * Available on iOS and Android.
-   *
-   * Returns the placements from Product Hub > Placements, potentially altered based on the user's involvement in A/ B testing, if applicable
-   *
-   */
-  placements(): Promise<ApphudPlacement[]>;
 
   /**
    * Available on iOS

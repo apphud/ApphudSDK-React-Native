@@ -56,6 +56,7 @@ extension ApphudProduct : RNAdapter {
     map["store"] = store
     map["skProduct"] = skProduct?.toMap()
     map["paywallIdentifier"] = paywallIdentifier
+    map["placementIdentifier"] = placementIdentifier
   
     return map as NSDictionary;
   }

@@ -80,25 +80,28 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun paywallShown(identifier: String) {
-    Apphud.paywallsDidLoadCallback { apphudPaywalls, _ ->
-      val paywall = apphudPaywalls.firstOrNull { it.identifier == identifier }
+  fun paywallShown(options: ReadableMap) {
+    val paywallIdentifier = options.getString("paywallIdentifier")
+    val placementIdentifier = options.getString("placementIdentifier")
 
+    Utils.paywall(paywallIdentifier, placementIdentifier) { paywall ->
       paywall?.let {
-        Apphud.paywallShown(it)
+        Apphud.paywallShown(paywall)
       }
     }
   }
 
   @ReactMethod
-  fun paywallClosed(identifier: String) {
-    Apphud.paywallsDidLoadCallback { apphudPaywalls, _ ->
-      val paywall = apphudPaywalls.firstOrNull { it.identifier == identifier }
+  fun paywallClosed(options: ReadableMap) {
+    val paywallIdentifier = options.getString("paywallIdentifier")
+    val placementIdentifier = options.getString("placementIdentifier")
 
+    Utils.paywall(paywallIdentifier, placementIdentifier) { paywall ->
       paywall?.let {
-        Apphud.paywallClosed(it)
+        Apphud.paywallClosed(paywall)
       }
     }
+
   }
 
   @ReactMethod

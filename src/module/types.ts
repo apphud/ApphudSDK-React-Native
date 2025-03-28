@@ -320,14 +320,34 @@ export interface ApphudPaywall {
   identifier: string;
 
   /**
+   * Available on Android
+   *
+   * Paywall name, from Apphud Dashboard.
+   *
+   */
+  name?: string;
+
+  /**
    * A/B experiment name, if any.
    */
   experimentName?: string;
 
   /**
+   * It's possible to make a paywall default – it's a special alias name, that can be assigned to only ONE paywall at a time.
+   * There can be no default paywalls at all. It's up to you whether you want to have them or not.
+   */
+  isDefault: boolean;
+
+  /**
    * A/B Experiment Variation Name
    */
   variationName?: string;
+
+  /**
+   * Represents the identifier of a parent paywall from which an experiment variation was derived in A/B Experiments.
+   * This property is populated only if the 'Use existing paywall' option was selected during the setup of the experiment variation.
+   */
+  parentPaywallIdentifier?: string;
 
   /**
    * Custom JSON data from Paywall.
@@ -338,6 +358,11 @@ export interface ApphudPaywall {
    * Array of products from Paywall.
    */
   products: ApphudProduct[];
+
+  /**
+   * Current paywall's placement identifier, if available.
+   */
+  placementIdentifier?: string;
 }
 
 /**
@@ -415,8 +440,15 @@ export interface ApphudProduct {
    */
   productDetails?: ProductDetails;
 
-  /** Paywall Identifier */
+  /**
+   * Paywall Identifier
+   */
   paywallIdentifier?: string;
+
+  /**
+   * Placement Identifier, if any.
+   */
+  placementIdentifier?: string;
 }
 
 /** Available on Android only
@@ -575,4 +607,9 @@ export interface Identifiers {
    * IDFV. Identifier for Vendor. Can be passed right after SDK's `start` method.
    */
   idfv: string;
+}
+
+export interface PaywallLogsInfo {
+  placementIdentifier?: string;
+  paywallIdentifier?: string;
 }

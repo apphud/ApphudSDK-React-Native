@@ -121,7 +121,7 @@ internal fun ApphudPaywall.toMap(): WritableNativeMap {
 
   result.putString("name", name)
   result.putString("identifier", identifier)
-  result.putBoolean("default", default)
+  result.putBoolean("isDefault", default)
 
   json?.let {
     result.putMap("json", it.toWritableNativeMap())

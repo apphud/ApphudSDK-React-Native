@@ -107,11 +107,18 @@ export default function PaywallScreen({
 
   React.useEffect(() => {
     const findPaywall = async () => {
-      const paywalls = await ApphudSdk.paywalls();
+      const paywalls = (await ApphudSdk.placements())
+        .map((x) => x.paywall)
+        .filter((x) => x) as ApphudPaywall[];
+
       for (const paywall of paywalls) {
         if (paywall.identifier === route.params.paywallId) {
           setCurrentPaywall(paywall);
-          ApphudSdk.paywallShown(paywall.identifier);
+
+          ApphudSdk.paywallShown({
+            paywallIdentifier: paywall.identifier,
+            placementIdentifier: paywall.placementIdentifier,
+          });
 
           setProductsProps(prepareProducts(paywall.products));
           return paywall;
