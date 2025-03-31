@@ -107,43 +107,33 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
   @ReactMethod
   fun purchase(args: ReadableMap, promise: Promise) {
     val productId = args.getString("productId")
+
     if (productId.isNullOrEmpty()) {
       promise.reject("Error", "ProductId not set")
       return
     }
 
-    val paywallId = args.getString("paywallId")
 
-    var product: ApphudProduct? = null
+    val placementId = args.getString("placementIdentifier")
+    val paywallId = args.getString("paywallIdentifier")
 
-    Apphud.paywallsDidLoadCallback { paywalls, apphudError ->
-      if (apphudError != null) {
-        promise.reject(apphudError)
-
-        return@paywallsDidLoadCallback
-      }
-
-      for (paywall in paywalls) {
-        if (product == null) {
-          product = paywall.products?.firstOrNull { p ->
-            p.productId == productId && (paywallId.isNullOrEmpty() || p.paywallIdentifier == paywallId)
-          }
-        }
-      }
+    Utils.paywall(paywallId, placementId) { paywall ->
+      val product = paywall?.products?.find { it.productId == productId }
 
       val isSub = product?.productDetails?.productType?.lowercase() == "subs"
-      val offerToken = args.getString("offerToken")
       val isConsumable = if (args.hasKey("isConsumable")) args.getBoolean("isConsumable") else false
 
       if (product == null) {
         promise.reject("Error", "Product not found")
-        return@paywallsDidLoadCallback
+        return@paywall
       }
 
-      if (isSub || product?.productDetails == null) {
-        purchaseSubscription(product!!, offerToken, promise)
+      val offerToken = args.getString("offerToken")
+
+      if (isSub || product.productDetails == null) {
+        purchaseSubscription(product, offerToken, promise)
       } else {
-        purchaseOneTimeProduct(product!!, isConsumable, promise)
+        purchaseOneTimeProduct(product, isConsumable, promise)
       }
     }
   }

@@ -113,27 +113,37 @@ class ApphudSdk: NSObject {
       reject("Error", "ProductId not set", nil)
       return
     }
-    let paywallId = args["paywallId"] as? String
+    let paywallId = args["paywallIdentifier"] as? String
+    let placementId = args["placementIdentifier"] as? String
 
     Task { @MainActor in
       var product: ApphudProduct?
-      let paywalls = await paywalls()
-
-      for paywall in paywalls where product == nil {
-        product = paywall.products.first { product in
-          return product.productId == productId && (
-            (
-              paywallId?.count ?? 0 == 0
-            ) || product.paywallIdentifier == paywallId
-          )
+      
+      if let placementId {
+        let placemenets = await Apphud.placements()
+        
+        for placemenet in placemenets where product == nil {
+          if let paywall = placemenet.paywall {
+            product = paywall.products.first { product in
+              return product.productId == productId && product.placementIdentifier == placementId
+            }
+          }
+        }
+      } else if let paywallId {
+        let paywalls = await ApphudPaywallsHelper.getPaywalls()
+        
+        for paywall in paywalls where product == nil {
+            product = paywall.products.first { product in
+              return product.productId == productId && product.paywallIdentifier == paywallId
+            }
         }
       }
 
-      guard let product = product else {
+      guard let product else {
         reject("Error", "Product not found", nil);
         return
       }
-
+      
       Apphud.purchase(product) { result in
         DispatchQueue.main.async {
 
@@ -201,7 +211,10 @@ class ApphudSdk: NSObject {
     }
     
     Task {
-      var paywall = await ApphudPaywallsHelper.getPaywall(paywallIdentifier: paywallIdentifier, placementIdentifier: placementIdentifier)
+      var paywall = await ApphudPaywallsHelper.getPaywall(
+        paywallIdentifier: paywallIdentifier,
+        placementIdentifier: placementIdentifier
+      )
       
       if let paywall {
         Apphud.paywallShown(paywall)
@@ -219,7 +232,10 @@ class ApphudSdk: NSObject {
     }
 
     Task {
-      var paywall = await ApphudPaywallsHelper.getPaywall(paywallIdentifier: paywallIdentifier, placementIdentifier: placementIdentifier)
+      var paywall = await ApphudPaywallsHelper.getPaywall(
+        paywallIdentifier: paywallIdentifier,
+        placementIdentifier: placementIdentifier
+      )
       
       if let paywall {
         Apphud.paywallClosed(paywall)

@@ -142,7 +142,8 @@ export default function PaywallScreen({
   const onPurchase = (product: ProductProps) => {
     const options: ApphudPurchaseProps = {
       productId: product.productId,
-      paywallId: currentPaywall?.identifier,
+      paywallIdentifier: currentPaywall?.identifier,
+      placementIdentifier: currentPaywall?.placementIdentifier,
       offerToken: product?.offerToken,
       isConsumable:
         !product.basePlanId &&

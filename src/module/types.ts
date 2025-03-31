@@ -45,7 +45,9 @@ export interface ApphudPurchaseProps {
    *
    * Available on both iOS and Android.
    */
-  paywallId?: string;
+  paywallIdentifier?: string;
+
+  placementIdentifier?: string;
 
   /**
    * Offer token is for purchasing subscriptions on Android. If not passed, then SDK will fallback to the first available one.
