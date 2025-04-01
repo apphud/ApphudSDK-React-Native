@@ -18,5 +18,5 @@ Pod::Spec.new do |s|
 
 
   s.dependency "React-Core"
-  s.dependency "ApphudSDK", "3.6.0"
+  s.dependency "ApphudSDK", "3.6.2"
 end
