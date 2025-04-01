@@ -69,9 +69,9 @@ export default function ActionsScreen({ navigation }: Props) {
     //  ApphudSdk.nonRenewingPurchases().then(purchases => {
     //   console.log(`Apphud: nonRenewingPurchases: ${JSON.stringify(purchases)}`)
     //  })
-    //  ApphudSdk.subscription().then(s => {
-    //   console.log(`Apphud: subscription: ${JSON.stringify(s)}`)
-    //  })
+     ApphudSdk.subscription().then(s => {
+      console.log(`Apphud: subscription: ${JSON.stringify(s)}`)
+     })
     //  ApphudSdk.subscriptions().then(ss => {
     //   console.log(`Apphud: subscriptions: ${JSON.stringify(ss)}`)
     //  })

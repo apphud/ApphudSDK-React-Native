@@ -13,7 +13,7 @@ import SetAttributionScreen from './screens/SetAttributionScreen';
 const Stack = createStackNavigator();
 
 ApphudSdkEventEmitter.onApphudDidChangeUserID((newUserId) =>
-  console.log('user id did change', newUserId)
+  console.log('Received event ApphudDidChangeUserID:', newUserId)
 );
 
 ApphudSdkEventEmitter.onApphudDidFailPurchase((arg) => {

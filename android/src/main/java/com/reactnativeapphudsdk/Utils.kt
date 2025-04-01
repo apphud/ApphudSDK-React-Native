@@ -10,6 +10,7 @@ object Utils {
     cb: (ApphudPaywall?) -> Unit
   ) {
 
+    // adb reverse tcp:8081 tcp:8081
     if (paywallIdentifier == null && placementIdentifier == null) {
       cb(null)
       return

@@ -47,6 +47,13 @@ export interface ApphudPurchaseProps {
    */
   paywallIdentifier?: string;
 
+  /**
+   * Placement Identifier from the ApphudProduct object. Configure your Placements in Apphud Product Hub > Placements.
+   *
+   * If you pass null, the purchase won't be attached to its placement, which may result in incorrect analytics.
+   *
+   * Available on both iOS and Android.
+   */
   placementIdentifier?: string;
 
   /**
@@ -223,7 +230,8 @@ export interface ApphudNonRenewingPurchase {
   isConsumable?: boolean;
 
   /**
-   * Returns `true` if purchase was made using Local StoreKit Configuration File. Read more: https://docs.apphud.com/docs/testing-troubleshooting#local-storekit-testing
+   * Returns `true` if purchase was made using Local StoreKit Configuration File.
+   * Read more: https://docs.apphud.com/docs/testing-troubleshooting#local-storekit-testing
    */
   isLocal?: boolean;
 
@@ -341,7 +349,7 @@ export interface ApphudPaywall {
   isDefault: boolean;
 
   /**
-   * A/B Experiment Variation Name
+   * A/B Experiment Variation Name.
    */
   variationName?: string;
 
@@ -436,14 +444,17 @@ export interface ApphudProduct {
   skProduct?: SKProduct;
 
   /**
-   * When paywalls are successfully loaded, productDetails model will always be present if Google Play returned model for this product id. getPaywalls method will return callback only when Google Play products are fetched and mapped with Apphud products. May be null if product identifier is invalid, or product is not available in Google Play
+   * When paywalls are successfully loaded, productDetails model will always be present 
+   * if Google Play returned model for this product id. getPaywalls method will return callback only when
+   * Google Play products are fetched and mapped with Apphud products. 
+   * May be null if product identifier is invalid, or product is not available in Google Play
    *
    * Available on Android
    */
   productDetails?: ProductDetails;
 
   /**
-   * Paywall Identifier
+   * Paywall Identifier, if any.
    */
   paywallIdentifier?: string;
 
@@ -521,7 +532,7 @@ export interface ApphudAttributionData {
   /** Custom attribution parameter for additional tracking or mapping. */
   custom1?: string;
 
-  /** Another custom attribution parameter for extended tracking or mapping. */
+  /** Another custom attribution parameter for additional tracking or mapping. */
   custom2?: string;
 }
 
@@ -602,7 +613,8 @@ export interface ApphudPlacement {
 
 export interface Identifiers {
   /**
-   * IDFA. Identifier for Advertisers. If you request IDFA using App Tracking Transparency framework, you can call this method again after granting access.
+   * IDFA. Identifier for Advertisers. If you request IDFA using App Tracking Transparency framework, 
+   * you can call this method again after granting access.
    */
   idfa: string;
   /**

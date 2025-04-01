@@ -43,7 +43,8 @@ interface IApphudSdk {
   /**
    * Available on iOS and Android.
    *
-   * Returns the placements from Product Hub > Placements, potentially altered based on the user's involvement in A/ B testing, if applicable
+   * Returns the placements from Product Hub > Placements, potentially altered based on 
+   * the user's involvement in A/ B testing, if applicable.
    *
    */
   placements(): Promise<ApphudPlacement[]>;
@@ -51,7 +52,7 @@ interface IApphudSdk {
   /**
    * Available on iOS and Android.
    *
-   * @deprecated Will be removed in the future
+   * @deprecated Will be removed in the future.
    *
    * Each paywall contains an array of `ApphudProduct` objects that you use for purchase.
    * `ApphudProduct` is Apphud's wrapper around `SKProduct`/ `ProductDetails` models.
@@ -61,13 +62,13 @@ interface IApphudSdk {
   paywalls(): Promise<ApphudPaywall[]>;
 
   /**
-   * Available on iOS and Android
+   * Available on iOS and Android.
    * Logs a "Paywall Shown" (Paywall View) event which is required for A/B Testing Analytics.
    */
   paywallShown(options: PaywallLogsInfo): void;
 
   /**
-   * Available on iOS and Android
+   * Available on iOS and Android.
    * Logs a "Paywall Closed" event. Optional.
    */
   paywallClosed(options: PaywallLogsInfo): void;
@@ -109,7 +110,8 @@ interface IApphudSdk {
   /**
    * Available on iOS and Android.
    *
-   * Makes purchase of `ApphudProduct` object from your `ApphudPaywall`. You must first configure paywalls in Apphud Dashboard > Product Hub > Paywalls.
+   * Makes purchase of `ApphudProduct` object from your `ApphudPaywall`. 
+   * You must first configure paywalls in Apphud Dashboard > Product Hub > Paywalls.
    * @param props - object with productId and optional paywallId, offerToken, isConsumable. See `ApphudPurchaseProps` for details.
    * @returns `ApphudPurchaseResult` object. See `ApphudPurchaseResult` for details.
    */
@@ -229,9 +231,11 @@ interface IApphudSdk {
   /**
    * Available on iOS only.
    *
-   * Submits Device Identifiers (IDFA and IDFV) to Apphud. These identifiers may be required for marketing and attribution platforms such as AppsFlyer, Facebook, Singular, etc.
+   * Submits Device Identifiers (IDFA and IDFV) to Apphud. These identifiers may be required for marketing
+   *  and attribution platforms such as AppsFlyer, Facebook, Singular, etc.
    *
-   * Best practice is to call this method right after SDK's `start(...)` method with at least IDFV and once again after getting IDFA.
+   * Best practice is to call this method right after SDK's `start(...)` method with at least IDFV and 
+   * once again after getting IDFA.
    *
    * @param {Partial<Identifiers>} options
    *
@@ -285,9 +289,9 @@ interface IApphudSdk {
   handlePushNotification(payload: any): void;
 
   /**
-   * Available on iOS
+   * Available on iOS only.
    *
-   * Returns the native identifierForVendor UUID or null. On Android always returns null
+   * Returns the native identifierForVendor UUID string or null. On Android always returns null.
    *
    * See full description https://developer.apple.com/documentation/uikit/uidevice/identifierforvendor
    */
