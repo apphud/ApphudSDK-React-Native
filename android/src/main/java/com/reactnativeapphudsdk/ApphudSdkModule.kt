@@ -197,10 +197,11 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
       val result = WritableNativeMap()
 
       user?.userId?.let {
-        result.putString("user_id", it)
+        result.putString("userId", it)
       }
-      result.putBoolean("is_premium", Apphud.hasPremiumAccess())
+      result.putBoolean("isPremium", Apphud.hasPremiumAccess())
       result.putBoolean("result", success)
+
       promise.resolve(result)
     }
   }

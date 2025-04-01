@@ -392,10 +392,10 @@ class ApphudSdk: NSObject {
         var result: [String: Any] = [:]
       
         if let userId = user?.userId {
-          result["user_id"] = userId
+          result["userId"] = userId
         }
       
-        result["is_premium"] = Apphud.hasPremiumAccess()
+        result["isPremium"] = Apphud.hasPremiumAccess()
         result["result"] = success
       
         resolve(result)

@@ -444,9 +444,9 @@ export interface ApphudProduct {
   skProduct?: SKProduct;
 
   /**
-   * When paywalls are successfully loaded, productDetails model will always be present 
+   * When paywalls are successfully loaded, productDetails model will always be present
    * if Google Play returned model for this product id. getPaywalls method will return callback only when
-   * Google Play products are fetched and mapped with Apphud products. 
+   * Google Play products are fetched and mapped with Apphud products.
    * May be null if product identifier is invalid, or product is not available in Google Play
    *
    * Available on Android
@@ -566,12 +566,12 @@ export interface ApphudWebRestoreResult {
   /**
       Apphud User ID.
     */
-  user_id?: string;
+  userId?: string;
 
   /**
        Returns `true` if user has premium access.
     */
-  is_premium: boolean;
+  isPremium: boolean;
 }
 
 /**
@@ -613,7 +613,7 @@ export interface ApphudPlacement {
 
 export interface Identifiers {
   /**
-   * IDFA. Identifier for Advertisers. If you request IDFA using App Tracking Transparency framework, 
+   * IDFA. Identifier for Advertisers. If you request IDFA using App Tracking Transparency framework,
    * you can call this method again after granting access.
    */
   idfa: string;

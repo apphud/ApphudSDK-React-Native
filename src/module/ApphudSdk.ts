@@ -43,7 +43,7 @@ interface IApphudSdk {
   /**
    * Available on iOS and Android.
    *
-   * Returns the placements from Product Hub > Placements, potentially altered based on 
+   * Returns the placements from Product Hub > Placements, potentially altered based on
    * the user's involvement in A/ B testing, if applicable.
    *
    */
@@ -110,7 +110,7 @@ interface IApphudSdk {
   /**
    * Available on iOS and Android.
    *
-   * Makes purchase of `ApphudProduct` object from your `ApphudPaywall`. 
+   * Makes purchase of `ApphudProduct` object from your `ApphudPaywall`.
    * You must first configure paywalls in Apphud Dashboard > Product Hub > Paywalls.
    * @param props - object with productId and optional paywallId, offerToken, isConsumable. See `ApphudPurchaseProps` for details.
    * @returns `ApphudPurchaseResult` object. See `ApphudPurchaseResult` for details.
@@ -184,11 +184,7 @@ interface IApphudSdk {
    * The server will return ApphudWebRestoreResult.
    */
   attributeFromWeb(
-    options: Partial<{
-      apphud_user_id: string;
-      email: string;
-      apphud_user_email: string;
-    }>
+    options: Record<string, string>
   ): Promise<ApphudWebRestoreResult>;
 
   /**
@@ -234,7 +230,7 @@ interface IApphudSdk {
    * Submits Device Identifiers (IDFA and IDFV) to Apphud. These identifiers may be required for marketing
    *  and attribution platforms such as AppsFlyer, Facebook, Singular, etc.
    *
-   * Best practice is to call this method right after SDK's `start(...)` method with at least IDFV and 
+   * Best practice is to call this method right after SDK's `start(...)` method with at least IDFV and
    * once again after getting IDFA.
    *
    * @param {Partial<Identifiers>} options
