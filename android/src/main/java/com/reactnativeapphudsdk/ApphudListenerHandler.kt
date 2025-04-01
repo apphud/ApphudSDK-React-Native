@@ -1,18 +1,14 @@
 package com.reactnativeapphudsdk
 
-import android.util.Log
 import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
-import com.android.billingclient.api.SkuDetails
+import com.apphud.sdk.Apphud
 import com.apphud.sdk.ApphudListener
 import com.apphud.sdk.domain.ApphudPaywall
 import com.apphud.sdk.domain.ApphudPlacement
 import com.apphud.sdk.domain.ApphudUser
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
-import com.facebook.react.bridge.WritableMap
-import com.facebook.react.bridge.WritableNativeArray
-import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.modules.core.DeviceEventManagerModule
 
 enum class ApphudSdkDelegateEvents(val value: String) {
@@ -27,7 +23,12 @@ enum class ApphudSdkDelegateEvents(val value: String) {
   APPHUD_DID_FAIL_PURCHASE("apphudDidFailPurchase"),
   APPHUD_DID_SELECT_SURVEY_ANSWER("apphudDidSelectSurveyAnswer")
 }
-class ApphudListenerHandler(private val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext), ApphudListener {
+
+class ApphudListenerHandler(private val reactContext: ReactApplicationContext) :
+  ReactContextBaseJavaModule(reactContext), ApphudListener {
+  init {
+    Apphud.setListener(this)
+  }
 
   override fun apphudDidChangeUserID(userId: String) {
     reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
@@ -35,27 +36,18 @@ class ApphudListenerHandler(private val reactContext: ReactApplicationContext) :
   }
 
   override fun apphudFetchProductDetails(details: List<ProductDetails>) {
-      val map = details.map { detail -> ApphudDataTransformer.getProductMap(detail) }
-    val nativeProducts: WritableNativeArray = WritableNativeArray()
-    map.forEach {
-      nativeProducts.pushMap(it)
-    }
+    val nativeProducts = details.toWritableNativeArray { it.toMap() }
 
     reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-    .emit(ApphudSdkDelegateEvents.APPHUD_DID_LOAD_STORE_PRODUCTS.value, nativeProducts)
+      .emit(ApphudSdkDelegateEvents.APPHUD_DID_LOAD_STORE_PRODUCTS.value, nativeProducts)
   }
 
   override fun paywallsDidFullyLoad(paywalls: List<ApphudPaywall>) {
-
-    val paywallsMap = paywalls.map { paywall -> ApphudDataTransformer.getApphudPaywallMap(paywall) }
-    val nativeArray = WritableNativeArray()
-    paywallsMap.forEach {
-      nativeArray.pushMap(it)
-    }
-
     reactContext
       .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-      .emit(ApphudSdkDelegateEvents.PAYWALLS_DID_FULLY_LOAD.value, nativeArray);
+      .emit(
+        ApphudSdkDelegateEvents.PAYWALLS_DID_FULLY_LOAD.value,
+        paywalls.toWritableNativeArray { it.toMap() });
   }
 
   override fun placementsDidFullyLoad(placements: List<ApphudPlacement>) {
@@ -71,6 +63,6 @@ class ApphudListenerHandler(private val reactContext: ReactApplicationContext) :
   }
 
   override fun getName(): String {
-    return "ApphudSdkEvents";
+    return "ApphudSdkEvents"
   }
 }

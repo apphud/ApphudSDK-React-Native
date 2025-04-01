@@ -1,4 +1,5 @@
 package com.reactnativeapphudsdk
+
 import android.util.Log
 import com.apphud.sdk.Apphud
 import com.apphud.sdk.ApphudAttributionProvider
@@ -9,11 +10,10 @@ import com.apphud.sdk.managers.HeadersInterceptor
 import com.facebook.react.bridge.*
 import com.facebook.react.bridge.UiThreadUtil.runOnUiThread
 
-class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
+class ApphudSdkModule(reactContext: ReactApplicationContext) :
+  ReactContextBaseJavaModule(reactContext) {
 
-  private val unSupportMethodMsg:String = "Unsupported method"
-
-  private var listener: ApphudListenerHandler? = null
+  private val unSupportMethodMsg: String = "Unsupported method"
 
   override fun getName(): String {
     return "ApphudSdk"
@@ -22,13 +22,11 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   init {
     HeadersInterceptor.X_SDK = "reactnative"
     HeadersInterceptor.X_SDK_VERSION = "2.2.0"
-    listener = ApphudListenerHandler(reactContext)
-    listener?.let { Apphud.setListener(it) }
   }
 
   @ReactMethod
   fun start(options: ReadableMap, promise: Promise) {
-      startManually(options, promise)
+    startManually(options, promise)
   }
 
   @ReactMethod
@@ -43,10 +41,15 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     }
 
     runOnUiThread {
-      Apphud.start(this.reactApplicationContext, apiKey, userId, deviceId) { _ ->
-        promise.resolve(null)
+      Apphud.start(this.reactApplicationContext, apiKey, userId, deviceId) {
+        promise.resolve(it.toMap())
       }
     }
+  }
+
+  @ReactMethod
+  fun setDeviceIdentifiers(options: ReadableMap, promise: Promise) {
+    promise.resolve(null)
   }
 
   @ReactMethod
@@ -72,76 +75,65 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
         return@paywallsDidLoadCallback
       }
 
-      val result = WritableNativeArray()
-      for (paywall in list) {
-        result.pushMap(ApphudDataTransformer.getApphudPaywallMap(paywall))
-      }
-      promise.resolve(result)
+      promise.resolve(list.toWritableNativeArray { it.toMap() })
     }
   }
 
   @ReactMethod
-  fun paywallShown(identifier: String) {
-    Apphud.paywallsDidLoadCallback { apphudPaywalls, _ ->
-      val paywall = apphudPaywalls.firstOrNull { it.identifier == identifier }
+  fun paywallShown(options: ReadableMap) {
+    val paywallIdentifier = options.getString("paywallIdentifier")
+    val placementIdentifier = options.getString("placementIdentifier")
 
+    Utils.paywall(paywallIdentifier, placementIdentifier) { paywall ->
       paywall?.let {
-        Apphud.paywallShown(it)
+        Apphud.paywallShown(paywall)
       }
     }
   }
 
   @ReactMethod
-  fun paywallClosed(identifier: String) {
-    Apphud.paywallsDidLoadCallback { apphudPaywalls, _ ->
-      val paywall = apphudPaywalls.firstOrNull { it.identifier == identifier }
+  fun paywallClosed(options: ReadableMap) {
+    val paywallIdentifier = options.getString("paywallIdentifier")
+    val placementIdentifier = options.getString("placementIdentifier")
 
+    Utils.paywall(paywallIdentifier, placementIdentifier) { paywall ->
       paywall?.let {
-        Apphud.paywallClosed(it)
+        Apphud.paywallClosed(paywall)
       }
     }
+
   }
 
   @ReactMethod
   fun purchase(args: ReadableMap, promise: Promise) {
     val productId = args.getString("productId")
+
     if (productId.isNullOrEmpty()) {
       promise.reject("Error", "ProductId not set")
       return
     }
 
-    val paywallId = args.getString("paywallId")
 
-    var product: ApphudProduct? = null
+    val placementId = args.getString("placementIdentifier")
+    val paywallId = args.getString("paywallIdentifier")
 
-    Apphud.paywallsDidLoadCallback { paywalls, apphudError ->
-      if (apphudError != null) {
-        promise.reject(apphudError)
-
-        return@paywallsDidLoadCallback
-      }
-
-      for (paywall in paywalls) {
-        if (product == null) {
-          product = paywall.products?.firstOrNull { p ->
-            p.productId == productId && (paywallId.isNullOrEmpty() || p.paywallIdentifier == paywallId)
-          }
-        }
-      }
+    Utils.paywall(paywallId, placementId) { paywall ->
+      val product = paywall?.products?.find { it.productId == productId }
 
       val isSub = product?.productDetails?.productType?.lowercase() == "subs"
-      val offerToken = args.getString("offerToken")
       val isConsumable = if (args.hasKey("isConsumable")) args.getBoolean("isConsumable") else false
 
       if (product == null) {
         promise.reject("Error", "Product not found")
-        return@paywallsDidLoadCallback
+        return@paywall
       }
 
-      if (isSub || product?.productDetails == null) {
-        purchaseSubscription(product!!, offerToken, promise)
+      val offerToken = args.getString("offerToken")
+
+      if (isSub || product.productDetails == null) {
+        purchaseSubscription(product, offerToken, promise)
       } else {
-        purchaseOneTimeProduct(product!!, isConsumable, promise)
+        purchaseOneTimeProduct(product, isConsumable, promise)
       }
     }
   }
@@ -149,17 +141,21 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   private fun purchaseSubscription(product: ApphudProduct, offerToken: String?, promise: Promise) {
     this.currentActivity?.let {
       Apphud.purchase(it, product, offerToken) { res ->
-        promise.resolve(ApphudDataTransformer.getPurchaseMap(res))
+        promise.resolve(res.toMap())
       }
     } ?: run {
       promise.reject("Error", "Activity not found")
     }
   }
 
-  private fun purchaseOneTimeProduct(product: ApphudProduct, isConsumable: Boolean, promise: Promise) {
+  private fun purchaseOneTimeProduct(
+    product: ApphudProduct,
+    isConsumable: Boolean,
+    promise: Promise
+  ) {
     this.currentActivity?.let {
       Apphud.purchase(it, product, null, null, null, isConsumable) { res ->
-        promise.resolve(ApphudDataTransformer.getPurchaseMap(res))
+        promise.resolve(res.toMap())
       }
     } ?: run {
       promise.reject("Error", "Activity not found")
@@ -167,28 +163,20 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  fun addAttribution(options: ReadableMap) {
-    val data = options.getMap("data")?.toHashMap()?.let {
-      val result = mutableMapOf<String, Any>()
-
-      for ((key, value) in it) {
-        value?.let {
-          result[key] = it
-        }
-      }
-
-      return@let result
+  fun setAttribution(options: ReadableMap, promise: Promise) {
+    val attributionParams = options.getAttributionParams() ?: run {
+      promise.reject("Error", "Options not valid")
+      return
     }
 
-    val identifier = options.getString("identifier")
-    val providerString = options.getString("attributionProviderId") ?: "none"
+    Apphud.setAttribution(
+      data = attributionParams.data,
+      identifier = attributionParams.identifier,
+      provider = attributionParams.provider
+    )
 
-    val provider = stringToApphudAttributionProvider(providerString)
-    provider?.let {
-      Apphud.addAttribution(it, data, identifier)
-    } ?: run {
-      Log.d("AP", "Unsupported attribution provider ${providerString}, skipping")
-    }
+//    TODO: узнать почему отличается от ios
+    promise.resolve(true)
   }
 
   @ReactMethod
@@ -209,10 +197,11 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
       val result = WritableNativeMap()
 
       user?.userId?.let {
-        result.putString("user_id", it)
+        result.putString("userId", it)
       }
-      result.putBoolean("is_premium", Apphud.hasPremiumAccess())
+      result.putBoolean("isPremium", Apphud.hasPremiumAccess())
       result.putBoolean("result", success)
+
       promise.resolve(result)
     }
   }
@@ -225,19 +214,21 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   @ReactMethod
   fun products(promise: Promise) {
-    Apphud.productsFetchCallback {
-      val result = WritableNativeArray()
-      for (product in it) {
-        result.pushMap(ApphudDataTransformer.getProductMap(product))
+    Apphud.paywallsDidLoadCallback { apphudPaywalls, apphudError ->
+      if (apphudError != null) {
+        promise.reject(apphudError)
+        return@paywallsDidLoadCallback
       }
-      promise.resolve(result)
+
+      val products = apphudPaywalls.map { it.products ?: listOf() }.flatten()
+      promise.resolve(products.toWritableNativeArray { it.toMap() })
     }
   }
 
   @ReactMethod
   fun subscription(promise: Promise) {
     Apphud.subscription()?.let {
-      promise.resolve(ApphudDataTransformer.getSubscriptionMap(it))
+      promise.resolve(it.toMap())
     } ?: run {
       promise.resolve(null)
     }
@@ -245,20 +236,12 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
 
   @ReactMethod
   fun subscriptions(promise: Promise) {
-    val result = WritableNativeArray()
-    Apphud.subscriptions().forEach {
-      result.pushMap(ApphudDataTransformer.getSubscriptionMap(it))
-    }
-    promise.resolve(result)
+    promise.resolve(Apphud.subscriptions().toWritableNativeArray { it.toMap() })
   }
 
   @ReactMethod
   fun nonRenewingPurchases(promise: Promise) {
-    val result: WritableNativeArray = WritableNativeArray()
-    for (purchase in Apphud.nonRenewingPurchases()) {
-      result.pushMap(ApphudDataTransformer.getNonRenewingPurchaseMap(purchase))
-    }
-    promise.resolve(result)
+    promise.resolve(Apphud.nonRenewingPurchases().toWritableNativeArray { it.toMap() })
   }
 
   @ReactMethod
@@ -298,13 +281,13 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
     Apphud.restorePurchases { apphudSubscriptionList, apphudNonRenewingPurchaseList, error ->
       val resultMap = WritableNativeMap()
       apphudSubscriptionList.let {
-        val arr: WritableNativeArray = WritableNativeArray()
-        it?.map { obj -> arr.pushMap(ApphudDataTransformer.getSubscriptionMap(obj)) }
+        val arr = WritableNativeArray()
+        it?.map { obj -> arr.pushMap(obj.toMap()) }
         resultMap.putArray("subscriptions", arr)
       }
       apphudNonRenewingPurchaseList.let {
-        val arr: WritableNativeArray = WritableNativeArray()
-        it?.map { obj -> arr.pushMap(ApphudDataTransformer.getNonRenewingPurchaseMap(obj)) }
+        val arr = WritableNativeArray()
+        it?.map { obj -> arr.pushMap(obj.toMap()) }
         resultMap.putArray("nonRenewingPurchases", arr)
       }
       error.let {
@@ -337,10 +320,9 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   }
 
   @ReactMethod
-  fun setAdvertisingIdentifier(idfa: String) {
+  fun setAdvertisingIdentifiers(options: ReadableMap) {
     Apphud.collectDeviceIdentifiers()
   }
-
 
   @ReactMethod
   fun enableDebugLogs() {
@@ -355,6 +337,23 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJ
   @ReactMethod
   fun handlePushNotification(apsInfo: ReadableMap) {
     // do nothing
+  }
+
+  @ReactMethod
+  fun placements(promise: Promise) {
+    Apphud.fetchPlacements { placements, error ->
+      if (error != null) {
+        promise.reject("Error", error.localizedMessage)
+        return@fetchPlacements
+      }
+
+      promise.resolve(placements.toWritableNativeArray { it.toMap() })
+    }
+  }
+
+  @ReactMethod
+  fun idfv(promise: Promise) {
+    promise.resolve(null)
   }
 
   @ReactMethod

@@ -1,34 +1,12 @@
 import * as React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
 import type { ApphudProduct } from '@apphud/react-native-apphud-sdk';
-import ApphudSdk from '@apphud/react-native-apphud-sdk';
+import { ApphudSdk } from '@apphud/react-native-apphud-sdk';
+import { common } from './styles';
 
 const styles = StyleSheet.create({
   root: {
     padding: 8,
-  },
-  th: {
-    fontWeight: 'bold',
-  },
-  table: {
-    borderTopWidth: 1,
-    borderTopColor: '#c4c4c4',
-    borderLeftWidth: 1,
-    borderLeftColor: '#c4c4c4',
-    marginBottom: 16,
-  },
-  row: {
-    display: 'flex',
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-  },
-  col: {
-    flex: 1,
-    padding: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#c4c4c4',
-    borderRightWidth: 1,
-    borderRightColor: '#c4c4c4',
   },
 });
 
@@ -40,33 +18,43 @@ export default function ProductsScreen() {
       setProducts(data);
     });
   }, []);
+
   return (
     <ScrollView>
       <View style={styles.root}>
-        <View style={styles.table}>
-          <View style={styles.row}>
-            <View style={styles.col}>
-              <Text style={styles.th}>ID</Text>
+        <View style={common.table}>
+          <View style={common.row}>
+            <View style={common.col}>
+              <Text style={common.th}>ID</Text>
             </View>
-            <View style={styles.col}>
-              <Text style={styles.th}>Price</Text>
+            <View style={common.col}>
+              <Text style={common.th}>Price</Text>
             </View>
           </View>
-          {products?.map((product: ApphudProduct, key: number) => (
-            <View style={styles.row} key={key}>
-              <View style={styles.col}>
-                <Text>{product.id}</Text>
+          {products?.map((product: ApphudProduct, key: number) => {
+            return (
+              <View style={common.row} key={key}>
+                <View style={common.col}>
+                  <Text>{product.productId}</Text>
+                </View>
+                <View style={common.col}>
+                  {Platform.OS === 'ios' &&
+                    Boolean(product.skProduct?.price) && (
+                      <Text>{product.skProduct?.price}</Text>
+                    )}
+                  <Text>
+                    {Platform.OS === 'android' && (
+                      <Text>
+                        {product.productDetails?.subscriptionOffers.map(
+                          (x) => x.pricingPhases[0]?.formattedPrice
+                        )}
+                      </Text>
+                    )}
+                  </Text>
+                </View>
               </View>
-              <View style={styles.col}>
-                <Text>
-                  {product.price ||
-                    product.subscriptionOffers?.map((o) => {
-                      return o.pricingPhases[0]?.formattedPrice;
-                    })}
-                </Text>
-              </View>
-            </View>
-          ))}
+            );
+          })}
         </View>
       </View>
     </ScrollView>

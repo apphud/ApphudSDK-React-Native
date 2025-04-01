@@ -1,10 +1,11 @@
 import * as React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { ListItem } from 'react-native-elements';
-import ApphudSdk from '@apphud/react-native-apphud-sdk';
-import type { ApphudPaywall } from '@apphud/react-native-apphud-sdk';
+import { ApphudSdk } from '@apphud/react-native-apphud-sdk';
+import type { ApphudPlacement } from '@apphud/react-native-apphud-sdk';
 import type { Props } from './LoginScreen';
 import { ScrollView } from 'react-native-gesture-handler';
+import { useFocusEffect } from '@react-navigation/native';
 
 const boldStyles = StyleSheet.create({
   customText: {
@@ -17,6 +18,8 @@ const boldStyles = StyleSheet.create({
 });
 
 export default function ActionsScreen({ navigation }: Props) {
+  const [placements, setPlacements] = React.useState<ApphudPlacement[]>([]);
+
   React.useEffect(() => {
     ApphudSdk.userId().then((userId) => {
       navigation.setOptions({
@@ -25,20 +28,11 @@ export default function ActionsScreen({ navigation }: Props) {
     });
   }, [navigation]);
 
-  React.useEffect(() => {
-    const loadPaywalls = navigation.addListener('focus', () => {
-      // This function will be called when the view appears
-      paywallsLoaded;
-    });
-
-    return loadPaywalls;
-  }, []);
-
-  const paywallsLoaded = ApphudSdk.paywalls().then((data) => {
-    setPaywalls(data);
-  });
-
-  const [paywalls, setPaywalls] = React.useState<Array<ApphudPaywall>>();
+  useFocusEffect(
+    React.useCallback(() => {
+      ApphudSdk.placements().then(setPlacements);
+    }, [])
+  );
 
   const callAll = () => {
     ApphudSdk.enableDebugLogs();
@@ -75,9 +69,9 @@ export default function ActionsScreen({ navigation }: Props) {
     //  ApphudSdk.nonRenewingPurchases().then(purchases => {
     //   console.log(`Apphud: nonRenewingPurchases: ${JSON.stringify(purchases)}`)
     //  })
-    //  ApphudSdk.subscription().then(s => {
-    //   console.log(`Apphud: subscription: ${JSON.stringify(s)}`)
-    //  })
+     ApphudSdk.subscription().then(s => {
+      console.log(`Apphud: subscription: ${JSON.stringify(s)}`)
+     })
     //  ApphudSdk.subscriptions().then(ss => {
     //   console.log(`Apphud: subscriptions: ${JSON.stringify(ss)}`)
     //  })
@@ -108,21 +102,26 @@ export default function ActionsScreen({ navigation }: Props) {
       <View style={{ flex: 1 }}>
         <ListItem>
           <ListItem.Title style={boldStyles.customText}>
-            Paywalls ({paywalls?.length}){' '}
+            Placements ({placements.length}){' '}
           </ListItem.Title>
         </ListItem>
 
-        {paywalls?.map((paywall, index) => (
+        {placements.map((placement, index) => (
           <ListItem
             key={index}
             onPress={() => {
-              navigation.navigate('Paywall', { paywallId: paywall.identifier });
+              if (placement.paywall?.identifier) {
+                navigation.navigate('Paywall', {
+                  paywallId: placement.paywall?.identifier,
+                });
+              }
             }}
           >
             <ListItem.Content>
               <ListItem.Title style={boldStyles.italicText}>
                 {' '}
-                {'->>>'} {paywall.identifier} ({paywall.products.length}){' '}
+                {'->>>'} {placement.identifier} (
+                {placement.paywall?.products.length}){' '}
               </ListItem.Title>
             </ListItem.Content>
             <ListItem.Chevron />
@@ -140,16 +139,33 @@ export default function ActionsScreen({ navigation }: Props) {
           </ListItem.Content>
           <ListItem.Chevron />
         </ListItem>
+        <ListItem onPress={() => navigation.navigate('Paywalls')}>
+          <ListItem.Content>
+            <ListItem.Title>View Paywalls</ListItem.Title>
+          </ListItem.Content>
+          <ListItem.Chevron />
+        </ListItem>
+        <ListItem onPress={() => navigation.navigate('Placements')}>
+          <ListItem.Content>
+            <ListItem.Title>View Placements</ListItem.Title>
+          </ListItem.Content>
+          <ListItem.Chevron />
+        </ListItem>
         <ListItem onPress={callAll}>
           <ListItem.Content>
             <ListItem.Title>Log All Functions to Console</ListItem.Title>
+          </ListItem.Content>
+        </ListItem>
+        <ListItem onPress={() => navigation.navigate('SetAttribution')}>
+          <ListItem.Content>
+            <ListItem.Title>SetAttribution test</ListItem.Title>
           </ListItem.Content>
         </ListItem>
 
         <ListItem
           onPress={() => {
             ApphudSdk.logout().then(() => {
-              navigation.popToTop();
+              navigation.reset({ routes: [{ name: 'Login' }] });
             });
           }}
         >

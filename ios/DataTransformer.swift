@@ -9,71 +9,70 @@ import Foundation
 import StoreKit
 import ApphudSDK
 
-extension SKProduct {
+protocol RNAdapter {
+  func toMap() -> NSDictionary
+}
+
+extension SKProduct : RNAdapter {
   func toMap() -> NSDictionary {
 
     var map = [
-        "localizedTitle": localizedTitle,
-        "priceLocale": priceLocale.toMap(),
-        "price": price.floatValue,
+      "localizedTitle": localizedTitle,
+      "priceLocale": priceLocale.toMap(),
+      "price": price.floatValue,
     ] as [String : Any]
 
-      map["subscriptionPeriod"] = subscriptionPeriod?.toMap()
-      map["introductoryPrice"] = introductoryPrice?.toMap()
-      map["id"] = productIdentifier
-      map["store"] = "app_store"
+    map["subscriptionPeriod"] = subscriptionPeriod?.toMap()
+    map["introductoryPrice"] = introductoryPrice?.toMap()
+    map["id"] = productIdentifier
+    map["store"] = "app_store"
     return map as NSDictionary
   }
 }
 
-extension ApphudPaywall {
-    func toMap() -> NSDictionary {
-        var map = [
-            "identifier": identifier,
-            "isDefault": isDefault,
-            "products": products.map({ product in
-                return product.toMap();
-            })
-        ] as [String : Any]
+extension ApphudPaywall : RNAdapter {
+  func toMap() -> NSDictionary {
+    var map: [String: Any] = [:]
+    
+    map["products"] = products.map({ $0.toMap() })
+    map["identifier"] = identifier
+    map["isDefault"] = isDefault
+    map["experimentName"] = experimentName
+    map["variationName"] = variationName
+    map["parentPaywallIdentifier"] = parentPaywallIdentifier
+    map["placementIdentifier"] = placementIdentifier
+    map["json"] = json
 
-        map["json"] = json
-        map["experimentName"] = experimentName
-        map["variationName"] = variationName
-
-        return map as NSDictionary;
-    }
+    return map as NSDictionary;
+  }
 }
 
-extension ApphudProduct {
-    func toMap() -> NSDictionary {
-
-        var map = [
-            "store": store,
-        ] as [String: Any]
-
-        map["name"] = name
-        map["paywallIdentifier"] = paywallIdentifier
-        map["id"] = productId
-
-        if let productMap = skProduct?.toMap() as? [String: Any] {
-            map.merge(productMap, uniquingKeysWith: { old, new in return new})
-        }
-
-        return map as NSDictionary;
-    }
+extension ApphudProduct : RNAdapter {
+  func toMap() -> NSDictionary {
+    var map: [String: Any] = [:]
+    
+    map["productId"] = productId
+    map["name"] = name
+    map["store"] = store
+    map["skProduct"] = skProduct?.toMap()
+    map["paywallIdentifier"] = paywallIdentifier
+    map["placementIdentifier"] = placementIdentifier
+  
+    return map as NSDictionary;
+  }
 }
 
-extension Locale {
+extension Locale : RNAdapter {
   func toMap() -> NSDictionary {
     return [
-        "currencySymbol": currencySymbol ?? "",
-        "currencyCode": currencyCode ?? "",
-        "countryCode": regionCode ?? "",
+      "currencySymbol": currencySymbol ?? "",
+      "currencyCode": currencyCode ?? "",
+      "countryCode": regionCode ?? "",
     ]
   }
 }
 
-extension SKProductSubscriptionPeriod {
+extension SKProductSubscriptionPeriod : RNAdapter {
   func toMap() -> NSDictionary {
     return [
       "numberOfUnits": numberOfUnits,
@@ -82,64 +81,154 @@ extension SKProductSubscriptionPeriod {
   }
 }
 
-extension SKProductDiscount {
+extension SKProductDiscount : RNAdapter {
   func toMap() -> NSDictionary {
     return [
-        "price": price.floatValue,
-        "numberOfPeriods": numberOfPeriods,
-        "subscriptionPeriod": subscriptionPeriod.toMap(),
-        "paymentMode": paymentMode.rawValue,
+      "price": price.floatValue,
+      "numberOfPeriods": numberOfPeriods,
+      "subscriptionPeriod": subscriptionPeriod.toMap(),
+      "paymentMode": paymentMode.rawValue,
     ]
   }
 }
 
+extension ApphudUser : RNAdapter {
+  func toMap() -> NSDictionary {
+    return [
+      "userId": userId,
+      "subscriptions": subscriptions.map({ $0.toMap() }),
+      "purchases": purchases.map { $0.toMap() }
+    ]
+  }
+}
+
+extension ApphudPlacement : RNAdapter {
+  func toMap() -> NSDictionary {
+    return [
+      "identifier": identifier,
+      "paywall": paywall?.toMap() as Any,
+      "experimentName": experimentName as Any,
+    ]
+  }
+}
+
+extension ApphudSubscription : RNAdapter {
+  func toMap() -> NSDictionary {
+    [
+      "isActive": isActive(),
+      "status": status.toString(),
+      "productId": productId,
+      "expiresAt": expiresDate.timeIntervalSince1970,
+      "startedAt": startedAt.timeIntervalSince1970,
+      "canceledAt": canceledAt?.timeIntervalSince1970 as Any,
+      "isSandbox": isSandbox,
+      "isLocal": isLocal,
+      "isInRetryBilling": isInRetryBilling,
+      "isAutoRenewEnabled": isAutorenewEnabled,
+      "kind": "autorenewable",
+      "isIntroductoryActivated": isIntroductoryActivated
+    ] as NSDictionary
+  }
+}
+
+extension ApphudNonRenewingPurchase : RNAdapter {
+  func toMap() -> NSDictionary {
+    [
+      "productId": productId,
+      "purchasedAt": purchasedAt.timeIntervalSince1970,
+      "canceledAt": canceledAt?.timeIntervalSince1970 as Any,
+      "isSandbox": isSandbox,
+      "isLocal": isLocal,
+      "isActive": isActive()
+    ] as NSDictionary
+  }
+}
+
 extension ApphudSubscriptionStatus {
-    func toString() -> String {
-        switch self {
-        case .trial:
-            return "trial"
-        case .intro:
-            return "intro"
-        case .regular:
-            return "regular"
-        case .promo:
-            return "promo"
-        case .grace:
-            return "grace"
-        case .expired:
-            return "expired"
-        case .refunded:
-            return "refunded"
-        }
+  func toString() -> String {
+    switch self {
+    case .trial:
+      return "trial"
+    case .intro:
+      return "intro"
+    case .regular:
+      return "regular"
+    case .promo:
+      return "promo"
+    case .grace:
+      return "grace"
+    case .expired:
+      return "expired"
+    case .refunded:
+      return "refunded"
     }
+  }
 }
 
-public class DataTransformer {
-    public static func skProduct(product: SKProduct) -> NSDictionary {
-        return product.toMap();
-    }
-    
-    public static func apphudSubscription(subscription: ApphudSubscription) -> NSDictionary {
-        [
-            "productId": subscription.productId,
-            "expiresAt": subscription.expiresDate.timeIntervalSince1970,
-            "startedAt": subscription.startedAt.timeIntervalSince1970,
-            "canceledAt": subscription.canceledAt?.timeIntervalSince1970 as Any,
-            "isInRetryBilling": subscription.isInRetryBilling,
-            "isAutorenewEnabled": subscription.isAutorenewEnabled,
-            "isIntroductoryActivated": subscription.isIntroductoryActivated,
-            "isActive":  subscription.isActive(),
-            "status": subscription.status.toString(),
-            ] as NSDictionary
-    }
-    
-    public static func nonRenewingPurchase(nonRenewingPurchase: ApphudNonRenewingPurchase) -> NSDictionary {
-        [
-            "productId": nonRenewingPurchase.productId,
-            "purchasedAt": nonRenewingPurchase.purchasedAt.timeIntervalSince1970,
-            "canceledAt": nonRenewingPurchase.canceledAt?.timeIntervalSince1970 as Any,
-            "isActive": nonRenewingPurchase.isActive()
-        ] as NSDictionary
-    }
+struct AttributionParams {
+  let identifier: String?
+  let provider: ApphudAttributionProvider
+  let data: ApphudAttributionData
 }
 
+fileprivate extension String {
+  func toApphudAttributionProvider() -> ApphudAttributionProvider? {
+    switch self {
+    case "appsFlyer":
+      return .appsFlyer
+    case "adjust":
+      return .adjust
+    case "appleAdsAttribution":
+      return .appleAdsAttribution
+    case "branch":
+      return .branch
+    case "firebase":
+      return .firebase
+    case "facebook":
+      return .facebook
+    case "singular":
+      return .singular
+    case "tenjin":
+      return .tenjin
+    case "tiktok":
+      return .tiktok
+    case "voluum":
+      return .voluum
+    case "custom":
+      return .custom
+      
+    default:
+      return nil
+    }
+  }
+}
+
+extension NSDictionary {
+  func getAttributionParams() -> AttributionParams? {
+    let identifier = self["identifier"] as? String
+    
+    guard let attributionProviderId = self["attributionProviderId"] as? String, let provider = attributionProviderId.toApphudAttributionProvider(), let data = self["data"] as? [AnyHashable : Any] else {
+      return nil
+    }
+    
+    let rawData = data["rawData"] as? [AnyHashable : Any] ?? [:]
+
+    let attributionData = ApphudAttributionData(
+      rawData: rawData,
+      adNetwork: data["adNetwork"] as? String,
+      channel: data["channel"] as? String,
+      campaign: data["campaign"] as? String,
+      adSet: data["adSet"] as? String,
+      creative: data["creative"] as? String,
+      keyword: data["keyword"] as? String,
+      custom1: data["custom1"] as? String,
+      custom2: data["custom2"] as? String
+    )
+
+    return AttributionParams(
+      identifier: identifier,
+      provider: provider,
+      data: attributionData
+    )
+  }
+}

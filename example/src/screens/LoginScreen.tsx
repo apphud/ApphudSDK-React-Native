@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Platform, KeyboardAvoidingView } from 'react-native';
 import { Input, Button } from 'react-native-elements';
-import ApphudSdk from '@apphud/react-native-apphud-sdk';
+import { ApphudSdk } from '@apphud/react-native-apphud-sdk';
 import type { StackScreenProps } from '@react-navigation/stack';
 
 export type Props = StackScreenProps<any>;
@@ -14,14 +14,13 @@ export default function LoginScreen({ navigation }: Props) {
   const [userId, setUserId] = React.useState<any>(null);
   const [deviceId, setDeviceId] = React.useState<any>(null);
 
-  const onStartHandler = () => {
-    ApphudSdk.start({ apiKey, userId, deviceId, observerMode: false }).then(
-      () => {
-        navigation.navigate('Actions');
-      }
-    );
+  const onStartHandler = async () => {
+    await ApphudSdk.start({ apiKey, userId, deviceId, observerMode: false });
+    await ApphudSdk.setDeviceIdentifiers({
+      idfv: (await ApphudSdk.idfv()) ?? undefined,
+    });
 
-    // ApphudSdk.hasActiveSubscription().then((active) => console.log('START Has Active Subscription: = ' + hasActive));
+    navigation.replace('Actions');
   };
 
   return (

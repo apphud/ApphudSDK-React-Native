@@ -5,6 +5,11 @@ require Pod::Executable.execute_command('node', ['-p',
     {paths: [process.argv[1]]},
   )', __dir__]).strip
 
+project_path = './ExampleApp.xcodeproj'
+project = Xcodeproj::Project.open(project_path)
+
+min_ios_version_supported = project.build_configurations.first.build_settings['IPHONEOS_DEPLOYMENT_TARGET']
+
 platform :ios, min_ios_version_supported
 prepare_react_native_project!
 

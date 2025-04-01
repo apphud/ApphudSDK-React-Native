@@ -12,7 +12,7 @@ import type {
   ApphudProduct,
   ApphudPurchaseProps,
 } from '@apphud/react-native-apphud-sdk';
-import ApphudSdk from '@apphud/react-native-apphud-sdk';
+import { ApphudSdk } from '@apphud/react-native-apphud-sdk';
 import { Button } from 'react-native-elements';
 
 const styles = StyleSheet.create({
@@ -53,6 +53,46 @@ interface ProductProps {
   offerId?: string;
 }
 
+function prepareProducts(products: ApphudProduct[]): ProductProps[] {
+  if (Platform.OS === 'ios') {
+    return products.map((product) => {
+      const price = product.skProduct?.price ?? 0;
+
+      return {
+        productId: product.productId,
+        price,
+        formattedPrice: `${price} ${
+          product.skProduct?.priceLocale.currencyCode ?? '$'
+        }`,
+      };
+    });
+  }
+
+  return products.flatMap((product) => {
+    if (product.productDetails?.oneTimePurchaseOffer) {
+      return {
+        productId: product.productId,
+        price: product.productDetails.oneTimePurchaseOffer.price,
+        formattedPrice:
+          product.productDetails.oneTimePurchaseOffer.formattedPrice ?? '',
+      };
+    }
+
+    if (product.productDetails?.subscriptionOffers) {
+      return product.productDetails.subscriptionOffers.map((offer) => ({
+        productId: product.productId,
+        price: offer.pricingPhases?.[0]?.price ?? 0,
+        formattedPrice: offer.pricingPhases?.[0]?.formattedPrice ?? '',
+        basePlanId: offer.basePlanId,
+        offerToken: offer.offerToken,
+        offerId: offer.offerId,
+      }));
+    }
+
+    return [];
+  });
+}
+
 export default function PaywallScreen({
   route,
   navigation,
@@ -65,39 +105,45 @@ export default function PaywallScreen({
     []
   );
 
-  const findPaywall = async () => {
-    const paywalls = await ApphudSdk.paywalls();
-    for (const paywall of paywalls) {
-      if (paywall.identifier === route.params.paywallId) {
-        setCurrentPaywall(paywall);
-        await ApphudSdk.paywallShown(paywall.identifier);
-        const productsPropsList: ProductProps[] = preparedProducts(
-          paywall.products
-        );
-        setProductsProps(productsPropsList);
-        return paywall;
-      }
-    }
-
-    throw new Error('Paywall not found');
-  };
-
   React.useEffect(() => {
+    const findPaywall = async () => {
+      const paywalls = (await ApphudSdk.placements())
+        .map((x) => x.paywall)
+        .filter((x) => x) as ApphudPaywall[];
+
+      for (const paywall of paywalls) {
+        if (paywall.identifier === route.params.paywallId) {
+          setCurrentPaywall(paywall);
+
+          ApphudSdk.paywallShown({
+            paywallIdentifier: paywall.identifier,
+            placementIdentifier: paywall.placementIdentifier,
+          });
+
+          setProductsProps(prepareProducts(paywall.products));
+          return paywall;
+        }
+      }
+
+      throw new Error('Paywall not found');
+    };
+
     findPaywall()
       .then((paywall) => {
         navigation.setOptions({
-          title: paywall.identifier || 'Paywall',
+          title: paywall.identifier ?? 'Paywall',
         });
       })
       .catch((error) => {
         console.error(error);
       });
-  }, [navigation]);
+  }, [navigation, route.params.paywallId]);
 
   const onPurchase = (product: ProductProps) => {
     const options: ApphudPurchaseProps = {
       productId: product.productId,
-      paywallId: currentPaywall?.identifier,
+      paywallIdentifier: currentPaywall?.identifier,
+      placementIdentifier: currentPaywall?.placementIdentifier,
       offerToken: product?.offerToken,
       isConsumable:
         !product.basePlanId &&
@@ -108,40 +154,6 @@ export default function PaywallScreen({
 
     ApphudSdk.purchase(options).then((result) => {
       Alert.alert('Purchase Result = ', JSON.stringify(result));
-    });
-  };
-
-  const preparedProducts = (products: ApphudProduct[]) => {
-    // Alert.alert('paywall products= ', JSON.stringify(products));
-
-    return products.flatMap((product) => {
-      if (Platform.OS === 'ios') {
-        return {
-          productId: product.id,
-          price: product.price || 0,
-          formattedPrice: `${product.price || 0} ${
-            product.priceLocale?.currencyCode || '$'
-          }`,
-        };
-      } else if (product.oneTimePurchaseOffer != null) {
-        return ([product.oneTimePurchaseOffer] || []).map((offer) => ({
-          productId: product.id,
-          price: offer.price,
-          formattedPrice: offer.formattedPrice || '',
-        }));
-      } else {
-        return (product.subscriptionOffers || []).map((offer) => ({
-          productId: product.id,
-          price: offer.pricingPhases?.[0]?.price || product.price || 0,
-          formattedPrice:
-            offer.pricingPhases?.[0]?.formattedPrice ||
-            product.price?.toString() ||
-            '',
-          basePlanId: offer.basePlanId,
-          offerToken: offer.offerToken,
-          offerId: offer.offerId,
-        }));
-      }
     });
   };
 

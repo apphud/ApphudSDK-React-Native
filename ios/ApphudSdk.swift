@@ -15,17 +15,28 @@ class ApphudSdk: NSObject {
     resolve: @escaping RCTPromiseResolveBlock,
     reject: RCTPromiseRejectBlock
   ) {
-    let apiKey = options["apiKey"] as! String;
+    
+    guard let apiKey = options["apiKey"] as? String else {
+      reject("Error", "apiKey not set", nil)
+      return
+    }
+    
     let userID = options["userId"] as? String;
     let observerMode = options["observerMode"] as? Bool ?? true;
+    
     DispatchQueue.main.async {
 #if DEBUG
       ApphudUtils.enableAllLogs()
 #endif
-      Apphud.start(apiKey: apiKey, userID: userID, observerMode: observerMode) { _ in
-        resolve(nil)
-      }
-      Apphud.setDeviceIdentifiers(idfa: nil, idfv: UIDevice.current.identifierForVendor?.uuidString)
+      
+      Apphud
+        .start(
+          apiKey: apiKey,
+          userID: userID,
+          observerMode: observerMode
+        ) { user in
+          resolve(user.toMap())
+        }
     }
   }
     
@@ -35,7 +46,11 @@ class ApphudSdk: NSObject {
     resolve: @escaping RCTPromiseResolveBlock,
     reject: RCTPromiseRejectBlock
   ) {
-    let apiKey = options["apiKey"] as! String;
+    guard let apiKey = options["apiKey"] as? String else {
+      reject("Error", "apiKey not set", nil)
+      return
+    }
+
     let userID = options["userId"] as? String;
     let deviceID = options["deviceId"] as? String;
     let observerMode = options["observerMode"] as? Bool ?? true;
@@ -46,10 +61,9 @@ class ApphudSdk: NSObject {
           userID: userID,
           deviceID: deviceID,
           observerMode: observerMode
-        ) { _ in
-          resolve(nil)
+        ) { user in
+          resolve(user.toMap())
         }
-      Apphud.setDeviceIdentifiers(idfa: nil, idfv: UIDevice.current.identifierForVendor?.uuidString)
     }
   }
     
@@ -77,7 +91,7 @@ class ApphudSdk: NSObject {
   @objc(products:withRejecter:)
   func products(resolve: @escaping RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
     Apphud.fetchProducts { products, error in
-      resolve(products.map { DataTransformer.skProduct(product: $0) });
+      resolve(products.map { $0.toMap() });
     }
   }
   
@@ -99,27 +113,37 @@ class ApphudSdk: NSObject {
       reject("Error", "ProductId not set", nil)
       return
     }
-    let paywallId = args["paywallId"] as? String
+    let paywallId = args["paywallIdentifier"] as? String
+    let placementId = args["placementIdentifier"] as? String
 
     Task { @MainActor in
       var product: ApphudProduct?
-      let paywalls = await paywalls()
-
-      for paywall in paywalls where product == nil {
-        product = paywall.products.first { product in
-          return product.productId == productId && (
-            (
-              paywallId?.count ?? 0 == 0
-            ) || product.paywallIdentifier == paywallId
-          )
+      
+      if let placementId {
+        let placemenets = await Apphud.placements()
+        
+        for placemenet in placemenets where product == nil {
+          if let paywall = placemenet.paywall {
+            product = paywall.products.first { product in
+              return product.productId == productId && product.placementIdentifier == placementId
+            }
+          }
+        }
+      } else if let paywallId {
+        let paywalls = await ApphudPaywallsHelper.getPaywalls()
+        
+        for paywall in paywalls where product == nil {
+            product = paywall.products.first { product in
+              return product.productId == productId && product.paywallIdentifier == paywallId
+            }
         }
       }
 
-      guard let product = product else {
+      guard let product else {
         reject("Error", "Product not found", nil);
         return
       }
-
+      
       Apphud.purchase(product) { result in
         DispatchQueue.main.async {
 
@@ -128,11 +152,9 @@ class ApphudSdk: NSObject {
           response["success"] = result.error == nil
 
           let sub = result.subscription.map {
-            DataTransformer.apphudSubscription(subscription: $0)
+            $0.toMap()
           }
-          let non = result.nonRenewingPurchase.map {
-            DataTransformer.nonRenewingPurchase(nonRenewingPurchase: $0)
-          }
+          let non = result.nonRenewingPurchase.map { $0.toMap() }
 
           if let skError = result.error as? SKError, skError.code == .paymentCancelled {
             response["userCanceled"] = NSNumber(booleanLiteral: true)
@@ -153,7 +175,7 @@ class ApphudSdk: NSObject {
           }
 
           if let transaction = result.transaction {
-            response["appStoreTransaction"] = [
+            response["transaction"] = [
               "state": transaction.transactionState.rawValue,
               "id": transaction.transactionIdentifier as Any,
               "date": transaction.transactionDate?.timeIntervalSince1970 as Any,
@@ -180,23 +202,42 @@ class ApphudSdk: NSObject {
   }
 
   @objc(paywallShown:)
-  func paywallShown(identifier: String) {
-    print("Paywall Shown: \(identifier)")
+  func paywallShown(options: [AnyHashable : Any]) {
+    let placementIdentifier = options["placementIdentifier"] as? String
+    let paywallIdentifier = options["paywallIdentifier"] as? String
+    
+    if placementIdentifier == nil && paywallIdentifier == nil {
+      return
+    }
+    
     Task {
-      if let paywall = await paywalls().first(
-        where: { $0.identifier == identifier
-        }) {
+      var paywall = await ApphudPaywallsHelper.getPaywall(
+        paywallIdentifier: paywallIdentifier,
+        placementIdentifier: placementIdentifier
+      )
+      
+      if let paywall {
         Apphud.paywallShown(paywall)
       }
     }
   }
 
   @objc(paywallClosed:)
-  func paywallClosed(identifier: String) {
+  func paywallClosed(options: [AnyHashable : Any]) {
+    let placementIdentifier = options["placementIdentifier"] as? String
+    let paywallIdentifier = options["paywallIdentifier"] as? String
+    
+    if placementIdentifier == nil && paywallIdentifier == nil {
+      return
+    }
+
     Task {
-      if let paywall = await paywalls().first(
-        where: { $0.identifier == identifier
-        }) {
+      var paywall = await ApphudPaywallsHelper.getPaywall(
+        paywallIdentifier: paywallIdentifier,
+        placementIdentifier: placementIdentifier
+      )
+      
+      if let paywall {
         Apphud.paywallClosed(paywall)
       }
     }
@@ -209,16 +250,14 @@ class ApphudSdk: NSObject {
       return
     }
 
-    resolve(DataTransformer.apphudSubscription(subscription: subscription));
+    resolve(subscription.toMap());
   }
 
     
   @MainActor @objc(subscriptions:withRejecter:)
   func subscriptions(resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
     let subs = Apphud.subscriptions() ?? []
-    let array: Array = subs.map {
-      DataTransformer.apphudSubscription(subscription: $0)
-    }
+    let array: Array = subs.map { $0.toMap() }
     resolve(array as NSArray)
   }
 
@@ -232,9 +271,7 @@ class ApphudSdk: NSObject {
   @MainActor @objc(nonRenewingPurchases:withRejecter:)
   func nonRenewingPurchases(resolve: RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
     let purchases = Apphud.nonRenewingPurchases() ?? []
-    let array: Array = purchases.map {
-      DataTransformer.nonRenewingPurchase(nonRenewingPurchase: $0)
-    }
+    let array: Array = purchases.map { $0.toMap() }
     resolve(array)
   }
     
@@ -242,8 +279,7 @@ class ApphudSdk: NSObject {
   func restorePurchases(resolve: @escaping RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
     Apphud.restorePurchases { (subscriptions, purchases, error) in
       resolve([
-        "subscriptions": subscriptions?
-          .map{ DataTransformer.apphudSubscription(subscription: $0) } as Any,
+        "subscriptions": subscriptions?.map{ $0.toMap() } as Any,
         "purchases": purchases?.map {
           [
             "productId": $0.productId,
@@ -263,30 +299,23 @@ class ApphudSdk: NSObject {
     );
   }
     
-  @objc(addAttribution:)
-  func addAttribution(options: NSDictionary) {
-
-    let data = options["data"] as? [AnyHashable : Any]
-    let identifier = options["identifier"]  as? String
-    let providerString = options["attributionProviderId"] as? String
-    let provider: ApphudAttributionProvider
-    switch providerString {
-    case "appsFlyer":
-      provider = .appsFlyer
-    case "adjust":
-      provider = .adjust
-    case "appleSearchAds":
-      provider = .appleAdsAttribution
-    case "firebase":
-      provider = .firebase
-    default:
+  @objc(setAttribution:withResolver:withRejecter:)
+  func setAttribution(
+    options: NSDictionary,
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject:RCTPromiseRejectBlock
+  ) {
+    guard let attributionParams = options.getAttributionParams() else {
+      reject("Error", "Options not valid", nil)
       return
     }
 
     Apphud
-      .addAttribution(data: data, from: provider, identifer: identifier) {
-        _ in
-      }
+      .setAttribution(
+        data: attributionParams.data,
+        from: attributionParams.provider,
+        identifer: attributionParams.identifier
+      ) { resolve($0) }
   }
 
   @objc(setUserProperty:)
@@ -316,13 +345,12 @@ class ApphudSdk: NSObject {
     }
   }
 
-  @objc(setAdvertisingIdentifier:)
-  func setAdvertisingIdentifier(idfa: String) {
-    Apphud
-      .setDeviceIdentifiers(
-        idfa: idfa,
-        idfv: UIDevice.current.identifierForVendor?.uuidString
-      )
+  @objc(setDeviceIdentifiers:)
+  func setDeviceIdentifiers(options: NSDictionary) {
+    let idfa = options["idfa"] as? String
+    let idfv = options["idfv"] as? String
+    
+    Apphud.setDeviceIdentifiers(idfa: idfa, idfv: idfv)
   }
 
   @objc(enableDebugLogs)
@@ -364,13 +392,34 @@ class ApphudSdk: NSObject {
         var result: [String: Any] = [:]
       
         if let userId = user?.userId {
-          result["user_id"] = userId
+          result["userId"] = userId
         }
       
-        result["is_premium"] = Apphud.hasPremiumAccess()
+        result["isPremium"] = Apphud.hasPremiumAccess()
         result["result"] = success
       
         resolve(result)
       }
     }
+  
+  @MainActor @objc(placements:withRejecter:)
+  func placements(
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject: @escaping RCTPromiseRejectBlock
+  ) {
+    
+    Apphud.fetchPlacements { placements, error in
+      if let error {
+        reject("Error", error.localizedDescription, nil)
+        return
+      }
+      
+      resolve(placements.map({ $0.toMap() }))
+    }
+  }
+  
+  @objc(idfv:withRejecter:)
+  func idfv(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+    resolve(UIDevice.current.identifierForVendor?.uuidString)
+  }
 }
