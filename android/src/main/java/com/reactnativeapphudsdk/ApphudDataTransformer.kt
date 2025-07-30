@@ -1,5 +1,6 @@
 package com.reactnativeapphudsdk
 
+import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.ProductDetails.OneTimePurchaseOfferDetails
 import com.android.billingclient.api.ProductDetails.PricingPhase
@@ -204,7 +205,7 @@ internal fun PricingPhase.toMap(): WritableNativeMap {
   phaseMap.putInt("billingCycleCount", billingCycleCount)
   phaseMap.putInt("recurrenceMode", recurrenceMode)
   phaseMap.putString("formattedPrice", formattedPrice)
-
+  phaseMap.putString("billingPeriod", billingPeriod)
   return phaseMap
 }
 
@@ -244,7 +245,7 @@ internal fun ProductDetails.toMap(): WritableNativeMap {
   item.putString("productType", productType)
   item.putString("store", "play_store")
   item.putString("title", title)
-  item.putString("subscriptionPeriod", subscriptionPeriod())
+  item.putString("subscriptionPeriod", getSubscriptionPeriod())
   item.putArray("subscriptionOffers", offersMaps)
   val details = oneTimePurchaseOfferDetails
 
@@ -254,9 +255,9 @@ internal fun ProductDetails.toMap(): WritableNativeMap {
     item.putDouble("price", price)
   }
 
-  if (subscriptionOfferDetails?.count() == 1) {
+  if (subscriptionOfferDetails != null && subscriptionOfferDetails!!.isNotEmpty()) {
     val offerPrice =
-      subscriptionOfferDetails?.firstOrNull()?.pricingPhases?.pricingPhaseList?.firstOrNull()?.priceAmountMicros
+      subscriptionOfferDetails?.last()?.pricingPhases?.pricingPhaseList?.last()?.priceAmountMicros
 
     offerPrice?.let {
       val price: Double = it / 1000000.0
@@ -267,6 +268,22 @@ internal fun ProductDetails.toMap(): WritableNativeMap {
 
   return item
 }
+
+fun ProductDetails.getSubscriptionPeriod(): String? {
+  val res: String? =
+    if (this.productType == BillingClient.ProductType.SUBS) {
+      if (this.subscriptionOfferDetails?.size == 1 && this.subscriptionOfferDetails?.firstOrNull()?.pricingPhases?.pricingPhaseList?.size == 1) {
+        this.subscriptionOfferDetails?.firstOrNull()?.pricingPhases?.pricingPhaseList?.firstOrNull()?.billingPeriod
+      } else {
+        this.subscriptionOfferDetails?.last()?.pricingPhases?.pricingPhaseList?.last()?.billingPeriod
+      }
+    } else {
+      null
+    }
+  return res
+}
+
+
 
 internal fun ApphudUser.toMap(): WritableNativeMap {
   val userMap = WritableNativeMap()
