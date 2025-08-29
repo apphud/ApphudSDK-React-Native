@@ -1,6 +1,5 @@
 import { NativeModules } from 'react-native';
 import type {
-  ApphudPaywall,
   StartProperties,
   ApphudProduct,
   ApphudPurchaseResult,
@@ -48,18 +47,6 @@ interface IApphudSdk {
    *
    */
   placements(): Promise<ApphudPlacement[]>;
-
-  /**
-   * Available on iOS and Android.
-   *
-   * @deprecated Will be removed in the future.
-   *
-   * Each paywall contains an array of `ApphudProduct` objects that you use for purchase.
-   * `ApphudProduct` is Apphud's wrapper around `SKProduct`/ `ProductDetails` models.
-   * Method returns immediately if paywalls are cached or already loaded.
-   * @returns paywalls configured in Apphud Dashboard > Product Hub > Paywalls.
-   */
-  paywalls(): Promise<ApphudPaywall[]>;
 
   /**
    * Available on iOS and Android.
@@ -292,6 +279,36 @@ interface IApphudSdk {
    * See full description https://developer.apple.com/documentation/uikit/uidevice/identifierforvendor
    */
   idfv(): Promise<string | null>;
+
+  /**
+   * Available on iOS only
+   *
+   * @param placementIdentifiers
+   */
+  preloadPaywallScreens(placementIdentifiers: string[]): void;
+
+  /**
+   * Available on iOS only
+   *
+   * Pre-caches specified paywall screens.
+   *
+   */
+  displayPaywallScreen: (
+    options: {
+      placementIdentifier?: string;
+    },
+    onTransactionStarted: (product: ApphudProduct | null) => void,
+    onControllerFinished: () => void,
+    onError: (error: any) => void
+  ) => void;
+
+  /**
+   * Available on iOS only
+   *
+   * Unloads a previously fetched screen.
+   *
+   */
+  unloadPaywallScreen(options: { placementIdentifier?: string }): Promise<void>;
 }
 
 const { ApphudSdk: _ApphudSdk } = NativeModules;

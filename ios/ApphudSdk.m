@@ -73,8 +73,21 @@ RCT_EXTERN_METHOD(placements:(RCTPromiseResolveBlock)resolve
 RCT_EXTERN_METHOD(idfv:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
+RCT_EXTERN_METHOD(preloadPaywallScreens:(NSArray*)placementIdentifiers)
+RCT_EXTERN_METHOD(displayPaywallScreen:
+                  (NSDictionary *)options
+                  onControllerTransactionStarted:(RCTResponseSenderBlock)onControllerTransactionStarted
+                  onControllerFinished:(RCTResponseSenderBlock)onControllerFinished
+                  onError:(RCTResponseErrorBlock)onError)
+
+
+RCT_EXTERN_METHOD(unloadPaywallScreen:(NSDictionary*)options
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
+
 + (BOOL)requiresMainQueueSetup {
-    return YES; // Requires setup on the main JavaScript thread
+  return YES; // Requires setup on the main JavaScript thread
 }
 
 @end

@@ -7,8 +7,8 @@ import ActionsScreen from './screens/ActionsScreen';
 import ProductsScreen from './screens/ProductsScreen';
 import PaywallScreen from './screens/PaywallScreen';
 import PlacementsScreen from './screens/PlacementsScreen';
-import PaywallsScreen from './screens/PaywallsScreen';
 import SetAttributionScreen from './screens/SetAttributionScreen';
+import PaywallNativeScreen from './screens/PaywallNativeScreen';
 
 const Stack = createStackNavigator();
 
@@ -61,8 +61,14 @@ function App() {
         <Stack.Screen name="Products" component={ProductsScreen} />
         <Stack.Screen name="Paywall" component={PaywallScreen} />
         <Stack.Screen name="Placements" component={PlacementsScreen} />
-        <Stack.Screen name="Paywalls" component={PaywallsScreen} />
         <Stack.Screen name="SetAttribution" component={SetAttributionScreen} />
+        <Stack.Group screenOptions={{ presentation: 'transparentModal' }}>
+          <Stack.Screen
+            name="PaywallNativeScreen"
+            component={PaywallNativeScreen}
+            options={{ header: () => null }}
+          />
+        </Stack.Group>
       </Stack.Navigator>
     </NavigationContainer>
   );

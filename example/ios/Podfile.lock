@@ -1,5 +1,5 @@
 PODS:
-  - ApphudSDK (3.6.2)
+  - ApphudSDK (4.0.0-beta)
   - boost (1.84.0)
   - DoubleConversion (1.1.6)
   - fast_float (6.1.4)
@@ -1211,8 +1211,8 @@ PODS:
     - React-jsiexecutor
     - React-RCTFBReactNativeSpec
     - ReactCommon/turbomodule/core
-  - react-native-apphud-sdk (3.0.0):
-    - ApphudSDK (= 3.6.2)
+  - react-native-apphud-sdk (4.0.0):
+    - ApphudSDK (= 4.0.0-beta)
     - React-Core
   - react-native-safe-area-context (5.2.0):
     - DoubleConversion
@@ -1704,6 +1704,7 @@ PODS:
   - Yoga (0.0.0)
 
 DEPENDENCIES:
+  - ApphudSDK (from `https://github.com/apphud/ApphudSDK.git`, tag `4.0.0-beta`)
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - fast_float (from `../node_modules/react-native/third-party-podspecs/fast_float.podspec`)
@@ -1781,10 +1782,12 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
-    - ApphudSDK
     - SocketRocket
 
 EXTERNAL SOURCES:
+  ApphudSDK:
+    :git: https://github.com/apphud/ApphudSDK.git
+    :tag: 4.0.0-beta
   boost:
     :podspec: "../node_modules/react-native/third-party-podspecs/boost.podspec"
   DoubleConversion:
@@ -1931,8 +1934,13 @@ EXTERNAL SOURCES:
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
+CHECKOUT OPTIONS:
+  ApphudSDK:
+    :git: https://github.com/apphud/ApphudSDK.git
+    :tag: 4.0.0-beta
+
 SPEC CHECKSUMS:
-  ApphudSDK: 787b3f4f41427a07f4f8d02590470f31f567cfdf
+  ApphudSDK: b2013d859ac096c14a1887fd7091a5c1197950c8
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6
@@ -1969,7 +1977,7 @@ SPEC CHECKSUMS:
   React-logger: 1935d6e6461e9c8be4c87af56c56a4876021171e
   React-Mapbuffer: 212171f037e3b22e6c2df839aa826806da480b85
   React-microtasksnativemodule: 72564d5469003687d39bfc4efad281df8efc0684
-  react-native-apphud-sdk: 0ed82b54be98a99d232998244d9c074f1712760e
+  react-native-apphud-sdk: e97e94d9c11064a4d4e90ddfe91d780281f1588c
   react-native-safe-area-context: 9c33120e9eac7741a5364cc2d9f74665049b76b3
   React-nativeconfig: cb207ebba7cafce30657c7ad9f1587a8f32e4564
   React-NativeModulesApple: 82a8bee52df9f5b378195a500f22be3a6ef0f890
@@ -2007,6 +2015,6 @@ SPEC CHECKSUMS:
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: 2957d0e744897870b5a377f26522e3f08cadd7ac
 
-PODFILE CHECKSUM: 2c7d669236187b7275cab0753ae90952fbda4778
+PODFILE CHECKSUM: f24492323eca8423982955297ddce7498a612daf
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.16.2

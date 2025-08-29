@@ -170,6 +170,31 @@ export default function PaywallScreen({
       <Text> Experiment: {currentPaywall?.experimentName || 'N/A'}</Text>
       {/* <Text> Custom JSON: { currentPaywall?.json }</Text> */}
       <View style={styles.root}>
+        {currentPaywall ? (
+          <>
+            <Button
+              title="Display paywall screen"
+              onPress={() =>
+                ApphudSdk.displayPaywallScreen(
+                  {
+                    placementIdentifier: currentPaywall.placementIdentifier,
+                  },
+                  (product) => console.log('transaction started', product),
+                  () => console.log('fineshed'),
+                  (error) => console.log('error', error)
+                )
+              }
+            />
+            <Button
+              title="Navigate to screen"
+              onPress={() => {
+                navigation.navigate('PaywallNativeScreen', {
+                  placementIdentifier: currentPaywall.placementIdentifier,
+                });
+              }}
+            />
+          </>
+        ) : null}
         <View style={styles.table}>
           <View style={styles.row}></View>
           {productsProps.map((product: ProductProps, key: number) => (

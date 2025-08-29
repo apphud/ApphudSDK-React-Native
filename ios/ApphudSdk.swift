@@ -66,6 +66,15 @@ class ApphudSdk: NSObject {
         }
     }
   }
+  
+  @MainActor
+  @objc(refreshUserData:withRejecter:)
+  func refreshUserData(resolve: @escaping RCTPromiseResolveBlock,
+                       reject: RCTPromiseRejectBlock) {
+    Apphud.refreshUserData { user in
+      resolve(user?.toMap())
+    }
+  }
     
   @objc(logout:withRejecter:)
   func logout(
@@ -91,18 +100,8 @@ class ApphudSdk: NSObject {
   @objc(products:withRejecter:)
   func products(resolve: @escaping RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
     Apphud.fetchProducts { products, error in
+      
       resolve(products.map { $0.toMap() });
-    }
-  }
-  
-  
-  private func paywalls() async -> [ApphudPaywall] {
-    await withCheckedContinuation { continuation in
-      Task { @MainActor in
-        Apphud.paywallsDidLoadCallback { paywalls, _ in
-          continuation.resume(returning: paywalls)
-        }
-      }
     }
   }
   
@@ -133,9 +132,9 @@ class ApphudSdk: NSObject {
         let paywalls = await ApphudPaywallsHelper.getPaywalls()
         
         for paywall in paywalls where product == nil {
-            product = paywall.products.first { product in
-              return product.productId == productId && product.paywallIdentifier == paywallId
-            }
+          product = paywall.products.first { product in
+            return product.productId == productId && product.paywallIdentifier == paywallId
+          }
         }
       }
 
@@ -188,18 +187,6 @@ class ApphudSdk: NSObject {
       }
     }
   }
-   
-  @objc(paywalls:withRejecter:)
-  func paywalls(resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
-    Task {
-      let paywalls = await paywalls()
-      resolve(
-        paywalls.map({ paywall in
-          return paywall.toMap();
-        })
-      );
-    }
-  }
 
   @objc(paywallShown:)
   func paywallShown(options: [AnyHashable : Any]) {
@@ -218,27 +205,6 @@ class ApphudSdk: NSObject {
       
       if let paywall {
         Apphud.paywallShown(paywall)
-      }
-    }
-  }
-
-  @objc(paywallClosed:)
-  func paywallClosed(options: [AnyHashable : Any]) {
-    let placementIdentifier = options["placementIdentifier"] as? String
-    let paywallIdentifier = options["paywallIdentifier"] as? String
-    
-    if placementIdentifier == nil && paywallIdentifier == nil {
-      return
-    }
-
-    Task {
-      var paywall = await ApphudPaywallsHelper.getPaywall(
-        paywallIdentifier: paywallIdentifier,
-        placementIdentifier: placementIdentifier
-      )
-      
-      if let paywall {
-        Apphud.paywallClosed(paywall)
       }
     }
   }
@@ -277,19 +243,28 @@ class ApphudSdk: NSObject {
     
   @MainActor @objc(restorePurchases:withRejecter:)
   func restorePurchases(resolve: @escaping RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
-    Apphud.restorePurchases { (subscriptions, purchases, error) in
-      resolve([
-        "subscriptions": subscriptions?.map{ $0.toMap() } as Any,
-        "purchases": purchases?.map {
-          [
-            "productId": $0.productId,
-            "canceledAt": $0.canceledAt?.timeIntervalSince1970 as Any,
-            "purchasedAt": $0.purchasedAt.timeIntervalSince1970 as Any
-          ]
-        } as Any,
-        "error": error?.localizedDescription as Any,
-      ])
+    Apphud.restorePurchases { result in
+      resolve(
+        [
+          "subscriptions": (result.subscription != nil) ? [result.subscription?.toMap()] : [],
+          "purchases": [],
+          "error": result.error?.localizedDescription as Any
+        ]
+      )
     }
+    //    Apphud.restorePurchases { (subscriptions, purchases, error) in
+    //      resolve([
+    //        "subscriptions": subscriptions?.map{ $0.toMap() } as Any,
+    //        "purchases": purchases?.map {
+    //          [
+    //            "productId": $0.productId,
+    //            "canceledAt": $0.canceledAt?.timeIntervalSince1970 as Any,
+    //            "purchasedAt": $0.purchasedAt.timeIntervalSince1970 as Any
+    //          ]
+    //        } as Any,
+    //        "error": error?.localizedDescription as Any,
+    //      ])
+    //    }
   }
     
   @MainActor @objc(userId:withRejecter:)
@@ -338,10 +313,11 @@ class ApphudSdk: NSObject {
     Apphud.incrementUserProperty(key: _key, by: by)
   }
 
+  // TODO
   @MainActor @objc(syncPurchasesInObserverMode:withRejecter:)
   func syncPurchasesInObserverMode(resolve: @escaping RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
-    Apphud.restorePurchases { _, _, _ in
-      resolve(true)
+    Apphud.restorePurchases { result in
+      resolve(result.error == nil)
     }
   }
 
@@ -415,6 +391,109 @@ class ApphudSdk: NSObject {
       }
       
       resolve(placements.map({ $0.toMap() }))
+    }
+  }
+  
+  @MainActor
+  @objc(preloadPaywallScreens:)
+  func preloadPaywallScreens(placementIdentifiers: [String]) {
+    Apphud.preloadPaywallScreens(placementIdentifiers: placementIdentifiers)
+  }
+  
+  @MainActor
+  @objc(
+    displayPaywallScreen:onControllerTransactionStarted:onControllerFinished:onError:
+  )
+  func displayPaywallScreen(
+    options: NSDictionary,
+    onControllerTransactionStarted: @escaping RCTResponseSenderBlock,
+    onControllerFinished: @escaping RCTResponseSenderBlock,
+    onError: @escaping RCTResponseErrorBlock
+  ) {
+    guard let placementIdentifier = options["placementIdentifier"] as? String else {
+      onError(
+        NSError(
+          domain: "ApphudModule",
+          code: 400,
+          userInfo: [NSLocalizedDescriptionKey: "placementIdentifier is required"]
+        )
+      )
+      return
+    }
+    
+    Apphud.fetchPlacements { placements, error in
+      let placement = placements.first { $0.identifier == placementIdentifier }
+        
+      if let paywall = placement?.paywall {
+        Apphud.fetchPaywallScreen(paywall) { result in
+          switch result {
+          case .success(let controller):
+            guard let rootViewController = RCTPresentedViewController() else {
+              return
+            }
+            
+            controller.onTransactionStarted = { product in
+              onControllerTransactionStarted([product?.toMap() as Any])
+            }
+            
+            controller.onFinished = { result in
+              onControllerFinished([result.toMap()])
+              return .allow
+            }
+            
+            DispatchQueue.main.async {
+              rootViewController.present(controller, animated: true)
+            }
+            
+            return
+
+          case .error(let error):
+            onError(error)
+            return
+          }
+        }
+      } else {
+        onError(
+          NSError(
+            domain: "ApphudModule",
+            code: 404,
+            userInfo: [NSLocalizedDescriptionKey: "Paywall not not found"]
+          )
+        )
+      }
+
+    }
+  }
+  
+  @MainActor
+  @objc(unloadPaywallScreen:withResolver:withRejecter:)
+  func unloadPaywallScreen(
+    options: NSDictionary,
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject: @escaping RCTPromiseRejectBlock
+  ) {
+    guard let placementIdentifier = options["placementIdentifier"] as? String else {
+      reject("Error", "Param placementIdentifier is required", nil)
+      return
+    }
+    
+    Apphud.fetchPlacements { [resolve, reject] placements, error in
+      if let error {
+        reject("Error", error.localizedDescription, nil)
+        return
+      }
+
+      let placement = placements.first { placement in
+        placement.identifier == placementIdentifier
+      }
+      
+      guard let paywall = placement?.paywall else {
+        reject("Error", "Paywall not found", nil)
+        return
+      }
+      
+      Apphud.unloadPaywallScreen(paywall)
+      resolve(nil)
     }
   }
   
