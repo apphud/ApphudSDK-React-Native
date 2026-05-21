@@ -19,6 +19,7 @@ import type {
   Identifiers,
   PaywallLogsInfo,
   PlacementsOptions,
+  CommitmentPlanProductOptions,
 } from './types';
 
 interface IApphudSdk {
@@ -47,11 +48,60 @@ interface IApphudSdk {
   /**
    * Available on iOS and Android.
    *
-   * Returns the placements from Product Hub > Placements, potentially altered based on
+   * Returns the placements from Mission control > Placements, potentially altered based on
    * the user's involvement in A/ B testing, if applicable.
    *
    */
   placements(options: Partial<PlacementsOptions>): Promise<ApphudPlacement[]>;
+
+  /**
+   * Available on iOS and Android.
+   *
+   * Returns a single placement by identifier. Awaits until store products are loaded.
+   */
+  placement(
+    identifier: string,
+    options?: Partial<PlacementsOptions>
+  ): Promise<ApphudPlacement | null>;
+
+  /**
+   * Available on iOS and Android.
+   *
+   * Returns placements immediately without awaiting store products.
+   */
+  rawPlacements(): Promise<ApphudPlacement[]>;
+
+  /**
+   * Available on iOS and Android.
+   *
+   * Overrides API gateway host. Must be called before `start` / `startManually`.
+   */
+  setHost(url: string): void;
+
+  /**
+   * Available on iOS and Android.
+   *
+   * Attempts to attribute the user using a recently opened deep link.
+   */
+  attributeFromDeeplink(): Promise<Record<string, unknown> | null>;
+
+  /**
+   * Available on iOS (Android returns false).
+   *
+   * Whether commitment plan is preferred for the product in Mission control.
+   */
+  isCommitmentPlanPreferred(
+    options: CommitmentPlanProductOptions
+  ): Promise<boolean>;
+
+  /**
+   * Available on iOS 26.4+ (Android returns false).
+   *
+   * Whether commitment plan is supported on this device for the product.
+   */
+  isCommitmentPlanSupported(
+    options: CommitmentPlanProductOptions
+  ): Promise<boolean>;
 
   /**
    * Available on iOS and Android.
@@ -68,10 +118,10 @@ interface IApphudSdk {
   /**
    * Available on iOS and Android.
    *
-   * Note that you have to add all product identifiers in Apphud Dashboard > Product Hub > Products.
+   * Note that you have to add all product identifiers in Apphud Mission control > Products.
    *
    * **Important**: Best practise is not to use this method,
-   * but implement paywalls logic by adding your paywall configuration in Apphud Dashboard > Product Hub > Paywalls.
+   * but implement paywalls logic by adding your paywall configuration in Apphud Mission control > Paywalls.
    * @returns `SKProducts` / `ProductDetails` array or fetches products from the App Store or Google Play.
    */
   products(): Promise<Array<ApphudProduct>>;
@@ -103,7 +153,7 @@ interface IApphudSdk {
    * Available on iOS and Android.
    *
    * Makes purchase of `ApphudProduct` object from your `ApphudPaywall`.
-   * You must first configure paywalls in Apphud Dashboard > Product Hub > Paywalls.
+   * You must first configure paywalls in Apphud Mission control > Paywalls.
    * @param props - object with productId and optional paywallId, offerToken, isConsumable. See `ApphudPurchaseProps` for details.
    * @returns `ApphudPurchaseResult` object. See `ApphudPurchaseResult` for details.
    */
@@ -338,6 +388,15 @@ export const ApphudSdk: IApphudSdk & ApphudSdkPresenterProvider = {
   userId: () => ApphudSdkBase.userId(),
   placements: (options?: Partial<PlacementsOptions>) =>
     ApphudSdkBase.placements(options ?? {}),
+  placement: (identifier: string, options?: Partial<PlacementsOptions>) =>
+    ApphudSdkBase.placement(identifier, options ?? {}),
+  rawPlacements: () => ApphudSdkBase.rawPlacements(),
+  setHost: (url: string) => ApphudSdkBase.setHost(url),
+  attributeFromDeeplink: () => ApphudSdkBase.attributeFromDeeplink(),
+  isCommitmentPlanPreferred: (options: CommitmentPlanProductOptions) =>
+    ApphudSdkBase.isCommitmentPlanPreferred(options),
+  isCommitmentPlanSupported: (options: CommitmentPlanProductOptions) =>
+    ApphudSdkBase.isCommitmentPlanSupported(options),
   paywallShown: (options: PaywallLogsInfo & Partial<PlacementsOptions>) =>
     ApphudSdkBase.paywallShown(options),
   paywallClosed: (options: PaywallLogsInfo) =>

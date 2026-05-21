@@ -76,6 +76,17 @@ Apphud may win back lapsed subscribers, [reduce churn rate](https://apphud.com/b
 
 Create your account at [Apphud for free](https://app.apphud.com/sign_up?utm_source=github&utm_medium=article&utm_campaign=github). Please feel free to read our [SDK Integration Guide](https://docs.apphud.com/docs/quickstart).
 
+### iOS (CocoaPods)
+
+This package depends on native `ApphudSDK` **4.2.2**. If `pod install` fails with “could not find compatible versions”, refresh your spec repo:
+
+```sh
+cd ios && pod install --repo-update
+```
+
+If the build fails on the `fmt` pod with a `consteval` error (common on Xcode 26+), ensure your `Podfile` `post_install` sets the `fmt` target to C++17 — see [example/ios/Podfile](example/ios/Podfile).
+```
+
 ## Having a question?
 
 If you have any questions or troubles with SDK integration feel free to contact us. We are online.

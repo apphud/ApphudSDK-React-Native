@@ -6,6 +6,7 @@ import {
   Text,
   StyleSheet,
   SafeAreaView,
+  Alert,
 } from 'react-native';
 import { ApphudSdk } from '@apphud/react-native-apphud-sdk';
 
@@ -15,7 +16,7 @@ export default function UpdateUserIDScreen() {
   const onPress = () => {
     if (userId) {
       ApphudSdk.updateUserID(userId).then((user) =>
-        alert(JSON.stringify(user))
+        Alert.alert('User updated', JSON.stringify(user))
       );
     }
   };

@@ -49,8 +49,12 @@ ApphudSdkEventEmitter.onApphudWillPurchase((arg) => {
   console.log('Received event ApphudWillPurchase:', arg);
 });
 
-ApphudSdkEventEmitter.onPaywallsDidFullyLoad((arg) => {
-  console.log('Received event PaywallsDidFullyLoad:', arg);
+ApphudSdkEventEmitter.onPlacementsDidFullyLoad((arg) => {
+  console.log('Received event PlacementsDidFullyLoad:', arg);
+});
+
+ApphudSdkEventEmitter.onUserDidLoad((arg) => {
+  console.log('Received event UserDidLoad:', arg);
 });
 
 function App() {

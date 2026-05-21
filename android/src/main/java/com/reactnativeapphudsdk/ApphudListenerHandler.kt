@@ -4,7 +4,6 @@ import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
 import com.apphud.sdk.Apphud
 import com.apphud.sdk.ApphudListener
-import com.apphud.sdk.domain.ApphudPaywall
 import com.apphud.sdk.domain.ApphudPlacement
 import com.apphud.sdk.domain.ApphudUser
 import com.facebook.react.bridge.ReactApplicationContext
@@ -12,7 +11,8 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.modules.core.DeviceEventManagerModule
 
 enum class ApphudSdkDelegateEvents(val value: String) {
-  PAYWALLS_DID_FULLY_LOAD("paywallsDidFullyLoad"),
+  PLACEMENTS_DID_FULLY_LOAD("placementsDidFullyLoad"),
+  USER_DID_LOAD("userDidLoad"),
   APPHUD_DID_LOAD_STORE_PRODUCTS("apphudDidLoadStoreProducts"),
   APPHUD_DID_CHANGE_USER_ID("apphudDidChangeUserID"),
   APPHUD_SUBSCRIPTIONS_UPDATED("apphudSubscriptionsUpdated"),
@@ -42,20 +42,19 @@ class ApphudListenerHandler(private val reactContext: ReactApplicationContext) :
       .emit(ApphudSdkDelegateEvents.APPHUD_DID_LOAD_STORE_PRODUCTS.value, nativeProducts)
   }
 
-  override fun paywallsDidFullyLoad(paywalls: List<ApphudPaywall>) {
+  override fun placementsDidFullyLoad(placements: List<ApphudPlacement>) {
     reactContext
       .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
       .emit(
-        ApphudSdkDelegateEvents.PAYWALLS_DID_FULLY_LOAD.value,
-        paywalls.toWritableNativeArray { it.toMap() });
-  }
-
-  override fun placementsDidFullyLoad(placements: List<ApphudPlacement>) {
-    // do nothing
+        ApphudSdkDelegateEvents.PLACEMENTS_DID_FULLY_LOAD.value,
+        placements.toWritableNativeArray { it.toMap() }
+      )
   }
 
   override fun userDidLoad(user: ApphudUser) {
-    // do nothing
+    reactContext
+      .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+      .emit(ApphudSdkDelegateEvents.USER_DID_LOAD.value, user.toMap())
   }
 
   override fun apphudDidReceivePurchase(purchase: Purchase) {

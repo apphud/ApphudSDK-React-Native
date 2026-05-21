@@ -3,12 +3,18 @@ import StoreKit
 
 @objc(ApphudSdk)
 class ApphudSdk: NSObject {
+
+  private func applyBaseUrl(from options: NSDictionary) {
+    if let baseUrl = options["baseUrl"] as? String, !baseUrl.isEmpty {
+      ApphudHttpClient.shared.domainUrlString = baseUrl
+    }
+  }
     
   override init() {
     ApphudHttpClient.shared.sdkType = "reactnative"
     let current = ApphudHttpClient.shared.sdkVersion
     if !current.contains("(") {
-      ApphudHttpClient.shared.sdkVersion = "4.0.2" + "(\(current))"
+      ApphudHttpClient.shared.sdkVersion = ApphudSdkVersion.value + "(\(current))"
     }
   }
 
@@ -25,7 +31,8 @@ class ApphudSdk: NSObject {
     }
     
     let userID = options["userId"] as? String;
-    let observerMode = options["observerMode"] as? Bool ?? true;
+    let observerMode = options["observerMode"] as? Bool ?? false;
+    applyBaseUrl(from: options)
     
     DispatchQueue.main.async {
 #if DEBUG
@@ -38,7 +45,9 @@ class ApphudSdk: NSObject {
           userID: userID,
           observerMode: observerMode
         ) { user in
-          resolve(user.toMap())
+          Task { @MainActor in
+            resolve(user.toMap())
+          }
         }
     }
   }
@@ -56,7 +65,8 @@ class ApphudSdk: NSObject {
 
     let userID = options["userId"] as? String;
     let deviceID = options["deviceId"] as? String;
-    let observerMode = options["observerMode"] as? Bool ?? true;
+    let observerMode = options["observerMode"] as? Bool ?? false;
+    applyBaseUrl(from: options)
     DispatchQueue.main.async {
       Apphud
         .startManually(
@@ -65,8 +75,118 @@ class ApphudSdk: NSObject {
           deviceID: deviceID,
           observerMode: observerMode
         ) { user in
-          resolve(user.toMap())
+          Task { @MainActor in
+            resolve(user.toMap())
+          }
         }
+    }
+  }
+
+  @objc(setHost:)
+  func setHost(url: String) {
+    ApphudHttpClient.shared.domainUrlString = url
+  }
+
+  @MainActor
+  @objc(attributeFromDeeplink:withRejecter:)
+  func attributeFromDeeplink(
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject: RCTPromiseRejectBlock
+  ) {
+    Apphud.attributeFromDeeplink { data in
+      resolve(data as Any?)
+    }
+  }
+
+  @objc(rawPlacements:withRejecter:)
+  func rawPlacements(
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject: RCTPromiseRejectBlock
+  ) {
+    Task { @MainActor in
+      resolve(Apphud.rawPlacements().map { $0.toMap() })
+    }
+  }
+
+  @objc(placement:options:withResolver:withRejecter:)
+  func placement(
+    identifier: String,
+    options: NSDictionary,
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject: @escaping RCTPromiseRejectBlock
+  ) {
+    let maxAttempts = options["maxAttempts"] as? Int ?? APPHUD_DEFAULT_RETRIES
+    Task { @MainActor in
+      if let placement = await Apphud.placement(identifier) {
+        resolve(placement.toMap())
+      } else {
+        resolve(NSNull())
+      }
+    }
+  }
+
+  @objc(isCommitmentPlanPreferred:withResolver:withRejecter:)
+  func isCommitmentPlanPreferred(
+    options: NSDictionary,
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject: @escaping RCTPromiseRejectBlock
+  ) {
+    guard let productId = options["productId"] as? String, !productId.isEmpty else {
+      reject("Error", "productId not set", nil)
+      return
+    }
+    let placementId = options["placementIdentifier"] as? String
+    let paywallId = options["paywallIdentifier"] as? String
+    let maxAttempts = options["maxAttempts"] as? Int ?? APPHUD_DEFAULT_RETRIES
+    let forceRefresh = options["forceRefresh"] as? Bool ?? false
+
+    Task { @MainActor in
+      guard let product = await ApphudPaywallsHelper.findProduct(
+        productId: productId,
+        placementIdentifier: placementId,
+        paywallIdentifier: paywallId,
+        maxAttempts: maxAttempts,
+        forceRefresh: forceRefresh
+      ) else {
+        resolve(false)
+        return
+      }
+      resolve(product.isCommitmentPlanPreferred())
+    }
+  }
+
+  @objc(isCommitmentPlanSupported:withResolver:withRejecter:)
+  func isCommitmentPlanSupported(
+    options: NSDictionary,
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject: @escaping RCTPromiseRejectBlock
+  ) {
+    guard let productId = options["productId"] as? String, !productId.isEmpty else {
+      reject("Error", "productId not set", nil)
+      return
+    }
+    let placementId = options["placementIdentifier"] as? String
+    let paywallId = options["paywallIdentifier"] as? String
+    let maxAttempts = options["maxAttempts"] as? Int ?? APPHUD_DEFAULT_RETRIES
+    let forceRefresh = options["forceRefresh"] as? Bool ?? false
+
+    Task { @MainActor in
+      guard let product = await ApphudPaywallsHelper.findProduct(
+        productId: productId,
+        placementIdentifier: placementId,
+        paywallIdentifier: paywallId,
+        maxAttempts: maxAttempts,
+        forceRefresh: forceRefresh
+      ) else {
+        resolve(false)
+        return
+      }
+      if #available(iOS 26.4, *) {
+        let supported = await product.isCommitmentPlanSupported()
+        resolve(supported)
+      } else {
+        resolve(false)
+      }
     }
   }
   
@@ -118,33 +238,17 @@ class ApphudSdk: NSObject {
     let paywallId = args["paywallIdentifier"] as? String
     let placementId = args["placementIdentifier"] as? String
 
+    let maxAttempts = args["maxAttempts"] as? Int ?? APPHUD_DEFAULT_RETRIES
+    let forceRefresh = args["forceRefresh"] as? Bool ?? false
+
     Task { @MainActor in
-      var product: ApphudProduct?
-      
-      if let placementId {
-        let placemenets = await Apphud.placements()
-        
-        for placemenet in placemenets where product == nil {
-          if let paywall = placemenet.paywall {
-            product = paywall.products.first { product in
-              return product.productId == productId && product.placementIdentifier == placementId
-            }
-          }
-        }
-      } else if let paywallId {
-        let maxAttempts = args["maxAttempts"] as? Int ?? APPHUD_DEFAULT_RETRIES
-        let forceRefresh = args["forceRefresh"] as? Bool ?? false
-
-        let paywalls = await ApphudPaywallsHelper.getPaywalls(maxAttempts: maxAttempts, forceRefresh: forceRefresh)
-        
-        for paywall in paywalls where product == nil {
-          product = paywall.products.first { product in
-            return product.productId == productId && product.paywallIdentifier == paywallId
-          }
-        }
-      }
-
-      guard let product else {
+      guard let product = await ApphudPaywallsHelper.findProduct(
+        productId: productId,
+        placementIdentifier: placementId,
+        paywallIdentifier: paywallId,
+        maxAttempts: maxAttempts,
+        forceRefresh: forceRefresh
+      ) else {
         reject("Error", "Product not found", nil);
         return
       }
@@ -203,7 +307,7 @@ class ApphudSdk: NSObject {
       return
     }
     
-    Task {
+    Task { @MainActor in
       let paywall = await ApphudPaywallsHelper.getPaywall(options: options)
 
       if let paywall {
@@ -438,6 +542,10 @@ class ApphudSdk: NSObject {
   @MainActor
   @objc(updateUserID:withResolver:withRejecter:)
   func updateUserID(userID: String, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
-    Apphud.updateUserID(userID) { resolve($0?.toMap())  }
+    Apphud.updateUserID(userID) { user in
+      Task { @MainActor in
+        resolve(user?.toMap())
+      }
+    }
   }
 }

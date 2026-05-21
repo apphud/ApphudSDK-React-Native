@@ -43,6 +43,9 @@ export default function PlacementsScreen() {
             <View style={common.col}>
               <Text style={common.th}>ExpName</Text>
             </View>
+            <View style={common.col}>
+              <Text style={common.th}>Variation</Text>
+            </View>
           </View>
           {placements.map((placement) => (
             <View style={common.row} key={placement.identifier}>
@@ -63,6 +66,9 @@ export default function PlacementsScreen() {
               </View>
               <View style={common.col}>
                 <Text>{placement.experimentName}</Text>
+              </View>
+              <View style={common.col}>
+                <Text>{placement.variationName}</Text>
               </View>
             </View>
           ))}

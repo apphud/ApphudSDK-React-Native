@@ -47,6 +47,19 @@ extension ApphudPaywall : RNAdapter {
   }
 }
 
+fileprivate func apphudAnyCodableToJSONObject(_ codable: ApphudAnyCodable) -> Any {
+  guard let data = try? JSONEncoder().encode(codable),
+        let json = try? JSONSerialization.jsonObject(with: data) else {
+    return NSNull()
+  }
+  return json
+}
+
+fileprivate func apphudAnyCodablePropertiesToMap(_ properties: [String: ApphudAnyCodable]?) -> [String: Any]? {
+  guard let properties else { return nil }
+  return Dictionary(uniqueKeysWithValues: properties.map { ($0.key, apphudAnyCodableToJSONObject($0.value)) })
+}
+
 extension ApphudProduct : RNAdapter {
   func toMap() -> NSDictionary {
     var map: [String: Any] = [:]
@@ -57,6 +70,11 @@ extension ApphudProduct : RNAdapter {
     map["skProduct"] = skProduct?.toMap()
     map["paywallIdentifier"] = paywallIdentifier
     map["placementIdentifier"] = placementIdentifier
+    map["variationIdentifier"] = variationIdentifier
+    map["experimentId"] = experimentId
+    if let propertiesMap = apphudAnyCodablePropertiesToMap(properties) {
+      map["properties"] = propertiesMap
+    }
   
     return map as NSDictionary;
   }
@@ -93,12 +111,21 @@ extension SKProductDiscount : RNAdapter {
 }
 
 extension ApphudUser : RNAdapter {
+  @MainActor
   func toMap() -> NSDictionary {
-    return [
+    var map: [String: Any] = [
       "userId": userId,
       "subscriptions": subscriptions.map({ $0.toMap() }),
-      "purchases": purchases.map { $0.toMap() }
+      "purchases": purchases.map { $0.toMap() },
+      "totalDevicesCount": totalDevicesCount,
+      "remoteConfig": remoteConfig(),
     ]
+    map["experimentName"] = experimentName
+    map["variationName"] = variationName
+    map["targetingName"] = targetingName
+    map["remoteConfigString"] = remoteConfigString
+    map["rawPlacements"] = rawPlacements().map { $0.toMap() }
+    return map as NSDictionary
   }
 }
 
@@ -108,6 +135,7 @@ extension ApphudPlacement : RNAdapter {
       "identifier": identifier,
       "paywall": paywall?.toMap() as Any,
       "experimentName": experimentName as Any,
+      "variationName": variationName as Any,
     ]
   }
 }

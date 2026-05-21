@@ -4,7 +4,8 @@ import ApphudSDK
 import StoreKit
 
 enum ApphudSdkDelegateEvents: String, CaseIterable {
-  case paywallsDidFullyLoad
+  case placementsDidFullyLoad
+  case userDidLoad
   case apphudDidLoadStoreProducts
   case apphudDidChangeUserID
   case apphudSubscriptionsUpdated
@@ -76,9 +77,15 @@ extension ApphudSdkEvents: ApphudDelegate {
     return self.productIdentifiers;
   }
     
-  func paywallsDidFullyLoad(paywalls: [ApphudPaywall]) {
-    let result = paywalls.map { $0.toMap() }
-    self.sendEvent(.paywallsDidFullyLoad, body: result);
+  func placementsDidFullyLoad(placements: [ApphudPlacement]) {
+    let result = placements.map { $0.toMap() }
+    self.sendEvent(.placementsDidFullyLoad, body: result);
+  }
+
+  func userDidLoad(user: ApphudUser) {
+    Task { @MainActor in
+      self.sendEvent(.userDidLoad, body: user.toMap());
+    }
   }
 }
 

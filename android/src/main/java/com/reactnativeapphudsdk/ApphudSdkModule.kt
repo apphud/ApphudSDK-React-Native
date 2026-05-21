@@ -14,10 +14,15 @@ import com.apphud.sdk.internal.data.network.SdkHeaders
 //import com.apphud.sdk.managers.HeadersInterceptor
 import com.facebook.react.bridge.*
 import com.facebook.react.bridge.UiThreadUtil.runOnUiThread
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 class ApphudSdkModule(reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext) {
 
+  private val moduleScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
   private val unSupportMethodMsg: String = "Unsupported method"
 
   override fun getName(): String {
@@ -28,7 +33,8 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
     SdkHeaders.X_SDK = "reactnative"
     val nativeSdkVersion: String = SdkHeaders.X_SDK_VERSION
     if (!nativeSdkVersion.contains("(")) {
-      SdkHeaders.X_SDK_VERSION = "4.0.2" + "(${nativeSdkVersion})"
+      SdkHeaders.X_SDK_VERSION =
+        BuildConfig.REACT_NATIVE_APPHUD_SDK_VERSION + "(${nativeSdkVersion})"
     }
   }
 
@@ -37,19 +43,46 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
     startManually(options, promise)
   }
 
+  private fun applyBaseUrl(options: ReadableMap) {
+    if (options.hasKey("baseUrl")) {
+      val baseUrl = options.getString("baseUrl")
+      if (!baseUrl.isNullOrEmpty()) {
+        ApphudUtils.overrideBaseUrl(baseUrl)
+      }
+    }
+  }
+
+  @ReactMethod
+  fun setHost(url: String) {
+    ApphudUtils.overrideBaseUrl(url)
+  }
+
   @ReactMethod
   fun startManually(options: ReadableMap, promise: Promise) {
     val apiKey = options.getString("apiKey")
     val userId = options.getString("userId")
     val deviceId = options.getString("deviceId")
+    val observerMode = if (options.hasKey("observerMode")) {
+      options.getBoolean("observerMode")
+    } else {
+      false
+    }
 
     if (apiKey.isNullOrEmpty()) {
       promise.reject("Error", "apiKey not set")
       return
     }
 
+    applyBaseUrl(options)
+
     runOnUiThread {
-      Apphud.start(this.reactApplicationContext, apiKey, userId, deviceId) {
+      Apphud.start(
+        this.reactApplicationContext,
+        apiKey,
+        userId,
+        deviceId,
+        observerMode
+      ) {
         promise.resolve(it.toMap())
       }
     }
@@ -189,15 +222,67 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun products(promise: Promise) {
-    Apphud.paywallsDidLoadCallback { apphudPaywalls, apphudError ->
-      if (apphudError != null) {
-        promise.reject(apphudError)
-        return@paywallsDidLoadCallback
+    moduleScope.launch {
+      try {
+        val placements = Apphud.placements()
+        val products = placements
+          .mapNotNull { it.paywall?.products }
+          .flatten()
+          .distinctBy { it.productId }
+        promise.resolve(products.toWritableNativeArray { it.toMap() })
+      } catch (e: Exception) {
+        promise.reject("Error", e.message, e)
       }
-
-      val products = apphudPaywalls.map { it.products ?: listOf() }.flatten()
-      promise.resolve(products.toWritableNativeArray { it.toMap() })
     }
+  }
+
+  @ReactMethod
+  fun rawPlacements(promise: Promise) {
+    runOnUiThread {
+      promise.resolve(Apphud.rawPlacements().toWritableNativeArray { it.toMap() })
+    }
+  }
+
+  @ReactMethod
+  fun placement(identifier: String, options: ReadableMap, promise: Promise) {
+    val placementsOptions = options.getPlacementsOptions()
+    moduleScope.launch {
+      try {
+        val placement = if (placementsOptions.forceRefresh) {
+          Utils.getPlacement(
+            identifier = identifier,
+            preferredTimeout = placementsOptions.preferredTimeout,
+            forceRefresh = true,
+          )
+        } else {
+          Apphud.placement(identifier)
+        }
+        promise.resolve(placement?.toMap())
+      } catch (e: Exception) {
+        promise.reject("Error", e.message, e)
+      }
+    }
+  }
+
+  @ReactMethod
+  fun attributeFromDeeplink(promise: Promise) {
+    Apphud.attributeFromDeeplink { data ->
+      if (data == null) {
+        promise.resolve(null)
+      } else {
+        promise.resolve(data.toWritableNativeMap())
+      }
+    }
+  }
+
+  @ReactMethod
+  fun isCommitmentPlanPreferred(options: ReadableMap, promise: Promise) {
+    promise.resolve(false)
+  }
+
+  @ReactMethod
+  fun isCommitmentPlanSupported(options: ReadableMap, promise: Promise) {
+    promise.resolve(false)
   }
 
   @ReactMethod
