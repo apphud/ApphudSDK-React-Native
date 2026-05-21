@@ -1,9 +1,10 @@
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
 import type {
-  ApphudPaywall,
   ApphudProduct,
   ApphudSubscription,
   ApphudNonRenewingPurchase,
+  ApphudPlacement,
+  ApphudUser,
 } from '../module';
 import type {
   ApphudPurchaseEventResult,
@@ -21,7 +22,8 @@ if (!ApphudSdkEvents && __DEV__) {
 }
 
 type ApphudSdkListenerEvent =
-  | 'paywallsDidFullyLoad'
+  | 'placementsDidFullyLoad'
+  | 'userDidLoad'
   | 'apphudDidLoadStoreProducts'
   | 'apphudDidChangeUserID'
   | 'apphudSubscriptionsUpdated'
@@ -48,28 +50,24 @@ function makeSubscriberMethod<T extends Callback<any>>(
 
 interface IApphudSdkEventEmitter {
   /**
-   *
-   * Called when paywalls are fully loaded with their `SKProducts` / `ProductDetails`. Returns callback for unsubsribe.
+   * Called when placements are fully loaded with their Paywalls and store products.
    *
    * Available on iOS and Android.
-   *
-   * @param {Callback<ApphudPaywall[]>} cb - Callback which will invoke on event whith ApphudPaywall[] arg.
-   *
-   * @returns {Callback} cb for unsubscribe
-   *
    */
-  onPaywallsDidFullyLoad(cb: Callback<ApphudPaywall[]>): Callback;
+  onPlacementsDidFullyLoad(cb: Callback<ApphudPlacement[]>): Callback;
+
+  /**
+   * Called once per app lifecycle when the user is registered or retrieved from cache.
+   *
+   * Available on iOS and Android.
+   */
+  onUserDidLoad(cb: Callback<ApphudUser>): Callback;
 
   /**
    * Called when store products are loaded with their `SKProducts` / `ProductDetails`.
-   * It's not recommended to use this event. Use `paywallsDidFullyLoad` instead.
+   * It's not recommended to use this event. Use `onPlacementsDidFullyLoad` instead.
    *
    * Available on iOS and Android.
-   *
-   * @param {Callback<ApphudProduct[]>} cb - Callback which will invoke on event whith ApphudProduct[] arg.
-   *
-   * @returns {Callback} cb for unsubscribe
-   *
    */
   onApphudDidLoadStoreProducts(cb: Callback<ApphudProduct[]>): Callback;
 
@@ -77,23 +75,13 @@ interface IApphudSdkEventEmitter {
    * Called when user ID has been changed. Use this if you implement integrations with Analytics services.
    *
    *  Available on iOS and Android.
-   *
-   * @param {Callback<string>} cb - Callback which will invoke on event whith new userID string arg
-   *
-   * @returns {Callback} cb for unsubscribe
-   *
    */
   onApphudDidChangeUserID(cb: Callback<string>): Callback;
 
   /**
    * Returns array of subscriptions that user ever purchased. Empty array means user never purchased a subscription.
    *
-   * AVailable on iOS and Android.
-   *
-   * @param {Callback<ApphudSubscription[]>} cb - Callback which will invoke on event whith ApphudSubscription[] arg
-   *
-   * @returns {Callback} cb for unsubscribe
-   *
+   * Available on iOS and Android.
    */
   onApphudSubscriptionsUpdated(cb: Callback<ApphudSubscription[]>): Callback;
 
@@ -101,11 +89,6 @@ interface IApphudSdkEventEmitter {
    * Called when any of non renewing purchases changes. Called when purchase is made or has been refunded.
    *
    * Available on iOS and Android.
-   *
-   * @param {Callback<ApphudNonRenewingPurchase[]>} cb - Callback which will invoke on event whith ApphudNonRenewingPurchase[] arg
-   *
-   * @returns {Callback} cb for unsubscribe
-   *
    */
   onApphudNonRenewingPurchasesUpdated(
     cb: Callback<ApphudNonRenewingPurchase[]>
@@ -115,11 +98,6 @@ interface IApphudSdkEventEmitter {
    * Called when a Rules Screen appeared.
    *
    * Available on iOS only.
-   *
-   * @param {Callback<ApphudScreenDidAppearResult>} cb - Callback which will invoke on event whith ApphudScreenDidAppearResult arg
-   *
-   * @returns {Callback} cb for unsubscribe
-   *
    */
   onApphudScreenDidAppear(cb: Callback<ApphudScreenDidAppearResult>): Callback;
 
@@ -127,11 +105,6 @@ interface IApphudSdkEventEmitter {
    * Called when user successfully purchases in a Rules Screen.
    *
    * Available on iOS only.
-   *
-   * @param {Callback<ApphudPurchaseEventResult>} cb - Callback which will invoke on event whith ApphudPurchaseEventResult arg
-   *
-   * @returns {Callback} cb for unsubscribe
-   *
    */
   onApphudDidPurchase(cb: Callback<ApphudPurchaseEventResult>): Callback;
 
@@ -139,11 +112,6 @@ interface IApphudSdkEventEmitter {
    * Called when user is about to make purchase in a Rules Screen.
    *
    * Available on iOS only.
-   *
-   * @param {Callback<ApphudPurchaseEventResult>} cb - Callback which will invoke on event whith ApphudPurchaseEventResult arg
-   *
-   * @returns {Callback} cb for unsubscribe
-   *
    */
   onApphudWillPurchase(cb: Callback<ApphudPurchaseEventResult>): Callback;
 
@@ -151,11 +119,6 @@ interface IApphudSdkEventEmitter {
    * Called when user failed to make a purchase in a Rules Screen.
    *
    * Available on iOS only.
-   *
-   * @param {Callback<ApphudDidFailPurchaseEventResult>} cb - Callback which will invoke on event whith ApphudDidFailPurchaseEventResult arg
-   *
-   * @returns {Callback} cb for unsubscribe
-   *
    */
   onApphudDidFailPurchase(
     cb: Callback<ApphudDidFailPurchaseEventResult>
@@ -165,11 +128,6 @@ interface IApphudSdkEventEmitter {
    * Called when user answers a survey in a Rules Screen.
    *
    * Available on iOS only.
-   *
-   * @param {Callback<ApphudDidSelectSurveyAnswerResult>} cb - Callback which will invoke on event whith ApphudDidSelectSurveyAnswerResult arg
-   *
-   * @returns {Callback} cb for unsubscribe
-   *
    */
   onApphudDidSelectSurveyAnswer(
     cb: Callback<ApphudDidSelectSurveyAnswerResult>
@@ -177,12 +135,6 @@ interface IApphudSdkEventEmitter {
 
   /**
    * Specify a list of product identifiers to fetch from the App Store.
-   * @param ids array of product identifiers
-   * If you don't implement this method or return empty array,
-   * then product identifiers will be fetched from Apphud servers.
-   * Implementing this delegate method gives you more reliabality on fetching products
-   *  and a little more speed on loading due to skipping Apphud request,
-   * but also gives less flexibility because you have to hardcode product identifiers this way.
    *
    * Available on iOS only.
    */
@@ -190,7 +142,9 @@ interface IApphudSdkEventEmitter {
 }
 
 export const ApphudSdkEventEmitter: IApphudSdkEventEmitter = {
-  onPaywallsDidFullyLoad: makeSubscriberMethod('paywallsDidFullyLoad'),
+  onPlacementsDidFullyLoad: makeSubscriberMethod('placementsDidFullyLoad'),
+
+  onUserDidLoad: makeSubscriberMethod('userDidLoad'),
 
   onApphudDidLoadStoreProducts: makeSubscriberMethod(
     'apphudDidLoadStoreProducts'

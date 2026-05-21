@@ -11,7 +11,18 @@ import SetAttributionScreen from './screens/SetAttributionScreen';
 import PaywallNativeScreen from './screens/PaywallNativeScreen';
 import UpdateUserIDScreen from './screens/UpdateUserIDScreen';
 
-const Stack = createStackNavigator();
+type RootStackParamList = {
+  Login: undefined;
+  Actions: undefined;
+  Products: undefined;
+  Paywall: { placementId: string };
+  Placements: undefined;
+  SetAttribution: undefined;
+  PaywallNativeScreen: undefined;
+  UpdateUserID: undefined;
+};
+
+const Stack = createStackNavigator<RootStackParamList>();
 
 ApphudSdkEventEmitter.onApphudDidChangeUserID((newUserId) =>
   console.log('Received event ApphudDidChangeUserID:', newUserId)
@@ -49,8 +60,12 @@ ApphudSdkEventEmitter.onApphudWillPurchase((arg) => {
   console.log('Received event ApphudWillPurchase:', arg);
 });
 
-ApphudSdkEventEmitter.onPaywallsDidFullyLoad((arg) => {
-  console.log('Received event PaywallsDidFullyLoad:', arg);
+ApphudSdkEventEmitter.onPlacementsDidFullyLoad((arg) => {
+  console.log('Received event PlacementsDidFullyLoad:', arg);
+});
+
+ApphudSdkEventEmitter.onUserDidLoad((arg) => {
+  console.log('Received event UserDidLoad:', arg);
 });
 
 function App() {

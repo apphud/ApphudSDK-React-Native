@@ -3,19 +3,37 @@ import { Platform, KeyboardAvoidingView } from 'react-native';
 import { Input, Button } from 'react-native-elements';
 import { ApphudSdk } from '@apphud/react-native-apphud-sdk';
 import type { StackScreenProps } from '@react-navigation/stack';
+import { APPHUD_API_KEY, APPHUD_HOST } from '@env';
 
 export type Props = StackScreenProps<any>;
 
 export default function LoginScreen({ navigation }: Props) {
   const [apiKey, setApiKey] = React.useState<string>(
-    'app_4sY9cLggXpMDDQMmvc5wXUPGReMp8G'
+    APPHUD_API_KEY ?? ''
   );
 
   const [userId, setUserId] = React.useState<any>(null);
   const [deviceId, setDeviceId] = React.useState<any>(null);
 
   const onStartHandler = async () => {
-    await ApphudSdk.start({ apiKey, userId, deviceId, observerMode: false });
+    const resolvedApiKey = apiKey.trim() || APPHUD_API_KEY?.trim() || '';
+    if (!resolvedApiKey) {
+      throw new Error(
+        'Missing APPHUD_API_KEY. Add APPHUD_API_KEY to example/.env.'
+      );
+    }
+
+    const resolvedHost = APPHUD_HOST?.trim();
+    if (resolvedHost) {
+      await ApphudSdk.setHost(resolvedHost);
+    }
+
+    await ApphudSdk.start({
+      apiKey: resolvedApiKey,
+      userId,
+      deviceId,
+      observerMode: false,
+    });
     await ApphudSdk.setDeviceIdentifiers({
       idfv: (await ApphudSdk.idfv()) ?? undefined,
     });

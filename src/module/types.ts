@@ -25,6 +25,23 @@ export interface StartProperties {
    * Default value is `false`.
    */
   observerMode?: boolean;
+
+  /**
+   * Optional custom API gateway base URL (e.g. `https://custom.gateway.com`).
+   * Applied before SDK initialization via native host override.
+   */
+  baseUrl?: string;
+}
+
+/**
+ * Options for resolving a product when calling commitment-plan helpers.
+ */
+export interface CommitmentPlanProductOptions {
+  productId: string;
+  placementIdentifier?: string;
+  paywallIdentifier?: string;
+  maxAttempts?: number;
+  forceRefresh?: boolean;
 }
 
 /**
@@ -39,7 +56,7 @@ export interface ApphudPurchaseProps {
   productId: string;
 
   /**
-   * Paywall Identifier from the ApphudProduct object. Configure your Paywalls in Apphud Product Hub > Paywalls.
+   * Paywall Identifier from the ApphudProduct object. Configure your Paywalls in Apphud Mission control > Paywalls.
    *
    * If you pass null, the purchase won't be attached to its paywall, which may result in incorrect analytics.
    *
@@ -48,7 +65,7 @@ export interface ApphudPurchaseProps {
   paywallIdentifier?: string;
 
   /**
-   * Placement Identifier from the ApphudProduct object. Configure your Placements in Apphud Product Hub > Placements.
+   * Placement Identifier from the ApphudProduct object. Configure your Placements in Apphud Mission control > Placements.
    *
    * If you pass null, the purchase won't be attached to its placement, which may result in incorrect analytics.
    *
@@ -69,6 +86,18 @@ export interface ApphudPurchaseProps {
    * Available on Android only.
    */
   isConsumable?: boolean;
+}
+
+/**
+ * Props for purchasing an iOS promotional subscription offer.
+ */
+export interface ApphudPurchasePromoProps extends ApphudPurchaseProps {
+  /**
+   * Promotional Offer Product Code from App Store Connect (`SKProductDiscount.identifier`).
+   *
+   * Available on iOS only.
+   */
+  discountID: string;
 }
 
 /**
@@ -322,11 +351,11 @@ export interface RestorePurchase {
 /**
  * Available on iOS and Android.
  *
- * Paywall object from Apphud Dashboard > Product Hub > Paywalls.
+ * Paywall object from Apphud Mission control > Paywalls.
  */
 export interface ApphudPaywall {
   /**
-   * Paywall identifier from Apphud Dashboard > Product Hub > Paywalls.
+   * Paywall identifier from Apphud Mission control > Paywalls.
    */
   identifier: string;
 
@@ -403,6 +432,27 @@ export interface SKProduct {
     };
     paymentMode: number;
   };
+
+  /**
+   * Promotional subscription offers configured in App Store Connect.
+   * Available on iOS 12.2+.
+   */
+  discounts?: SKProductDiscount[];
+}
+
+/**
+ * Promotional subscription offer from App Store Connect.
+ * Available on iOS 12.2+.
+ */
+export interface SKProductDiscount {
+  identifier: string;
+  price: number;
+  numberOfPeriods: number;
+  subscriptionPeriod: {
+    numberOfUnits: number;
+    unit: number;
+  };
+  paymentMode: number;
 }
 
 /**
@@ -463,6 +513,21 @@ export interface ApphudProduct {
    * Placement Identifier, if any.
    */
   placementIdentifier?: string;
+
+  /**
+   * Full product properties payload from Mission control (not locale-filtered macros).
+   */
+  properties?: Record<string, unknown>;
+
+  /**
+   * Variation identifier for experiment/targeting context.
+   */
+  variationIdentifier?: string;
+
+  /**
+   * Experiment identifier for analytics context.
+   */
+  experimentId?: string;
 }
 
 /** Available on Android only
@@ -591,11 +656,46 @@ export interface ApphudUser {
    * An array of non-renewing purchases of any statuses that user has ever purchased.
    */
   purchases: ApphudNonRenewingPurchase[];
+
+  /**
+   * Name of the active A/B test experiment assigned to this user.
+   */
+  experimentName?: string;
+
+  /**
+   * Name of the active variation assigned to this user.
+   */
+  variationName?: string;
+
+  /**
+   * Name of the targeting (audience) the user matches.
+   */
+  targetingName?: string;
+
+  /**
+   * Raw JSON string for app-level remote configuration from the backend.
+   */
+  remoteConfigString?: string;
+
+  /**
+   * Parsed app-level remote configuration. Empty object when missing or invalid.
+   */
+  remoteConfig?: Record<string, unknown>;
+
+  /**
+   * Number of devices associated with the same user ID.
+   */
+  totalDevicesCount: number;
+
+  /**
+   * Placements without awaiting store products (immediate access).
+   */
+  rawPlacements?: ApphudPlacement[];
 }
 
 export interface ApphudPlacement {
   /**
-     Placement identifier configured in Apphud Product Hub > Placements.
+     Placement identifier configured in Apphud Mission control > Placements.
      */
   identifier: string;
 
@@ -609,7 +709,12 @@ export interface ApphudPlacement {
   /**
       A/B experiment name if it's paywall, if any.
       */
-  experimentName?: String;
+  experimentName?: string;
+
+  /**
+   * A/B experiment variation name, if any.
+   */
+  variationName?: string;
 }
 
 export interface Identifiers {

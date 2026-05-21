@@ -102,7 +102,16 @@ internal fun ApphudSubscription.toMap(): WritableNativeMap {
   return result
 }
 
-internal fun ApphudProduct.toMap(): WritableNativeMap {
+@Suppress("UNCHECKED_CAST")
+private fun ApphudProduct.propertiesMap(): Map<String, Any>? {
+  return runCatching {
+    val field = ApphudProduct::class.java.getDeclaredField("properties")
+    field.isAccessible = true
+    field.get(this) as? Map<String, Any>
+  }.getOrNull()
+}
+
+internal fun ApphudProduct.toMap(paywall: ApphudPaywall? = null): WritableNativeMap {
   val result = WritableNativeMap()
 
   result.putString("productId", productId)
@@ -116,6 +125,14 @@ internal fun ApphudProduct.toMap(): WritableNativeMap {
 
   result.putString("placementIdentifier", placementIdentifier)
   result.putString("paywallIdentifier", paywallIdentifier)
+
+  propertiesMap()?.let {
+    result.putMap("properties", it.toWritableNativeMap())
+  }
+
+  paywall?.variationIdentifier?.let {
+    result.putString("variationIdentifier", it)
+  }
 
   return result
 }
@@ -133,7 +150,7 @@ internal fun ApphudPaywall.toMap(): WritableNativeMap {
 
   result.putArray(
     "products",
-    products?.toWritableNativeArray { it.toMap() } ?: WritableNativeArray())
+    products?.toWritableNativeArray { it.toMap(this) } ?: WritableNativeArray())
 
   result.putString("experimentName", experimentName)
   result.putString("variationName", variationName)
@@ -293,6 +310,19 @@ internal fun ApphudUser.toMap(): WritableNativeMap {
   userMap.putString("userId", userId)
   userMap.putArray("subscriptions", subscriptions.toWritableNativeArray { it.toMap() })
   userMap.putArray("purchases", purchases.toWritableNativeArray { it.toMap() })
+  userMap.putInt("totalDevicesCount", totalDevicesCount)
+
+  experimentName?.let { userMap.putString("experimentName", it) }
+  variationName?.let { userMap.putString("variationName", it) }
+  targetingName?.let { userMap.putString("targetingName", it) }
+  remoteConfigString?.let { userMap.putString("remoteConfigString", it) }
+
+  val remoteConfigMap = remoteConfig().toWritableNativeMap()
+  userMap.putMap("remoteConfig", remoteConfigMap)
+  userMap.putArray(
+    "rawPlacements",
+    rawPlacements().toWritableNativeArray { it.toMap() }
+  )
 
   return userMap
 }
@@ -306,6 +336,10 @@ internal fun ApphudPlacement.toMap() = WritableNativeMap().apply {
 
   experimentName?.let {
     putString("experimentName", it)
+  }
+
+  variationName?.let {
+    putString("variationName", it)
   }
 }
 
