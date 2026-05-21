@@ -11,7 +11,18 @@ import SetAttributionScreen from './screens/SetAttributionScreen';
 import PaywallNativeScreen from './screens/PaywallNativeScreen';
 import UpdateUserIDScreen from './screens/UpdateUserIDScreen';
 
-const Stack = createStackNavigator();
+type RootStackParamList = {
+  Login: undefined;
+  Actions: undefined;
+  Products: undefined;
+  Paywall: { paywallId: string; placementId?: string };
+  Placements: undefined;
+  SetAttribution: undefined;
+  PaywallNativeScreen: undefined;
+  UpdateUserID: undefined;
+};
+
+const Stack = createStackNavigator<RootStackParamList>();
 
 ApphudSdkEventEmitter.onApphudDidChangeUserID((newUserId) =>
   console.log('Received event ApphudDidChangeUserID:', newUserId)

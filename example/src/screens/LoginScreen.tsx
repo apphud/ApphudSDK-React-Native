@@ -3,18 +3,21 @@ import { Platform, KeyboardAvoidingView } from 'react-native';
 import { Input, Button } from 'react-native-elements';
 import { ApphudSdk } from '@apphud/react-native-apphud-sdk';
 import type { StackScreenProps } from '@react-navigation/stack';
+import App from '../App';
 
 export type Props = StackScreenProps<any>;
 
 export default function LoginScreen({ navigation }: Props) {
   const [apiKey, setApiKey] = React.useState<string>(
-    'app_4sY9cLggXpMDDQMmvc5wXUPGReMp8G'
+    'appstr_ZSYKzTtKm6FebHsW1zXBbXfbGXJA3uTk9tM'
   );
 
   const [userId, setUserId] = React.useState<any>(null);
   const [deviceId, setDeviceId] = React.useState<any>(null);
 
   const onStartHandler = async () => {
+    await ApphudSdk.setHost('https://api.apphuddev.com');
+    setApiKey('appstr_ZSYKzTtKm6FebHsW1zXBbXfbGXJA3uTk9tM');
     await ApphudSdk.start({ apiKey, userId, deviceId, observerMode: false });
     await ApphudSdk.setDeviceIdentifiers({
       idfv: (await ApphudSdk.idfv()) ?? undefined,
