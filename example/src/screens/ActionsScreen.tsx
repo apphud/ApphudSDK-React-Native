@@ -415,7 +415,7 @@ export default function ActionsScreen({ navigation }: Props) {
                   onPress={() => {
                     if (placement.paywall?.identifier) {
                       navigation.navigate('Paywall', {
-                        paywallId: placement.paywall?.identifier,
+                        placementId: placement.identifier,
                       });
                     }
                   }}

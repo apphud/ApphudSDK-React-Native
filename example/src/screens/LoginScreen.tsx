@@ -9,7 +9,7 @@ export type Props = StackScreenProps<any>;
 
 export default function LoginScreen({ navigation }: Props) {
   const [apiKey, setApiKey] = React.useState<string>(
-    'appstr_ZSYKzTtKm6FebHsW1zXBbXfbGXJA3uTk9tM'
+    'play_nwpk5ACtwcppKS4rB9qL9ymA4PfjCN77uQa'
   );
 
   const [userId, setUserId] = React.useState<any>(null);
@@ -17,7 +17,8 @@ export default function LoginScreen({ navigation }: Props) {
 
   const onStartHandler = async () => {
     await ApphudSdk.setHost('https://api.apphuddev.com');
-    setApiKey('appstr_ZSYKzTtKm6FebHsW1zXBbXfbGXJA3uTk9tM');
+      setApiKey('play_nwpk5ACtwcppKS4rB9qL9ymA4PfjCN77uQa');
+    
     await ApphudSdk.start({ apiKey, userId, deviceId, observerMode: false });
     await ApphudSdk.setDeviceIdentifiers({
       idfv: (await ApphudSdk.idfv()) ?? undefined,

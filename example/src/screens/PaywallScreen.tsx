@@ -52,6 +52,8 @@ interface ProductProps {
   basePlanId?: string;
   offerToken?: string;
   offerId?: string;
+  standardPriceLabel?: string;
+  offerPeriodLabel?: string;
   properties?: Record<string, unknown>;
   discounts?: SKProductDiscount[];
 }
@@ -113,6 +115,31 @@ function formatCurrency(amount: number, currencyCode: string): string {
   }
 }
 
+function inferPeriodLabel(basePlanId?: string, offerId?: string): string {
+  const source = `${basePlanId ?? ''} ${offerId ?? ''}`.toLowerCase();
+  if (source.includes('year') || source.includes('annual')) {
+    return 'Yearly';
+  }
+  if (source.includes('month') || source.includes('monthly')) {
+    return 'Monthly';
+  }
+  if (source.includes('week') || source.includes('weekly')) {
+    return 'Weekly';
+  }
+  if (source.includes('day') || source.includes('daily')) {
+    return 'Daily';
+  }
+  return 'Not specified';
+}
+
+function inferStandardPriceLabel(
+  formattedPrice: string,
+  pricingPhases?: Array<{ formattedPrice?: string }>
+): string {
+  const lastPhasePrice = pricingPhases?.[pricingPhases.length - 1]?.formattedPrice;
+  return lastPhasePrice?.trim() || formattedPrice;
+}
+
 function prepareProducts(products: ApphudProduct[]): ProductProps[] {
   if (Platform.OS === 'ios') {
     return products.map((product) => {
@@ -165,6 +192,11 @@ function prepareProducts(products: ApphudProduct[]): ProductProps[] {
           basePlanId: offer.basePlanId ?? product.basePlanId,
           offerToken: offer.offerToken,
           offerId: offer.offerId,
+          standardPriceLabel: inferStandardPriceLabel(formatted, offer.pricingPhases),
+          offerPeriodLabel: inferPeriodLabel(
+            offer.basePlanId ?? product.basePlanId,
+            offer.offerId
+          ),
           ...shared,
         };
       });
@@ -230,9 +262,10 @@ export default function PaywallScreen({
   route,
   navigation,
 }: {
-  route: { params: { paywallId: string; placementId?: string } };
+  route: { params: { placementId: string } };
   navigation: any;
 }) {
+  const paywallShownTrackedRef = React.useRef(false);
   const [currentPaywall, setCurrentPaywall] = React.useState<ApphudPaywall>();
   const [productsProps, setProductsProps] = React.useState<ProductProps[]>([]);
   const [apphudProductsById, setApphudProductsById] = React.useState<
@@ -244,6 +277,24 @@ export default function PaywallScreen({
     productId: string;
     properties: Record<string, unknown>;
   } | null>(null);
+  const [androidOffersModal, setAndroidOffersModal] = React.useState<{
+    productId: string;
+    options: ProductProps[];
+  } | null>(null);
+  const displayProducts = React.useMemo(() => {
+    if (Platform.OS !== 'android') {
+      return productsProps;
+    }
+
+    const uniqueByProductId = new Map<string, ProductProps>();
+    productsProps.forEach((product) => {
+      if (!uniqueByProductId.has(product.productId)) {
+        uniqueByProductId.set(product.productId, product);
+      }
+    });
+
+    return Array.from(uniqueByProductId.values());
+  }, [productsProps]);
 
   React.useEffect(() => {
     paywallScreenPresenter?.addEventListener('closeButtonTapped', () =>
@@ -274,60 +325,84 @@ export default function PaywallScreen({
   }, [paywallScreenPresenter]);
 
   React.useEffect(() => {
+    paywallShownTrackedRef.current = false;
+  }, [route.params.placementId]);
+
+  React.useEffect(() => {
+    if (!currentPaywall || paywallShownTrackedRef.current) {
+      return;
+    }
+
+    paywallShownTrackedRef.current = true;
+    console.log('[PaywallScreen] paywall shown', {
+      paywallIdentifier: currentPaywall.identifier,
+      placementIdentifier: currentPaywall.placementIdentifier,
+      experiment: currentPaywall.experimentName,
+      variation: currentPaywall.variationName
+    });
+    ApphudSdk.paywallShown({
+      paywallIdentifier: currentPaywall.identifier,
+      placementIdentifier: currentPaywall.placementIdentifier,
+      forceRefresh: true,
+      preferredTimeout: 21,
+    });
+  }, [currentPaywall]);
+
+  React.useEffect(() => {
     const findPaywall = async () => {
-      const paywalls = (
-        await ApphudSdk.placements({ forceRefresh: true, preferredTimeout: 21 })
-      )
-        .map((x) => x.paywall)
-        .filter((x) => x) as ApphudPaywall[];
+      const placements = await ApphudSdk.placements({
+        forceRefresh: false,
+        preferredTimeout: 21,
+      });
+      const placement = placements.find(
+        (item) => item.identifier === route.params.placementId
+      );
 
-      for (const paywall of paywalls) {
-        if (paywall.identifier === route.params.paywallId) {
-          setCurrentPaywall(paywall);
-          setPaywallScreenPresenter(
-            new PaywallScreenPresenter({
-              placementIdentifier: paywall.placementIdentifier,
-              forceRefresh: true,
-              preferredTimeout: 21,
-              maxAttempts: 4,
-            })
-          );
-
-          ApphudSdk.paywallShown({
-            paywallIdentifier: paywall.identifier,
-            placementIdentifier: paywall.placementIdentifier,
-            forceRefresh: true,
-            preferredTimeout: 21,
-          });
-
-          setProductsProps(prepareProducts(paywall.products));
-          const productsById = Object.fromEntries(
-            paywall.products.map((item) => [item.productId, item])
-          );
-          setApphudProductsById(productsById);
-
-          const monthlyPromo = productsById[PROMO_DEBUG_PRODUCT_ID];
-          if (monthlyPromo) {
-            logMonthlyPromoDebug('paywall_loaded', {
-              paywallId: paywall.identifier,
-              placementId: paywall.placementIdentifier,
-              skProductPrice: monthlyPromo.skProduct?.price,
-              discounts: monthlyPromo.skProduct?.discounts ?? [],
-              discountsCount: monthlyPromo.skProduct?.discounts?.length ?? 0,
-            });
-          } else {
-            logMonthlyPromoDebug('paywall_loaded', {
-              paywallId: paywall.identifier,
-              message: 'product not found on paywall',
-              productIds: paywall.products.map((p) => p.productId),
-            });
-          }
-
-          return paywall;
-        }
+      if (!placement) {
+        throw new Error(`Placement "${route.params.placementId}" not found`);
       }
 
-      throw new Error('Paywall not found');
+      if (!placement.paywall) {
+        throw new Error(
+          `Placement "${route.params.placementId}" has no paywall`
+        );
+      }
+
+      const paywall = placement.paywall;
+      setCurrentPaywall(paywall);
+      setPaywallScreenPresenter(
+        new PaywallScreenPresenter({
+          placementIdentifier: paywall.placementIdentifier,
+          forceRefresh: true,
+          preferredTimeout: 21,
+          maxAttempts: 4,
+        })
+      );
+
+      setProductsProps(prepareProducts(paywall.products));
+      const productsById = Object.fromEntries(
+        paywall.products.map((item) => [item.productId, item])
+      );
+      setApphudProductsById(productsById);
+
+      const monthlyPromo = productsById[PROMO_DEBUG_PRODUCT_ID];
+      if (monthlyPromo) {
+        logMonthlyPromoDebug('paywall_loaded', {
+          paywallId: paywall.identifier,
+          placementId: paywall.placementIdentifier,
+          skProductPrice: monthlyPromo.skProduct?.price,
+          discounts: monthlyPromo.skProduct?.discounts ?? [],
+          discountsCount: monthlyPromo.skProduct?.discounts?.length ?? 0,
+        });
+      } else {
+        logMonthlyPromoDebug('paywall_loaded', {
+          paywallId: paywall.identifier,
+          message: 'product not found on paywall',
+          productIds: paywall.products.map((p) => p.productId),
+        });
+      }
+
+      return paywall;
     };
 
     findPaywall()
@@ -339,7 +414,7 @@ export default function PaywallScreen({
       .catch((error) => {
         console.error(error);
       });
-  }, [navigation, route.params.paywallId]);
+  }, [navigation, route.params.placementId]);
 
   const showPurchaseResult = (result: unknown) => {
     Alert.alert('Purchase Result', JSON.stringify(result, null, 2));
@@ -473,8 +548,20 @@ export default function PaywallScreen({
       });
     }
 
-    if (Platform.OS !== 'ios') {
-      runPurchase(options);
+    if (Platform.OS === 'android') {
+      const androidOptions = productsProps.filter(
+        (item) => item.productId === product.productId
+      );
+
+      if (androidOptions.length <= 1) {
+        runPurchase(options);
+        return;
+      }
+
+      setAndroidOffersModal({
+        productId: product.productId,
+        options: androidOptions,
+      });
       return;
     }
 
@@ -570,10 +657,10 @@ export default function PaywallScreen({
       </View>
 
       <Text style={styles.productsSectionTitle}>
-        Products ({productsProps.length})
+        Products ({displayProducts.length})
       </Text>
 
-      {productsProps.map((product, index) => (
+      {displayProducts.map((product, index) => (
         <ProductCard
           key={`${product.productId}-${product.basePlanId ?? ''}-${product.offerId ?? index}`}
           product={product}
@@ -630,6 +717,58 @@ export default function PaywallScreen({
               activeOpacity={0.85}
             >
               <Text style={styles.modalCloseText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={androidOffersModal !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setAndroidOffersModal(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <Pressable
+            style={StyleSheet.absoluteFillObject}
+            onPress={() => setAndroidOffersModal(null)}
+          />
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Choose offer</Text>
+            <Text style={styles.modalSubtitle}>{androidOffersModal?.productId}</Text>
+            <ScrollView
+              style={styles.modalScroll}
+              contentContainerStyle={styles.offerListContent}
+              showsVerticalScrollIndicator
+              nestedScrollEnabled
+              bounces
+            >
+              {androidOffersModal?.options.map((item, index) => (
+                <TouchableOpacity
+                  key={`${item.productId}-${item.offerToken ?? item.offerId ?? index}`}
+                  style={styles.offerOptionButton}
+                  onPress={() => {
+                    setAndroidOffersModal(null);
+                    runPurchase(buildPurchaseOptions(item, currentPaywall));
+                  }}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.offerOptionTitle}>{item.formattedPrice}</Text>
+                  <Text style={styles.offerOptionSubtitle}>
+                    {`Standard: ${item.standardPriceLabel ?? item.formattedPrice}`}
+                  </Text>
+                  <Text style={styles.offerOptionSubtitle}>
+                    {`Offer period: ${item.offerPeriodLabel ?? 'Not specified'}`}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setAndroidOffersModal(null)}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.modalCloseText}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -818,6 +957,28 @@ const styles = StyleSheet.create({
   },
   modalScrollContent: {
     padding: 12,
+  },
+  offerListContent: {
+    padding: 12,
+    gap: 10,
+  },
+  offerOptionButton: {
+    backgroundColor: colors.card,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  offerOptionTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  offerOptionSubtitle: {
+    marginTop: 4,
+    fontSize: 12,
+    color: colors.textSecondary,
   },
   modalJson: {
     fontFamily: Platform.select({ ios: 'Menlo', android: 'monospace' }),

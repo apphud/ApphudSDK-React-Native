@@ -60,6 +60,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
   @ReactMethod
   fun startManually(options: ReadableMap, promise: Promise) {
     val apiKey = options.getString("apiKey")
+    Log.d("ApphudSdkModule", "apiKey: $apiKey")
     val userId = options.getString("userId")
     val deviceId = options.getString("deviceId")
     val observerMode = if (options.hasKey("observerMode")) {
@@ -74,6 +75,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
     }
 
     applyBaseUrl(options)
+    ApphudUtils.enableAllLogs()
 
     runOnUiThread {
       Apphud.start(
