@@ -3,7 +3,6 @@ import { Platform, KeyboardAvoidingView } from 'react-native';
 import { Input, Button } from 'react-native-elements';
 import { ApphudSdk } from '@apphud/react-native-apphud-sdk';
 import type { StackScreenProps } from '@react-navigation/stack';
-import App from '../App';
 
 export type Props = StackScreenProps<any>;
 

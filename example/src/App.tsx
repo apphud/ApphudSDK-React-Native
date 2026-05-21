@@ -15,7 +15,7 @@ type RootStackParamList = {
   Login: undefined;
   Actions: undefined;
   Products: undefined;
-  Paywall: { paywallId: string; placementId?: string };
+  Paywall: { placementId: string };
   Placements: undefined;
   SetAttribution: undefined;
   PaywallNativeScreen: undefined;

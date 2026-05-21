@@ -1,0 +1,10 @@
+---
+description: Run yarn prepare after code changes
+alwaysApply: true
+---
+
+# Prepare After Edits
+
+- After making any code change, run `yarn prepare` before finalizing.
+- If `yarn prepare` fails, fix straightforward issues introduced by the change.
+- If failures are unrelated or blocked, report the exact blocker and next action.
