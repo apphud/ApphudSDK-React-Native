@@ -67,6 +67,12 @@ class ApphudSdk: NSObject {
     let deviceID = options["deviceId"] as? String;
     let observerMode = options["observerMode"] as? Bool ?? false;
     applyBaseUrl(from: options)
+
+#if DEBUG
+      ApphudUtils.enableAllLogs()
+#endif
+
+
     DispatchQueue.main.async {
       Apphud
         .startManually(
@@ -230,70 +236,70 @@ class ApphudSdk: NSObject {
   
   @objc(purchase:withResolver:withRejecter:)
   func purchase(args: NSDictionary, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
-
-    guard let productId = args["productId"] as? String, productId.count > 0 else {
-      reject("Error", "ProductId not set", nil)
-      return
-    }
-    let paywallId = args["paywallIdentifier"] as? String
-    let placementId = args["placementIdentifier"] as? String
-
-    let maxAttempts = args["maxAttempts"] as? Int ?? APPHUD_DEFAULT_RETRIES
-    let forceRefresh = args["forceRefresh"] as? Bool ?? false
-
     Task { @MainActor in
-      guard let product = await ApphudPaywallsHelper.findProduct(
-        productId: productId,
-        placementIdentifier: placementId,
-        paywallIdentifier: paywallId,
-        maxAttempts: maxAttempts,
-        forceRefresh: forceRefresh
-      ) else {
-        reject("Error", "Product not found", nil);
+      guard let product = await self.findProduct(from: args) else {
+        if (args["productId"] as? String)?.isEmpty != false {
+          reject("Error", "ProductId not set", nil)
+        } else {
+          reject("Error", "Product not found", nil)
+        }
         return
       }
-      
+
       Apphud.purchase(product) { result in
-        DispatchQueue.main.async {
+        Self.resolvePurchase(result, resolve: resolve)
+      }
+    }
+  }
 
-          var response = [String: Any]()
-
-          response["success"] = result.error == nil
-
-          let sub = result.subscription.map {
-            $0.toMap()
-          }
-          let non = result.nonRenewingPurchase.map { $0.toMap() }
-
-          if let skError = result.error as? SKError, skError.code == .paymentCancelled {
-            response["userCanceled"] = NSNumber(booleanLiteral: true)
-          }
-
-          if let sub = sub {
-            response["subscription"] = sub
-          }
-          if let non = non {
-            response["nonRenewingPurchase"] = non
-          }
-
-          if let err = result.error as? NSError {
-            response["error"] = [
-              "code": err.code,
-              "message": err.localizedDescription,
-            ]
-          }
-
-          if let transaction = result.transaction {
-            response["transaction"] = [
-              "state": transaction.transactionState.rawValue,
-              "id": transaction.transactionIdentifier as Any,
-              "date": transaction.transactionDate?.timeIntervalSince1970 as Any,
-              "productId": transaction.payment.productIdentifier
-            ]
-          }
-
-          resolve(response);
+  @objc(checkEligibilityForPromotionalOffer:withResolver:withRejecter:)
+  func checkEligibilityForPromotionalOffer(
+    args: NSDictionary,
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject: @escaping RCTPromiseRejectBlock
+  ) -> Void {
+    Task { @MainActor in
+      guard let apphudProduct = await self.findProduct(from: args) else {
+        if (args["productId"] as? String)?.isEmpty != false {
+          reject("Error", "ProductId not set", nil)
+        } else {
+          reject("Error", "Product not found", nil)
         }
+        return
+      }
+
+      guard let skProduct = apphudProduct.skProduct else {
+        reject("Error", "SKProduct not available", nil)
+        return
+      }
+
+      Apphud.checkEligibilityForPromotionalOffer(product: skProduct) { eligible in
+        DispatchQueue.main.async {
+          resolve(eligible)
+        }
+      }
+    }
+  }
+
+  @objc(purchasePromo:withResolver:withRejecter:)
+  func purchasePromo(args: NSDictionary, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+    guard let discountID = args["discountID"] as? String, !discountID.isEmpty else {
+      reject("Error", "discountID not set", nil)
+      return
+    }
+
+    Task { @MainActor in
+      guard let apphudProduct = await self.findProduct(from: args) else {
+        if (args["productId"] as? String)?.isEmpty != false {
+          reject("Error", "ProductId not set", nil)
+        } else {
+          reject("Error", "Product not found", nil)
+        }
+        return
+      }
+
+      Apphud.purchasePromo(apphudProduct: apphudProduct, discountID: discountID) { result in
+        Self.resolvePurchase(result, resolve: resolve)
       }
     }
   }
@@ -546,6 +552,67 @@ class ApphudSdk: NSObject {
       Task { @MainActor in
         resolve(user?.toMap())
       }
+    }
+  }
+}
+
+private extension ApphudSdk {
+  @MainActor
+  func findProduct(from args: NSDictionary) async -> ApphudProduct? {
+    guard let productId = args["productId"] as? String, !productId.isEmpty else {
+      return nil
+    }
+
+    let paywallId = args["paywallIdentifier"] as? String
+    let placementId = args["placementIdentifier"] as? String
+    let maxAttempts = args["maxAttempts"] as? Int ?? APPHUD_DEFAULT_RETRIES
+    let forceRefresh = args["forceRefresh"] as? Bool ?? false
+
+    return await ApphudPaywallsHelper.findProduct(
+      productId: productId,
+      placementIdentifier: placementId,
+      paywallIdentifier: paywallId,
+      maxAttempts: maxAttempts,
+      forceRefresh: forceRefresh
+    )
+  }
+
+  static func resolvePurchase(
+    _ result: ApphudPurchaseResult,
+    resolve: @escaping RCTPromiseResolveBlock
+  ) {
+    DispatchQueue.main.async {
+      var response = [String: Any]()
+      response["success"] = result.error == nil
+
+      if let sub = result.subscription?.toMap() {
+        response["subscription"] = sub
+      }
+      if let non = result.nonRenewingPurchase?.toMap() {
+        response["nonRenewingPurchase"] = non
+      }
+
+      if let skError = result.error as? SKError, skError.code == .paymentCancelled {
+        response["userCanceled"] = NSNumber(booleanLiteral: true)
+      }
+
+      if let err = result.error as? NSError {
+        response["error"] = [
+          "code": err.code,
+          "message": err.localizedDescription,
+        ]
+      }
+
+      if let transaction = result.transaction {
+        response["transaction"] = [
+          "state": transaction.transactionState.rawValue,
+          "id": transaction.transactionIdentifier as Any,
+          "date": transaction.transactionDate?.timeIntervalSince1970 as Any,
+          "productId": transaction.payment.productIdentifier,
+        ]
+      }
+
+      resolve(response)
     }
   }
 }

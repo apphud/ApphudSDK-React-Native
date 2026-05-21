@@ -1,4 +1,4 @@
-import { NativeModules } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 import {
   PaywallScreenPresenter,
   type Options as PaywallScreenPresenterOptions,
@@ -9,6 +9,7 @@ import type {
   ApphudPurchaseResult,
   RestorePurchase,
   ApphudPurchaseProps,
+  ApphudPurchasePromoProps,
   ApphudSubscription,
   ApphudNonRenewingPurchase,
   AttributionProperties,
@@ -159,6 +160,26 @@ interface IApphudSdk {
    */
   purchase(
     props: ApphudPurchaseProps & Partial<PlacementsOptions>
+  ): Promise<ApphudPurchaseResult>;
+
+  /**
+   * Available on iOS only.
+   *
+   * Checks whether the user is eligible to purchase promotional subscription offers
+   * for the given product.
+   */
+  checkEligibilityForPromotionalOffer(
+    props: ApphudPurchaseProps & Partial<PlacementsOptions>
+  ): Promise<boolean>;
+
+  /**
+   * Available on iOS only.
+   *
+   * Purchases a promotional subscription offer. `discountID` must match
+   * `SKProductDiscount.identifier` from App Store Connect.
+   */
+  purchasePromo(
+    props: ApphudPurchasePromoProps & Partial<PlacementsOptions>
   ): Promise<ApphudPurchaseResult>;
 
   /**
@@ -406,6 +427,20 @@ export const ApphudSdk: IApphudSdk & ApphudSdkPresenterProvider = {
   hasActiveSubscription: () => ApphudSdkBase.hasActiveSubscription(),
   purchase: (props: ApphudPurchaseProps & Partial<PlacementsOptions>) =>
     ApphudSdkBase.purchase(props),
+  checkEligibilityForPromotionalOffer: (
+    props: ApphudPurchaseProps & Partial<PlacementsOptions>
+  ) =>
+    Platform.OS === 'ios'
+      ? ApphudSdkBase.checkEligibilityForPromotionalOffer(props)
+      : Promise.resolve(false),
+  purchasePromo: (props: ApphudPurchasePromoProps & Partial<PlacementsOptions>) => {
+    if (Platform.OS !== 'ios') {
+      return Promise.reject(
+        new Error('purchasePromo is only available on iOS')
+      );
+    }
+    return ApphudSdkBase.purchasePromo(props);
+  },
   restorePurchases: () => ApphudSdkBase.restorePurchases(),
   syncPurchasesInObserverMode: () =>
     ApphudSdkBase.syncPurchasesInObserverMode(),

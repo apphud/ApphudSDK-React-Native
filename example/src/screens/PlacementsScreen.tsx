@@ -58,6 +58,7 @@ export default function PlacementsScreen() {
                   onPress={() => {
                     navigation.navigate('Paywall', {
                       paywallId: placement.paywall?.identifier,
+                      placementId: placement.identifier,
                     });
                   }}
                 >

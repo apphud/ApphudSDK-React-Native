@@ -89,6 +89,18 @@ export interface ApphudPurchaseProps {
 }
 
 /**
+ * Props for purchasing an iOS promotional subscription offer.
+ */
+export interface ApphudPurchasePromoProps extends ApphudPurchaseProps {
+  /**
+   * Promotional Offer Product Code from App Store Connect (`SKProductDiscount.identifier`).
+   *
+   * Available on iOS only.
+   */
+  discountID: string;
+}
+
+/**
  * Status of the subscription. It can only be in one state at any moment.
  */
 export enum ApphudSubscriptionStatus {
@@ -420,6 +432,27 @@ export interface SKProduct {
     };
     paymentMode: number;
   };
+
+  /**
+   * Promotional subscription offers configured in App Store Connect.
+   * Available on iOS 12.2+.
+   */
+  discounts?: SKProductDiscount[];
+}
+
+/**
+ * Promotional subscription offer from App Store Connect.
+ * Available on iOS 12.2+.
+ */
+export interface SKProductDiscount {
+  identifier: string;
+  price: number;
+  numberOfPeriods: number;
+  subscriptionPeriod: {
+    numberOfUnits: number;
+    unit: number;
+  };
+  paymentMode: number;
 }
 
 /**

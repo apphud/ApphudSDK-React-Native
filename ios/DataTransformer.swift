@@ -24,6 +24,11 @@ extension SKProduct : RNAdapter {
 
     map["subscriptionPeriod"] = subscriptionPeriod?.toMap()
     map["introductoryPrice"] = introductoryPrice?.toMap()
+    if #available(iOS 12.2, *) {
+      if !discounts.isEmpty {
+        map["discounts"] = discounts.map { ($0 as SKProductDiscount).toMap() }
+      }
+    }
     map["id"] = productIdentifier
     map["store"] = "app_store"
     return map as NSDictionary
@@ -102,6 +107,7 @@ extension SKProductSubscriptionPeriod : RNAdapter {
 extension SKProductDiscount : RNAdapter {
   func toMap() -> NSDictionary {
     return [
+      "identifier": identifier,
       "price": price.floatValue,
       "numberOfPeriods": numberOfPeriods,
       "subscriptionPeriod": subscriptionPeriod.toMap(),
