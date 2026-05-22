@@ -1,0 +1,12 @@
+---
+description: Format release notes and what's new in Apphud Flutter-style markdown code blocks
+alwaysApply: true
+---
+
+# Release Notes
+
+When writing release notes, what's new, or changelog copy for this SDK:
+
+- Put the **entire** output in a ` ```markdown ` fenced code block (never as unwrapped chat markdown).
+- Use **bold section titles** and em dashes (—), one paragraph per section, matching Flutter Apphud SDK style.
+- See `.cursor/skills/release-notes/SKILL.md` for the full template and example.
