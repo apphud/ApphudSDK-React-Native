@@ -1,6 +1,6 @@
 # Third-Party Software and License Agreements (React Native SDK)
 
-Generated at: 2026-05-13T11:58:01Z (UTC)
+Generated at: 2026-05-26T11:14:35Z (UTC)
 Source of truth: root `package.json` + root `yarn.lock` + root `package-lock.json` (drift check) + `example/package.json` + `example/yarn.lock`
 
 ## Scope
@@ -17,12 +17,12 @@ Source of truth: root `package.json` + root `yarn.lock` + root `package-lock.jso
 - SDK dev dependencies in root package: `19`
 - SDK peer dependencies (consumer-provided): `2`
 - Example app runtime dependencies: `11`
-- Example app dev dependencies: `18`
+- Example app dev dependencies: `19`
 
 ## Lockfile Notes
 
 - Root package management is Yarn-based (`packageManager: yarn@4.6.0...`), so SDK resolved versions below follow root `yarn.lock`.
-- Root `package-lock.json` is not synchronized with the current root `package.json` (`package-lock.json` root version `2.0.0` vs `package.json` version `4.1.0`).
+- Root `package-lock.json` is partially synchronized with the current root `package.json` (root version `4.2.2` matches), but still contains stale entries.
 - Root `package-lock.json` still declares legacy root runtime deps: `@apphud/react-native-apphud-sdk, @react-native/metro-config, react-native-reanimated, react-native-vector-icons`.
 - Current root `package.json` runtime deps: `(none)`.
 - Root `package-lock.json` also still carries an older root constraint for `react-native-builder-bob` (`^0.23.1`) while current root `package.json` declares `^0.37.0`.
@@ -101,5 +101,6 @@ Source of truth: root `package.json` + root `yarn.lock` + root `package-lock.jso
 | `eslint` | `^8.19.0` | `8.57.1` | `MIT` | `Permissive` | [link](https://github.com/eslint/eslint) | example app tooling only; not bundled in SDK |
 | `jest` | `^29.6.3` | `29.7.0` | `MIT` | `Permissive` | [link](https://github.com/jestjs/jest.git) | example app tooling only; not bundled in SDK |
 | `prettier` | `2.8.8` | `2.8.8` | `MIT` | `Permissive` | [link](https://github.com/prettier/prettier) | example app tooling only; not bundled in SDK |
+| `react-native-dotenv` | `^3.4.11` | `3.4.11` | `MIT` | `Permissive` | [link](https://github.com/goatandsheep/react-native-dotenv.git) | example app tooling only; not bundled in SDK |
 | `react-test-renderer` | `18.3.1` | `18.3.1` | `MIT` | `Permissive` | [link](https://github.com/facebook/react.git) | example app tooling only; not bundled in SDK |
 | `typescript` | `5.0.4` | `5.0.4` | `Apache-2.0` | `Permissive` | [link](https://github.com/Microsoft/TypeScript.git) | example app tooling only; not bundled in SDK |

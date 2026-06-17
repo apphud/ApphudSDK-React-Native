@@ -1211,7 +1211,7 @@ PODS:
     - React-jsiexecutor
     - React-RCTFBReactNativeSpec
     - ReactCommon/turbomodule/core
-  - react-native-apphud-sdk (4.2.2):
+  - react-native-apphud-sdk (4.2.3):
     - ApphudSDK (= 4.2.3)
     - React-Core
   - react-native-safe-area-context (5.6.2):

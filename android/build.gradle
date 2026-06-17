@@ -145,7 +145,7 @@ dependencies {
   // noinspection GradleDynamicVersion
   api 'com.facebook.react:react-native:+'
 
-   implementation 'com.apphud:ApphudSDK-Android:3.2.5'
+   implementation 'com.apphud:ApphudSDK-Android:3.2.6'
 
 //  implementation 'com.github.apphud:ApphudSDK-Android:master-SNAPSHOT'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
