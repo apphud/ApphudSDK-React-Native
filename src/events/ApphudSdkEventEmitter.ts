@@ -11,6 +11,7 @@ import type {
   ApphudDidFailPurchaseEventResult,
   ApphudScreenDidAppearResult,
   ApphudDidSelectSurveyAnswerResult,
+  ApphudDeeplinkAttribution,
 } from './types';
 
 const { ApphudSdkEvents } = NativeModules;
@@ -32,7 +33,8 @@ type ApphudSdkListenerEvent =
   | 'apphudDidPurchase'
   | 'apphudWillPurchase'
   | 'apphudDidFailPurchase'
-  | 'apphudDidSelectSurveyAnswer';
+  | 'apphudDidSelectSurveyAnswer'
+  | 'apphudDeeplinkAttribution';
 
 const emitter = new NativeEventEmitter(ApphudSdkEvents);
 
@@ -134,6 +136,21 @@ interface IApphudSdkEventEmitter {
   ): Callback;
 
   /**
+   * Called when deep link attribution is resolved, for both direct (link open) and
+   * deferred (install) flows. May be called multiple times during the app lifecycle.
+   * When no attribution match is found, `attribution` is an empty object.
+   *
+   * To receive `direct` attribution, forward incoming links to
+   * `ApphudSdk.handleDeeplinkUrl(url)`. To request `deferred` attribution, call
+   * `ApphudSdk.requestDeferredDeeplinkAttribution()`.
+   *
+   * Available on iOS and Android.
+   */
+  onApphudDeeplinkAttribution(
+    cb: Callback<ApphudDeeplinkAttribution>
+  ): Callback;
+
+  /**
    * Specify a list of product identifiers to fetch from the App Store.
    *
    * Available on iOS only.
@@ -170,6 +187,10 @@ export const ApphudSdkEventEmitter: IApphudSdkEventEmitter = {
 
   onApphudDidSelectSurveyAnswer: makeSubscriberMethod(
     'apphudDidSelectSurveyAnswer'
+  ),
+
+  onApphudDeeplinkAttribution: makeSubscriberMethod(
+    'apphudDeeplinkAttribution'
   ),
 
   setApphudProductIdentifiers: Platform.select({

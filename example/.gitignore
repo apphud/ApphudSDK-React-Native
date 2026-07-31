@@ -54,6 +54,10 @@ buck-out/
 android/app/libs
 android/keystores/debug.keystore
 
+# Signing. Remember to never publicly share your keystore.
+android/keystore.properties
+**/keys/
+
 # Expo
 .expo/*
 

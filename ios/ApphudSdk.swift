@@ -49,6 +49,9 @@ class ApphudSdk: NSObject {
             resolve(user.toMap())
           }
         }
+
+      // `start` resets the deep link handler when it's not passed as an argument.
+      ApphudSdkEvents.reapplyDeeplinkHandlerIfNeeded()
     }
   }
     
@@ -85,6 +88,9 @@ class ApphudSdk: NSObject {
             resolve(user.toMap())
           }
         }
+
+      // `startManually` resets the deep link handler when it's not passed as an argument.
+      ApphudSdkEvents.reapplyDeeplinkHandlerIfNeeded()
     }
   }
 
@@ -93,14 +99,23 @@ class ApphudSdk: NSObject {
     ApphudHttpClient.shared.domainUrlString = url
   }
 
-  @MainActor
-  @objc(attributeFromDeeplink:withRejecter:)
-  func attributeFromDeeplink(
+  @objc(handleDeeplinkUrl:)
+  func handleDeeplinkUrl(url: String) {
+    guard let deeplinkUrl = URL(string: url) else { return }
+
+    Task { @MainActor in
+      Apphud.handleOpen(url: deeplinkUrl)
+    }
+  }
+
+  @objc(requestDeferredDeeplinkAttribution:withRejecter:)
+  func requestDeferredDeeplinkAttribution(
     resolve: @escaping RCTPromiseResolveBlock,
     reject: RCTPromiseRejectBlock
   ) {
-    Apphud.attributeFromDeeplink { data in
-      resolve(data as Any?)
+    Task { @MainActor in
+      Apphud.requestDeferredDeeplinkAttribution()
+      resolve(nil)
     }
   }
 

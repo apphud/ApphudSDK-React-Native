@@ -272,6 +272,15 @@ export default function ActionsScreen({ navigation }: Props) {
     }, [navigation])
   );
 
+  const requestDeferredDeeplinkAttribution = async () => {
+    try {
+      await ApphudSdk.requestDeferredDeeplinkAttribution();
+      console.log('Requested deferred deeplink attribution');
+    } catch (error) {
+      console.log('Failed to request deferred deeplink attribution:', error);
+    }
+  };
+
   const callAll = () => {
     ApphudSdk.enableDebugLogs();
 
@@ -512,6 +521,20 @@ export default function ActionsScreen({ navigation }: Props) {
               </ListItem.Subtitle>
             </ListItem.Content>
             <ListItem.Chevron />
+          </ListItem>
+          <View style={styles.separator} />
+          <ListItem
+            containerStyle={styles.listItem}
+            onPress={requestDeferredDeeplinkAttribution}
+          >
+            <ListItem.Content>
+              <ListItem.Title style={styles.actionTitle}>
+                Request Deferred Deeplink Attribution
+              </ListItem.Title>
+              <ListItem.Subtitle style={styles.actionSubtitle}>
+                Result arrives in the ApphudDeeplinkAttribution event.
+              </ListItem.Subtitle>
+            </ListItem.Content>
           </ListItem>
           <View style={styles.separator} />
           <ListItem

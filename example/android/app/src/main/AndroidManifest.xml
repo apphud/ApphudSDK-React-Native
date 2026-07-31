@@ -21,6 +21,20 @@
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
+        <!-- Deep link test scheme: apphudexample://... -->
+        <intent-filter>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="apphudexample" />
+        </intent-filter>
+        <!-- App Links: https://ddd.aphd.cc/... (verified) -->
+        <intent-filter android:autoVerify="true">
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:host="ddd.aphd.cc" android:scheme="https" />
+        </intent-filter>
       </activity>
     </application>
 </manifest>

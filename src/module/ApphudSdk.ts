@@ -82,9 +82,32 @@ interface IApphudSdk {
   /**
    * Available on iOS and Android.
    *
-   * Attempts to attribute the user using a recently opened deep link.
+   * Forwards a deep link opened by the user (Universal Link / App Link or custom scheme URL)
+   * to Apphud and triggers direct deep link attribution. May be called multiple times
+   * during the app lifecycle.
+   *
+   * Wire it to React Native `Linking`:
+   * ```ts
+   * Linking.getInitialURL().then((url) => url && ApphudSdk.handleDeeplinkUrl(url));
+   * Linking.addEventListener('url', ({ url }) => ApphudSdk.handleDeeplinkUrl(url));
+   * ```
+   *
+   * The attribution result is delivered via `ApphudSdkEventEmitter.onApphudDeeplinkAttribution`
+   * with kind `direct`.
    */
-  attributeFromDeeplink(): Promise<Record<string, unknown> | null>;
+  handleDeeplinkUrl(url: string): void;
+
+  /**
+   * Available on iOS and Android.
+   *
+   * Requests deferred deep link attribution for the current app installation.
+   * Call it after SDK initialization, typically once on first launch, while the app
+   * is in the foreground.
+   *
+   * The result is delivered via `ApphudSdkEventEmitter.onApphudDeeplinkAttribution`
+   * with kind `deferred`. When no match is found, `attribution` is an empty object.
+   */
+  requestDeferredDeeplinkAttribution(): Promise<void>;
 
   /**
    * Available on iOS (Android returns false).
@@ -413,7 +436,9 @@ export const ApphudSdk: IApphudSdk & ApphudSdkPresenterProvider = {
     ApphudSdkBase.placement(identifier, options ?? {}),
   rawPlacements: () => ApphudSdkBase.rawPlacements(),
   setHost: (url: string) => ApphudSdkBase.setHost(url),
-  attributeFromDeeplink: () => ApphudSdkBase.attributeFromDeeplink(),
+  handleDeeplinkUrl: (url: string) => ApphudSdkBase.handleDeeplinkUrl(url),
+  requestDeferredDeeplinkAttribution: () =>
+    ApphudSdkBase.requestDeferredDeeplinkAttribution(),
   isCommitmentPlanPreferred: (options: CommitmentPlanProductOptions) =>
     ApphudSdkBase.isCommitmentPlanPreferred(options),
   isCommitmentPlanSupported: (options: CommitmentPlanProductOptions) =>

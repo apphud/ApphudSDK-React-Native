@@ -90,7 +90,9 @@ RCT_EXTERN_METHOD(updateUserID:(NSString*)args
 
 RCT_EXTERN_METHOD(setHost:(NSString*)url)
 
-RCT_EXTERN_METHOD(attributeFromDeeplink:(RCTPromiseResolveBlock)resolve
+RCT_EXTERN_METHOD(handleDeeplinkUrl:(NSString*)url)
+
+RCT_EXTERN_METHOD(requestDeferredDeeplinkAttribution:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(rawPlacements:(RCTPromiseResolveBlock)resolve

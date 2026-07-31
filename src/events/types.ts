@@ -29,6 +29,30 @@ export type ApphudScreenDidAppearResult = {
   screenName: string;
 };
 
+/**
+ * Indicates how a deep link attribution result was obtained.
+ *
+ * - `direct`: the user opened an actual deep link (App Link / Universal Link or custom scheme URL).
+ * - `deferred`: attribution was resolved for the current installation without an explicit link,
+ *   typically right after install.
+ */
+export type ApphudDeeplinkAttributionKind = 'direct' | 'deferred';
+
+export type ApphudDeeplinkAttribution = {
+  /**
+   * The attribution data returned by Apphud. Empty when no match is found.
+   */
+  attribution: Record<string, unknown>;
+  /**
+   * Whether the attribution came from a direct link open or a deferred lookup.
+   */
+  kind: ApphudDeeplinkAttributionKind;
+  /**
+   * The original deep link URL for direct opens, or null for deferred attribution.
+   */
+  url?: string | null;
+};
+
 export type ApphudDidSelectSurveyAnswerResult = {
   /**
    * Question of the survey

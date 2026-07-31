@@ -1,5 +1,6 @@
 package com.reactnativeapphudsdk
 
+import android.net.Uri
 import android.telecom.Call
 import android.util.Log
 import com.apphud.sdk.APPHUD_DEFAULT_MAX_TIMEOUT
@@ -267,13 +268,28 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun attributeFromDeeplink(promise: Promise) {
-    Apphud.attributeFromDeeplink { data ->
-      if (data == null) {
-        promise.resolve(null)
-      } else {
-        promise.resolve(data.toWritableNativeMap())
-      }
+  fun handleDeeplinkUrl(url: String) {
+    if (url.isEmpty()) {
+      return
+    }
+
+    Apphud.handleUri(Uri.parse(url))
+  }
+
+  @ReactMethod
+  fun requestDeferredDeeplinkAttribution(promise: Promise) {
+    val activity = reactApplicationContext.currentActivity ?: run {
+      promise.reject(
+        "no_activity",
+        "Deferred deep link attribution requires an attached Activity. " +
+          "Call requestDeferredDeeplinkAttribution() while the app is in the foreground."
+      )
+      return
+    }
+
+    runOnUiThread {
+      Apphud.requestDeferredDeeplinkAttribution(activity)
+      promise.resolve(null)
     }
   }
 

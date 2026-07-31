@@ -145,10 +145,12 @@ dependencies {
   // noinspection GradleDynamicVersion
   api 'com.facebook.react:react-native:+'
 
-   implementation 'com.apphud:ApphudSDK-Android:3.2.6'
+  // Exposed as `api` so host apps can call Apphud.handleIntent / handleUri
+  // directly from their Activity when they prefer native deep link forwarding.
+   api 'com.apphud:ApphudSDK-Android:3.4.2'
 
 //  implementation 'com.github.apphud:ApphudSDK-Android:master-SNAPSHOT'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3"
-  implementation 'com.android.billingclient:billing:7.1.1'
+  implementation 'com.android.billingclient:billing:8.3.0'
 }

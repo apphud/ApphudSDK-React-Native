@@ -78,7 +78,7 @@ Create your account at [Apphud for free](https://app.apphud.com/sign_up?utm_sour
 
 ### iOS (CocoaPods)
 
-This package depends on native `ApphudSDK` **4.2.3**. If `pod install` fails with “could not find compatible versions”, refresh your spec repo:
+This package depends on native `ApphudSDK` **4.4.8**. If `pod install` fails with “could not find compatible versions”, refresh your spec repo:
 
 ```sh
 cd ios && pod install --repo-update
@@ -86,6 +86,56 @@ cd ios && pod install --repo-update
 
 If the build fails on the `fmt` pod with a `consteval` error (common on Xcode 26+), ensure your `Podfile` `post_install` sets the `fmt` target to C++17 — see [example/ios/Podfile](example/ios/Podfile).
 ```
+
+## Deep Link Attribution
+
+Apphud resolves attribution both for **direct** deep link opens (Universal Links / App Links or custom scheme URLs) and for **deferred** attribution right after install. Both results are delivered to a single listener:
+
+```ts
+import { ApphudSdk, ApphudSdkEventEmitter } from '@apphud/react-native-apphud-sdk';
+
+const unsubscribe = ApphudSdkEventEmitter.onApphudDeeplinkAttribution(
+  ({ attribution, kind, url }) => {
+    // kind is 'direct' or 'deferred'. `attribution` is empty when there is no match.
+    console.log(kind, url, attribution);
+  }
+);
+```
+
+### Direct deep links
+
+Forward incoming links to the SDK using React Native `Linking`. `getInitialURL` covers a cold start from a link, and the `url` event covers links opened while the app is running:
+
+```ts
+import { Linking } from 'react-native';
+
+void Linking.getInitialURL().then((url) => {
+  if (url) ApphudSdk.handleDeeplinkUrl(url);
+});
+
+const subscription = Linking.addEventListener('url', ({ url }) =>
+  ApphudSdk.handleDeeplinkUrl(url)
+);
+```
+
+Platform setup required for `Linking` to receive links:
+
+- **iOS**: forward the app delegate callbacks to `RCTLinkingManager` — see [example/ios/ExampleApp/AppDelegate.swift](example/ios/ExampleApp/AppDelegate.swift). Register your custom scheme under `CFBundleURLTypes` in `Info.plist`, and add your Apphud tracking domain to the `com.apple.developer.associated-domains` entitlement (for example `applinks:ddd.aphd.cc`) for Universal Links.
+- **Android**: add `ACTION_VIEW` intent filters for your scheme and (for App Links) your Apphud domain to the launcher activity — see [example/android/app/src/main/AndroidManifest.xml](example/android/app/src/main/AndroidManifest.xml). Since the activity uses `singleTask`, React Native forwards `onNewIntent` links to the `url` event automatically.
+
+Alternatively, if you prefer to forward links from native code, call `Apphud.handleOpen(url:)` / `Apphud.continueUserActivity(_:)` in your iOS `AppDelegate`, or `Apphud.handleIntent(intent)` in your Android `MainActivity`'s `onCreate` / `onNewIntent`. The native Android SDK is exposed transitively, so no extra dependency is needed.
+
+### Deferred attribution
+
+Call this after SDK initialization, typically once on first launch, while the app is in the foreground. On Android it requires an attached Activity and rejects otherwise:
+
+```ts
+await ApphudSdk.requestDeferredDeeplinkAttribution();
+```
+
+The result arrives in `onApphudDeeplinkAttribution` with `kind: 'deferred'`.
+
+> **Breaking change in 4.3.0**: `attributeFromDeeplink()` has been removed. Use `handleDeeplinkUrl(url)` together with `onApphudDeeplinkAttribution`, and `requestDeferredDeeplinkAttribution()` for deferred attribution.
 
 ## Having a question?
 

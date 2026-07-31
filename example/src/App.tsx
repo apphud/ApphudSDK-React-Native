@@ -1,6 +1,10 @@
 import * as React from 'react';
+import { Alert, Linking } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { ApphudSdkEventEmitter } from '@apphud/react-native-apphud-sdk';
+import {
+  ApphudSdk,
+  ApphudSdkEventEmitter,
+} from '@apphud/react-native-apphud-sdk';
 import { createStackNavigator } from '@react-navigation/stack';
 import LoginScreen from './screens/LoginScreen';
 import ActionsScreen from './screens/ActionsScreen';
@@ -68,7 +72,72 @@ ApphudSdkEventEmitter.onUserDidLoad((arg) => {
   console.log('Received event UserDidLoad:', arg);
 });
 
+const asRecord = (value: unknown): Record<string, unknown> | null =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+
+/**
+ * Digs the `raw` match object out of the attribution payload. The platforms hand
+ * over different slices of the API envelope: Android unwraps to `data.results`,
+ * while iOS forwards the whole response body.
+ */
+function resolveRawMatch(
+  attribution: Record<string, unknown>
+): Record<string, unknown> | null {
+  const data = asRecord(attribution.data);
+  const results = asRecord(data?.results ?? attribution.results);
+  const raw = asRecord(results?.raw ?? attribution.raw);
+
+  return raw ?? ('match_score' in attribution ? attribution : null);
+}
+
+const matchScoreOf = (raw: Record<string, unknown> | null): number | null => {
+  const score = raw?.match_score;
+  if (typeof score === 'number') {
+    return score;
+  }
+  if (typeof score === 'string' && score.trim() !== '') {
+    const parsed = Number(score);
+    return Number.isNaN(parsed) ? null : parsed;
+  }
+  return null;
+};
+
+ApphudSdkEventEmitter.onApphudDeeplinkAttribution((arg) => {
+  console.log(
+    `Received event ApphudDeeplinkAttribution: kind=${arg.kind}, url=${
+      arg.url ?? 'null'
+    },`,
+    `attribution=${JSON.stringify(arg.attribution)}`
+  );
+
+  const raw = resolveRawMatch(arg.attribution);
+  const matchScore = matchScoreOf(raw);
+
+  // Only surface an actual match; organic opens come back with a null or zero score.
+  if (matchScore !== null && matchScore > 0) {
+    Alert.alert('Deeplink Match found', JSON.stringify(raw, null, 2));
+  }
+});
+
 function App() {
+  // Forward deep links to Apphud for direct attribution. `getInitialURL` covers a
+  // cold start from a link, the `url` event covers links opened while running.
+  React.useEffect(() => {
+    void Linking.getInitialURL().then((url) => {
+      if (url) {
+        ApphudSdk.handleDeeplinkUrl(url);
+      }
+    });
+
+    const subscription = Linking.addEventListener('url', ({ url }) => {
+      ApphudSdk.handleDeeplinkUrl(url);
+    });
+
+    return () => subscription.remove();
+  }, []);
+
   return (
     <NavigationContainer>
       <Stack.Navigator>

@@ -16,17 +16,65 @@ enum ApphudSdkDelegateEvents: String, CaseIterable {
   case apphudWillPurchase
   case apphudDidFailPurchase
   case apphudDidSelectSurveyAnswer
+  case apphudDeeplinkAttribution
 }
 
 @objc(ApphudSdkEvents)
 class ApphudSdkEvents: RCTEventEmitter {
     
   var productIdentifiers:[String] = [];
-    
+
+  /// Keeps the events module that installed the deep link handler, so it can be
+  /// re-applied after `Apphud.start` / `startManually`, which reset the native
+  /// handler to `nil` when no `deeplinkHandler` argument is passed.
+  private static weak var shared: ApphudSdkEvents?
+
   override init() {
     super.init();
     Apphud.setDelegate(self);
     Apphud.setUIDelegate(self);
+    Self.shared = self
+    Task { @MainActor in
+      self.installDeeplinkHandler()
+    }
+  }
+
+  /// Re-installs the deep link handler. Call after `Apphud.start` /
+  /// `startManually`, since those APIs clear the handler.
+  static func reapplyDeeplinkHandlerIfNeeded() {
+    guard let events = Self.shared else { return }
+
+    Task { @MainActor in
+      events.installDeeplinkHandler()
+    }
+  }
+
+  @MainActor
+  private func installDeeplinkHandler() {
+    Apphud.setDeeplinkHandler { [weak self] attribution, kind, url in
+      self?.notifyDeeplinkAttribution(attribution: attribution, kind: kind, url: url)
+    }
+  }
+
+  private func notifyDeeplinkAttribution(
+    attribution: [String: Any],
+    kind: ApphudDeeplinkAttributionKind,
+    url: URL?
+  ) {
+    let body: [String: Any] = [
+      "attribution": attribution,
+      "kind": kind == .deferred ? "deferred" : "direct",
+      "url": url?.absoluteString as Any,
+    ]
+
+    // Deferred attribution may be delivered from a background thread.
+    if Thread.isMainThread {
+      self.sendEvent(.apphudDeeplinkAttribution, body: body)
+    } else {
+      DispatchQueue.main.async {
+        self.sendEvent(.apphudDeeplinkAttribution, body: body)
+      }
+    }
   }
     
   @objc(setApphudProductIdentifiers:withResolve:withReject:)
