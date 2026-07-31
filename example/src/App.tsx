@@ -1,5 +1,11 @@
 import * as React from 'react';
-import { Alert, Linking } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Linking,
+  Platform,
+  View,
+} from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import {
   ApphudSdk,
@@ -14,6 +20,7 @@ import PlacementsScreen from './screens/PlacementsScreen';
 import SetAttributionScreen from './screens/SetAttributionScreen';
 import PaywallNativeScreen from './screens/PaywallNativeScreen';
 import UpdateUserIDScreen from './screens/UpdateUserIDScreen';
+import { getStoredApiKey, startApphudSession } from './session';
 
 type RootStackParamList = {
   Login: undefined;
@@ -62,6 +69,34 @@ ApphudSdkEventEmitter.onApphudSubscriptionsUpdated((arg) => {
 
 ApphudSdkEventEmitter.onApphudWillPurchase((arg) => {
   console.log('Received event ApphudWillPurchase:', arg);
+});
+
+ApphudSdkEventEmitter.onApphudRuleScreenDidAppear((arg) => {
+  console.log('Received event ApphudRuleScreenDidAppear:', arg);
+});
+
+ApphudSdkEventEmitter.onApphudRuleWillPurchase((arg) => {
+  console.log('Received event ApphudRuleWillPurchase:', arg);
+});
+
+ApphudSdkEventEmitter.onApphudRulePurchaseCompleted((arg) => {
+  console.log('Received event ApphudRulePurchaseCompleted:', arg);
+});
+
+ApphudSdkEventEmitter.onApphudRuleScreenWillDismiss((arg) => {
+  console.log('Received event ApphudRuleScreenWillDismiss:', arg);
+});
+
+ApphudSdkEventEmitter.onApphudRuleScreenDidDismiss((arg) => {
+  console.log('Received event ApphudRuleScreenDidDismiss:', arg);
+});
+
+ApphudSdkEventEmitter.onApphudRuleDidSelectSurveyAnswer((arg) => {
+  console.log('Received event ApphudRuleDidSelectSurveyAnswer:', arg);
+});
+
+ApphudSdkEventEmitter.onApphudRulePaywallWithoutScreen((arg) => {
+  console.log('Received event ApphudRulePaywallWithoutScreen:', arg);
 });
 
 ApphudSdkEventEmitter.onPlacementsDidFullyLoad((arg) => {
@@ -122,9 +157,44 @@ ApphudSdkEventEmitter.onApphudDeeplinkAttribution((arg) => {
 });
 
 function App() {
-  // Forward deep links to Apphud for direct attribution. `getInitialURL` covers a
-  // cold start from a link, the `url` event covers links opened while running.
+  const [isBootstrapping, setIsBootstrapping] = React.useState(true);
+  const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+
+  // Restore a previous demo session: if an api key is stored, start Apphud and
+  // skip the Login screen on the next launch.
   React.useEffect(() => {
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const storedApiKey = await getStoredApiKey();
+        if (storedApiKey) {
+          await startApphudSession({ apiKey: storedApiKey, persist: false });
+          if (!cancelled) {
+            setIsLoggedIn(true);
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to restore Apphud session', error);
+      } finally {
+        if (!cancelled) {
+          setIsBootstrapping(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Android forwards links natively in MainActivity via Apphud.handleIntent.
+  // iOS forwards React Native Linking URLs to Apphud here.
+  React.useEffect(() => {
+    if (Platform.OS === 'android') {
+      return;
+    }
+
     void Linking.getInitialURL().then((url) => {
       if (url) {
         ApphudSdk.handleDeeplinkUrl(url);
@@ -138,9 +208,17 @@ function App() {
     return () => subscription.remove();
   }, []);
 
+  if (isBootstrapping) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator />
+      </View>
+    );
+  }
+
   return (
     <NavigationContainer>
-      <Stack.Navigator>
+      <Stack.Navigator initialRouteName={isLoggedIn ? 'Actions' : 'Login'}>
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Actions" component={ActionsScreen} />
         <Stack.Screen name="Products" component={ProductsScreen} />

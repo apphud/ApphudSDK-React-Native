@@ -53,12 +53,22 @@ Test different in-app purchases and [paywalls](https://apphud.com/blog/best-perf
 <img src="https://1612099904-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2F-LpcBgCSJyU0DTawIxFp%2Fuploads%2FY9kRJOi4QaGn2Rp0Wksz%2Fweb-to-app.png?alt=media&token=9d851fc0-34a3-4035-8a3d-03b728e313e0"  width="50%" height="50%" />
 </p>
 
-## Rules (iOS)
+## Rules (iOS & Android)
 
-Apphud may win back lapsed subscribers, [reduce churn rate](https://apphud.com/blog/reduce-churn), get cancellation insights, send push notifications and many more using the mechanics below. This mechanics are called Rules. Choose between manual, scheduled and automated rule. Manual rules will be performed manually, scheduled rule will be performed on a certain time, automated rule will be triggered after certain event. Use our visual web editor to create you custom screen or screen sequence for Rule, and analyze user stats from every created screen.
+Apphud may win back lapsed subscribers, [reduce churn rate](https://apphud.com/blog/reduce-churn), get cancellation insights, send push notifications and many more using the mechanics below. This mechanics are called Rules. Choose between manual, scheduled and automated rule. Manual rules will be performed manually, scheduled rule will be performed on a certain time, automated rule will be triggered after certain event. Rules can present Figma paywall screens or legacy HTML screens.
 <p align="center">
 <img src="https://apphud.com/images/rules.webp"  width="35%" height="35%" />
 </p>
+
+### React Native integration
+
+1. Subscribe to rule lifecycle events via `ApphudSdkEventEmitter` (`onApphudRuleScreenDidAppear`, `onApphudRuleWillPurchase`, `onApphudRulePurchaseCompleted`, `onApphudRuleScreenWillDismiss`, `onApphudRuleScreenDidDismiss`, `onApphudRuleDidSelectSurveyAnswer`, `onApphudRulePaywallWithoutScreen`). Screens are shown automatically.
+2. Optionally call `ApphudSdk.checkRules()` to poll for unread rules immediately.
+3. Submit the push token after `ApphudSdk.start()` via `ApphudSdk.submitPushNotificationsToken(...)`, and forward push payloads with `ApphudSdk.handlePushNotification(...)`.
+   - **iOS**: request notification permission, call `registerForRemoteNotifications()`, then submit the APNs token / forward `userInfo` (see the example `AppDelegate` / `ExamplePush`).
+   - **Android**: use FCM — submit the registration token and forward `message.data` (must include `rule_id` for Apphud rules). See the example `ExampleFirebaseMessagingService` and `ExamplePush` module.
+4. Use `ApphudSdk.pendingRule()` / `ApphudSdk.showPendingRuleScreen()` when you need pending-rule metadata or to present a delayed screen.
+5. When a Figma paywall rule has no visual screen payload, handle `onApphudRulePaywallWithoutScreen` and present the paywall yourself (e.g. via `PaywallScreenView` / `createPresenter`).
 
 ## Why Apphud?
 

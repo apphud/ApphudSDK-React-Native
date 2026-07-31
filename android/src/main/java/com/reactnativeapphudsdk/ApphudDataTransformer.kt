@@ -14,6 +14,7 @@ import com.apphud.sdk.domain.ApphudPlacement
 import com.apphud.sdk.domain.ApphudProduct
 import com.apphud.sdk.domain.ApphudSubscription
 import com.apphud.sdk.domain.ApphudUser
+import com.apphud.sdk.domain.Rule
 import com.apphud.sdk.managers.subscriptionPeriod
 import com.facebook.react.bridge.WritableNativeArray
 import com.facebook.react.bridge.WritableNativeMap
@@ -187,6 +188,16 @@ internal fun Purchase.toMap(): WritableNativeMap {
   result.putString("purchaseToken", purchaseToken)
 
   return result
+}
+
+internal fun Rule.toMap(): WritableNativeMap {
+  return WritableNativeMap().apply {
+    putString("ruleName", ruleName ?: "")
+    putString("screenName", screenName ?: "")
+    putString("screenId", screenId)
+    putString("paywallId", paywallId)
+    putString("paywallIdentifier", paywallIdentifier)
+  }
 }
 
 internal fun ApphudPurchaseResult.toMap(): WritableNativeMap {

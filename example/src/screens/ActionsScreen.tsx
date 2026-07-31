@@ -8,6 +8,8 @@ import { ApphudSdkEventEmitter } from '@apphud/react-native-apphud-sdk';
 import type { Props } from './LoginScreen';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useFocusEffect } from '@react-navigation/native';
+import { submitExamplePushToken } from '../push';
+import { clearStoredApiKey } from '../session';
 
 const 
 SDK_VERSION = (require('../../../package.json') as { version?: string })
@@ -281,6 +283,37 @@ export default function ActionsScreen({ navigation }: Props) {
     }
   };
 
+  const checkRules = async () => {
+    try {
+      await ApphudSdk.checkRules();
+      console.log('checkRules completed');
+    } catch (error) {
+      console.log('Failed to checkRules:', error);
+    }
+  };
+
+  const logPendingRule = async () => {
+    try {
+      const rule = await ApphudSdk.pendingRule();
+      console.log('pendingRule:', JSON.stringify(rule));
+    } catch (error) {
+      console.log('Failed to get pendingRule:', error);
+    }
+  };
+
+  const showPendingRuleScreen = async () => {
+    try {
+      const shown = await ApphudSdk.showPendingRuleScreen();
+      console.log('showPendingRuleScreen shown:', shown);
+    } catch (error) {
+      console.log('Failed to showPendingRuleScreen:', error);
+    }
+  };
+
+  const submitPushToken = async () => {
+    await submitExamplePushToken();
+  };
+
   const callAll = () => {
     ApphudSdk.enableDebugLogs();
 
@@ -338,10 +371,7 @@ export default function ActionsScreen({ navigation }: Props) {
     //   console.log(`restore purchases finished ${JSON.stringify(result)}`)
     //  })
 
-    // if (Platform.OS == 'ios') {
-    //   ApphudSdk.submitPushNotificationsToken('cc9b1656924dfdeb2a791da1da1d2afbfde35ddc8229470b73c4cf7a6a478027')
-    //   ApphudSdk.handlePushNotification({userInfo: {}, screen_id: 'd33b28ea-da91-4287-b1e8-2354bcbdc633', rule_id: '1b050976-6d76-489c-9271-af4343f5bda9'})
-    // }
+    void submitExamplePushToken();
   };
 
   return (
@@ -537,6 +567,53 @@ export default function ActionsScreen({ navigation }: Props) {
             </ListItem.Content>
           </ListItem>
           <View style={styles.separator} />
+          <ListItem containerStyle={styles.listItem} onPress={checkRules}>
+            <ListItem.Content>
+              <ListItem.Title style={styles.actionTitle}>
+                Check Rules
+              </ListItem.Title>
+              <ListItem.Subtitle style={styles.actionSubtitle}>
+                Poll for unread rules and present a screen if available.
+              </ListItem.Subtitle>
+            </ListItem.Content>
+          </ListItem>
+          <View style={styles.separator} />
+          <ListItem containerStyle={styles.listItem} onPress={logPendingRule}>
+            <ListItem.Content>
+              <ListItem.Title style={styles.actionTitle}>
+                Log Pending Rule
+              </ListItem.Title>
+              <ListItem.Subtitle style={styles.actionSubtitle}>
+                Print the currently pending or displayed rule to the console.
+              </ListItem.Subtitle>
+            </ListItem.Content>
+          </ListItem>
+          <View style={styles.separator} />
+          <ListItem
+            containerStyle={styles.listItem}
+            onPress={showPendingRuleScreen}
+          >
+            <ListItem.Content>
+              <ListItem.Title style={styles.actionTitle}>
+                Show Pending Rule Screen
+              </ListItem.Title>
+              <ListItem.Subtitle style={styles.actionSubtitle}>
+                Present a previously delayed rule screen, if any.
+              </ListItem.Subtitle>
+            </ListItem.Content>
+          </ListItem>
+          <View style={styles.separator} />
+          <ListItem containerStyle={styles.listItem} onPress={submitPushToken}>
+            <ListItem.Content>
+              <ListItem.Title style={styles.actionTitle}>
+                Submit Push Token
+              </ListItem.Title>
+              <ListItem.Subtitle style={styles.actionSubtitle}>
+                Re-submit APNs / FCM token to Apphud for Rules delivery.
+              </ListItem.Subtitle>
+            </ListItem.Content>
+          </ListItem>
+          <View style={styles.separator} />
           <ListItem
             containerStyle={styles.listItem}
             onPress={() => setIsRemoteConfigVisible(true)}
@@ -558,9 +635,11 @@ export default function ActionsScreen({ navigation }: Props) {
         <ListItem
           containerStyle={styles.listItem}
           onPress={() => {
-            ApphudSdk.logout().then(() => {
+            void (async () => {
+              await ApphudSdk.logout();
+              await clearStoredApiKey();
               navigation.reset({ routes: [{ name: 'Login' }] });
-            });
+            })();
           }}
         >
           <ListItem.Content>

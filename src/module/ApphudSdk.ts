@@ -17,6 +17,7 @@ import type {
   ApphudWebRestoreResult,
   ApphudUser,
   ApphudPlacement,
+  ApphudRule,
   Identifiers,
   PaywallLogsInfo,
   PlacementsOptions,
@@ -357,20 +358,51 @@ interface IApphudSdk {
   enableDebugLogs(): void;
 
   /**
-   * Available on iOS only.
+   * Available on iOS and Android.
+   *
+   * Manually polls the backend for unread Apphud Rules and presents a screen
+   * when one is available. The SDK also checks for rules automatically after
+   * user registration and periodically.
+   */
+  checkRules(): Promise<void>;
+
+  /**
+   * Available on iOS and Android.
+   *
+   * Returns the Apphud rule whose screen is currently pending or displayed, if any.
+   */
+  pendingRule(): Promise<ApphudRule | null>;
+
+  /**
+   * Available on iOS and Android.
+   *
+   * Presents a previously delayed rule screen.
+   * Returns `true` when a pending screen was presented.
+   */
+  showPendingRuleScreen(): Promise<boolean>;
+
+  /**
+   * Available on iOS and Android.
    *
    * Provide your push notifications token to Apphud SDK. Required for Rules & Screens.
    *
-   * **Important**: string must be hexadecimal string representation of NSData / Data.
+   * **Important (iOS)**: string must be hexadecimal string representation of NSData / Data.
+   * **Android**: pass the FCM registration token string.
+   *
+   * @returns `true` when the token was accepted by the SDK.
    */
-  submitPushNotificationsToken(token: string): void;
+  submitPushNotificationsToken(token: string): Promise<boolean>;
 
   /**
-   * Available on iOS only.
+   * Available on iOS and Android.
    *
    * Pass push notification payload to Apphud SDK. Required for Rules & Screens.
+   *
+   * On Android, pass the FCM `message.data` map (must include `rule_id` for rules).
+   *
+   * @returns `true` when Apphud handled the payload as a rule notification.
    */
-  handlePushNotification(payload: any): void;
+  handlePushNotification(payload: Record<string, unknown>): Promise<boolean>;
 
   /**
    * Available on iOS only.
@@ -493,9 +525,12 @@ export const ApphudSdk: IApphudSdk & ApphudSdkPresenterProvider = {
   optOutOfTracking: () => ApphudSdkBase.optOutOfTracking(),
   logout: () => ApphudSdkBase.logout(),
   enableDebugLogs: () => ApphudSdkBase.enableDebugLogs(),
+  checkRules: () => ApphudSdkBase.checkRules(),
+  pendingRule: () => ApphudSdkBase.pendingRule(),
+  showPendingRuleScreen: () => ApphudSdkBase.showPendingRuleScreen(),
   submitPushNotificationsToken: (token: string) =>
     ApphudSdkBase.submitPushNotificationsToken(token),
-  handlePushNotification: (payload: any) =>
+  handlePushNotification: (payload: Record<string, unknown>) =>
     ApphudSdkBase.handlePushNotification(payload),
   idfv: () => ApphudSdkBase.idfv(),
   preloadPaywallScreens:

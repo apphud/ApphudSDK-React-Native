@@ -25,6 +25,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
 
   private val moduleScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
   private val unSupportMethodMsg: String = "Unsupported method"
+  private val ruleCallbackHandler = ApphudRuleCallbackHandler(reactContext)
 
   override fun getName(): String {
     return "ApphudSdk"
@@ -80,11 +81,12 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
 
     runOnUiThread {
       Apphud.start(
-        this.reactApplicationContext,
-        apiKey,
-        userId,
-        deviceId,
-        observerMode
+        context = this.reactApplicationContext,
+        apiKey = apiKey,
+        userId = userId,
+        deviceId = deviceId,
+        observerMode = observerMode,
+        ruleCallback = ruleCallbackHandler,
       ) {
         promise.resolve(it.toMap())
       }
@@ -407,13 +409,47 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun submitPushNotificationsToken(token: String) {
-    // do nothing
+  fun checkRules(promise: Promise) {
+    runOnUiThread {
+      Apphud.checkRules()
+      promise.resolve(null)
+    }
   }
 
   @ReactMethod
-  fun handlePushNotification(apsInfo: ReadableMap) {
-    // do nothing
+  fun pendingRule(promise: Promise) {
+    runOnUiThread {
+      promise.resolve(Apphud.pendingRule()?.toMap())
+    }
+  }
+
+  @ReactMethod
+  fun showPendingRuleScreen(promise: Promise) {
+    runOnUiThread {
+      Apphud.showPendingScreen { shown ->
+        promise.resolve(shown)
+      }
+    }
+  }
+
+  @ReactMethod
+  fun submitPushNotificationsToken(token: String, promise: Promise) {
+    Apphud.submitPushNotificationsToken(token) { success ->
+      promise.resolve(success)
+    }
+  }
+
+  @ReactMethod
+  fun handlePushNotification(apsInfo: ReadableMap, promise: Promise) {
+    runOnUiThread {
+      val data = mutableMapOf<String, Any>()
+      for ((key, value) in apsInfo.toHashMap()) {
+        if (value != null) {
+          data[key] = value
+        }
+      }
+      promise.resolve(Apphud.handlePushNotification(data))
+    }
   }
 
   @ReactMethod

@@ -1,5 +1,13 @@
-import type { ApphudProduct } from '../module';
+import type {
+  ApphudPaywall,
+  ApphudProduct,
+  ApphudPurchaseResult,
+  ApphudRule,
+} from '../module';
 
+/**
+ * @deprecated Prefer rule-scoped events (`onApphudRule*`). iOS only.
+ */
 export type ApphudPurchaseEventResult = {
   /**
    * product interface of iOS SKProduct.
@@ -15,6 +23,9 @@ export type ApphudPurchaseEventResult = {
   screenName: string;
 };
 
+/**
+ * @deprecated Prefer `onApphudRulePurchaseCompleted`. iOS only.
+ */
 export type ApphudDidFailPurchaseEventResult = ApphudPurchaseEventResult & {
   /**
    * Error code. For example, code 2 [SKErrorPaymentCancelled] means that user canceled purchase
@@ -22,6 +33,9 @@ export type ApphudDidFailPurchaseEventResult = ApphudPurchaseEventResult & {
   errorCode: number;
 };
 
+/**
+ * @deprecated Prefer `onApphudRuleScreenDidAppear`. iOS only.
+ */
 export type ApphudScreenDidAppearResult = {
   /**
    * The name of the Rules Screen
@@ -53,6 +67,9 @@ export type ApphudDeeplinkAttribution = {
   url?: string | null;
 };
 
+/**
+ * @deprecated Prefer `onApphudRuleDidSelectSurveyAnswer`. iOS only.
+ */
 export type ApphudDidSelectSurveyAnswerResult = {
   /**
    * Question of the survey
@@ -66,4 +83,38 @@ export type ApphudDidSelectSurveyAnswerResult = {
    * The name of the Rules Screen
    */
   screenName: string;
+};
+
+export type ApphudRuleScreenDidAppearResult = {
+  rule: ApphudRule;
+};
+
+export type ApphudRuleWillPurchaseResult = {
+  rule: ApphudRule;
+  product?: ApphudProduct | null;
+};
+
+export type ApphudRulePurchaseCompletedResult = {
+  rule: ApphudRule;
+  result: ApphudPurchaseResult;
+};
+
+export type ApphudRuleScreenWillDismissResult = {
+  rule: ApphudRule;
+  error?: string | null;
+};
+
+export type ApphudRuleScreenDidDismissResult = {
+  rule: ApphudRule;
+};
+
+export type ApphudRuleDidSelectSurveyAnswerResult = {
+  rule: ApphudRule;
+  question: string;
+  answer: string;
+};
+
+export type ApphudRulePaywallWithoutScreenResult = {
+  rule: ApphudRule;
+  paywall: ApphudPaywall;
 };

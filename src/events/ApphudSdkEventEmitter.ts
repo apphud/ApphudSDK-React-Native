@@ -12,6 +12,13 @@ import type {
   ApphudScreenDidAppearResult,
   ApphudDidSelectSurveyAnswerResult,
   ApphudDeeplinkAttribution,
+  ApphudRuleScreenDidAppearResult,
+  ApphudRuleWillPurchaseResult,
+  ApphudRulePurchaseCompletedResult,
+  ApphudRuleScreenWillDismissResult,
+  ApphudRuleScreenDidDismissResult,
+  ApphudRuleDidSelectSurveyAnswerResult,
+  ApphudRulePaywallWithoutScreenResult,
 } from './types';
 
 const { ApphudSdkEvents } = NativeModules;
@@ -34,7 +41,14 @@ type ApphudSdkListenerEvent =
   | 'apphudWillPurchase'
   | 'apphudDidFailPurchase'
   | 'apphudDidSelectSurveyAnswer'
-  | 'apphudDeeplinkAttribution';
+  | 'apphudDeeplinkAttribution'
+  | 'apphudRuleScreenDidAppear'
+  | 'apphudRuleWillPurchase'
+  | 'apphudRulePurchaseCompleted'
+  | 'apphudRuleScreenWillDismiss'
+  | 'apphudRuleScreenDidDismiss'
+  | 'apphudRuleDidSelectSurveyAnswer'
+  | 'apphudRulePaywallWithoutScreen';
 
 const emitter = new NativeEventEmitter(ApphudSdkEvents);
 
@@ -99,28 +113,28 @@ interface IApphudSdkEventEmitter {
   /**
    * Called when a Rules Screen appeared.
    *
-   * Available on iOS only.
+   * @deprecated Prefer `onApphudRuleScreenDidAppear`. Available on iOS only.
    */
   onApphudScreenDidAppear(cb: Callback<ApphudScreenDidAppearResult>): Callback;
 
   /**
    * Called when user successfully purchases in a Rules Screen.
    *
-   * Available on iOS only.
+   * @deprecated Prefer `onApphudRulePurchaseCompleted`. Available on iOS only.
    */
   onApphudDidPurchase(cb: Callback<ApphudPurchaseEventResult>): Callback;
 
   /**
    * Called when user is about to make purchase in a Rules Screen.
    *
-   * Available on iOS only.
+   * @deprecated Prefer `onApphudRuleWillPurchase`. Available on iOS only.
    */
   onApphudWillPurchase(cb: Callback<ApphudPurchaseEventResult>): Callback;
 
   /**
    * Called when user failed to make a purchase in a Rules Screen.
    *
-   * Available on iOS only.
+   * @deprecated Prefer `onApphudRulePurchaseCompleted`. Available on iOS only.
    */
   onApphudDidFailPurchase(
     cb: Callback<ApphudDidFailPurchaseEventResult>
@@ -129,10 +143,74 @@ interface IApphudSdkEventEmitter {
   /**
    * Called when user answers a survey in a Rules Screen.
    *
-   * Available on iOS only.
+   * @deprecated Prefer `onApphudRuleDidSelectSurveyAnswer`. Available on iOS only.
    */
   onApphudDidSelectSurveyAnswer(
     cb: Callback<ApphudDidSelectSurveyAnswerResult>
+  ): Callback;
+
+  /**
+   * Called when a rule-triggered screen (Figma paywall or legacy HTML) is visible.
+   *
+   * Available on iOS and Android.
+   */
+  onApphudRuleScreenDidAppear(
+    cb: Callback<ApphudRuleScreenDidAppearResult>
+  ): Callback;
+
+  /**
+   * Called when the user taps purchase (or restore) on a rule screen.
+   *
+   * Available on iOS and Android.
+   */
+  onApphudRuleWillPurchase(
+    cb: Callback<ApphudRuleWillPurchaseResult>
+  ): Callback;
+
+  /**
+   * Called when a purchase from a rule screen finishes (success or failure).
+   *
+   * Available on iOS and Android.
+   */
+  onApphudRulePurchaseCompleted(
+    cb: Callback<ApphudRulePurchaseCompletedResult>
+  ): Callback;
+
+  /**
+   * Called when a rule screen is about to dismiss.
+   *
+   * Available on iOS and Android.
+   */
+  onApphudRuleScreenWillDismiss(
+    cb: Callback<ApphudRuleScreenWillDismissResult>
+  ): Callback;
+
+  /**
+   * Called after a rule screen has been dismissed.
+   *
+   * Available on iOS and Android.
+   */
+  onApphudRuleScreenDidDismiss(
+    cb: Callback<ApphudRuleScreenDidDismissResult>
+  ): Callback;
+
+  /**
+   * Called after a survey answer is selected on a legacy HTML rule screen.
+   *
+   * Available on iOS and Android.
+   */
+  onApphudRuleDidSelectSurveyAnswer(
+    cb: Callback<ApphudRuleDidSelectSurveyAnswerResult>
+  ): Callback;
+
+  /**
+   * Called when a paywall rule has no visual screen payload.
+   * Present the paywall yourself (e.g. via `PaywallScreenView` / `createPresenter`).
+   *
+   * Available on iOS and Android.
+   */
+  onApphudRulePaywallWithoutScreen(
+    cb: Callback<ApphudRulePaywallWithoutScreenResult>
   ): Callback;
 
   /**
@@ -187,6 +265,32 @@ export const ApphudSdkEventEmitter: IApphudSdkEventEmitter = {
 
   onApphudDidSelectSurveyAnswer: makeSubscriberMethod(
     'apphudDidSelectSurveyAnswer'
+  ),
+
+  onApphudRuleScreenDidAppear: makeSubscriberMethod(
+    'apphudRuleScreenDidAppear'
+  ),
+
+  onApphudRuleWillPurchase: makeSubscriberMethod('apphudRuleWillPurchase'),
+
+  onApphudRulePurchaseCompleted: makeSubscriberMethod(
+    'apphudRulePurchaseCompleted'
+  ),
+
+  onApphudRuleScreenWillDismiss: makeSubscriberMethod(
+    'apphudRuleScreenWillDismiss'
+  ),
+
+  onApphudRuleScreenDidDismiss: makeSubscriberMethod(
+    'apphudRuleScreenDidDismiss'
+  ),
+
+  onApphudRuleDidSelectSurveyAnswer: makeSubscriberMethod(
+    'apphudRuleDidSelectSurveyAnswer'
+  ),
+
+  onApphudRulePaywallWithoutScreen: makeSubscriberMethod(
+    'apphudRulePaywallWithoutScreen'
   ),
 
   onApphudDeeplinkAttribution: makeSubscriberMethod(

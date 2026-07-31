@@ -26,7 +26,14 @@ enum class ApphudSdkDelegateEvents(val value: String) {
   APPHUD_WILL_PURCHASE("apphudWillPurchase"),
   APPHUD_DID_FAIL_PURCHASE("apphudDidFailPurchase"),
   APPHUD_DID_SELECT_SURVEY_ANSWER("apphudDidSelectSurveyAnswer"),
-  APPHUD_DEEPLINK_ATTRIBUTION("apphudDeeplinkAttribution")
+  APPHUD_DEEPLINK_ATTRIBUTION("apphudDeeplinkAttribution"),
+  APPHUD_RULE_SCREEN_DID_APPEAR("apphudRuleScreenDidAppear"),
+  APPHUD_RULE_WILL_PURCHASE("apphudRuleWillPurchase"),
+  APPHUD_RULE_PURCHASE_COMPLETED("apphudRulePurchaseCompleted"),
+  APPHUD_RULE_SCREEN_WILL_DISMISS("apphudRuleScreenWillDismiss"),
+  APPHUD_RULE_SCREEN_DID_DISMISS("apphudRuleScreenDidDismiss"),
+  APPHUD_RULE_DID_SELECT_SURVEY_ANSWER("apphudRuleDidSelectSurveyAnswer"),
+  APPHUD_RULE_PAYWALL_WITHOUT_SCREEN("apphudRulePaywallWithoutScreen"),
 }
 
 class ApphudListenerHandler(private val reactContext: ReactApplicationContext) :

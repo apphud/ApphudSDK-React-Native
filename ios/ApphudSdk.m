@@ -65,8 +65,22 @@ RCT_EXTERN_METHOD(setAttribution:(NSDictionary*)options
                   withRejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(setUserProperty:(NSDictionary*)options)
 RCT_EXTERN_METHOD(incrementUserProperty:(NSDictionary*)options)
-RCT_EXTERN_METHOD(submitPushNotificationsToken:(NSString*)token)
-RCT_EXTERN_METHOD(handlePushNotification:(NSDictionary*)apsInfo)
+RCT_EXTERN_METHOD(checkRules:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(pendingRule:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(showPendingRuleScreen:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(submitPushNotificationsToken:(NSString*)token
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(handlePushNotification:(NSDictionary*)apsInfo
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(attributeFromWeb:(NSDictionary*)args
                   withResolver:(RCTPromiseResolveBlock)resolve
