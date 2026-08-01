@@ -27,10 +27,7 @@ const MODAL_SCROLL_MAX_HEIGHT = Dimensions.get('window').height * 0.52;
 const PROMO_DEBUG_PRODUCT_ID = 'com.apphud.monthly_promo';
 const PROMO_DEBUG_TAG = `[Apphud Promo Debug] ${PROMO_DEBUG_PRODUCT_ID}`;
 
-function logMonthlyPromoDebug(
-  event: string,
-  payload: Record<string, unknown>
-) {
+function logMonthlyPromoDebug(event: string, payload: Record<string, unknown>) {
   console.log(PROMO_DEBUG_TAG, event, JSON.stringify(payload, null, 2));
 }
 
@@ -136,7 +133,8 @@ function inferStandardPriceLabel(
   formattedPrice: string,
   pricingPhases?: Array<{ formattedPrice?: string }>
 ): string {
-  const lastPhasePrice = pricingPhases?.[pricingPhases.length - 1]?.formattedPrice;
+  const lastPhasePrice =
+    pricingPhases?.[pricingPhases.length - 1]?.formattedPrice;
   return lastPhasePrice?.trim() || formattedPrice;
 }
 
@@ -144,8 +142,7 @@ function prepareProducts(products: ApphudProduct[]): ProductProps[] {
   if (Platform.OS === 'ios') {
     return products.map((product) => {
       const price = product.skProduct?.price ?? 0;
-      const currencyCode =
-        product.skProduct?.priceLocale.currencyCode ?? 'USD';
+      const currencyCode = product.skProduct?.priceLocale.currencyCode ?? 'USD';
 
       return {
         productId: product.productId,
@@ -171,8 +168,7 @@ function prepareProducts(products: ApphudProduct[]): ProductProps[] {
         productId: product.productId,
         price,
         formattedPrice:
-          offer.formattedPrice?.trim() ||
-          formatCurrency(price, 'USD'),
+          offer.formattedPrice?.trim() || formatCurrency(price, 'USD'),
         basePlanId: product.basePlanId,
         ...shared,
       };
@@ -192,7 +188,10 @@ function prepareProducts(products: ApphudProduct[]): ProductProps[] {
           basePlanId: offer.basePlanId ?? product.basePlanId,
           offerToken: offer.offerToken,
           offerId: offer.offerId,
-          standardPriceLabel: inferStandardPriceLabel(formatted, offer.pricingPhases),
+          standardPriceLabel: inferStandardPriceLabel(
+            formatted,
+            offer.pricingPhases
+          ),
           offerPeriodLabel: inferPeriodLabel(
             offer.basePlanId ?? product.basePlanId,
             offer.offerId
@@ -235,9 +234,7 @@ function ProductCard({
           <Text style={[styles.productLabel, styles.productLabelSpaced]}>
             Base plan ID
           </Text>
-          <Text style={styles.productValue}>
-            {product.basePlanId || 'N/A'}
-          </Text>
+          <Text style={styles.productValue}>{product.basePlanId || 'N/A'}</Text>
         </View>
         <TouchableOpacity
           style={styles.propertiesButton}
@@ -338,7 +335,7 @@ export default function PaywallScreen({
       paywallIdentifier: currentPaywall.identifier,
       placementIdentifier: currentPaywall.placementIdentifier,
       experiment: currentPaywall.experimentName,
-      variation: currentPaywall.variationName
+      variation: currentPaywall.variationName,
     });
     ApphudSdk.paywallShown({
       paywallIdentifier: currentPaywall.identifier,
@@ -421,11 +418,16 @@ export default function PaywallScreen({
   };
 
   const runPurchase = (
-    options: ApphudPurchaseProps & { forceRefresh: boolean; preferredTimeout: number }
+    options: ApphudPurchaseProps & {
+      forceRefresh: boolean;
+      preferredTimeout: number;
+    }
   ) => {
-    ApphudSdk.purchase(options).then(showPurchaseResult).catch((error) => {
-      Alert.alert('Purchase failed', String(error));
-    });
+    ApphudSdk.purchase(options)
+      .then(showPurchaseResult)
+      .catch((error) => {
+        Alert.alert('Purchase failed', String(error));
+      });
   };
 
   const runPurchasePromo = (
@@ -470,8 +472,7 @@ export default function PaywallScreen({
 
     let eligible = false;
     try {
-      eligible =
-        await ApphudSdk.checkEligibilityForPromotionalOffer(options);
+      eligible = await ApphudSdk.checkEligibilityForPromotionalOffer(options);
 
       if (isPromoDebugProduct) {
         logMonthlyPromoDebug('eligibility_checked', {
@@ -567,8 +568,7 @@ export default function PaywallScreen({
 
     let commitmentSupported = false;
     try {
-      commitmentSupported =
-        await ApphudSdk.isCommitmentPlanSupported(options);
+      commitmentSupported = await ApphudSdk.isCommitmentPlanSupported(options);
       if (isPromoDebugProduct) {
         logMonthlyPromoDebug('commitment_checked', { commitmentSupported });
       }
@@ -604,9 +604,7 @@ export default function PaywallScreen({
   };
 
   const placementId =
-    currentPaywall?.placementIdentifier ??
-    route.params.placementId ??
-    'N/A';
+    currentPaywall?.placementIdentifier ?? route.params.placementId ?? 'N/A';
   const hasVisualScreen = Boolean(currentPaywall?.screenId);
 
   return (
@@ -616,10 +614,7 @@ export default function PaywallScreen({
     >
       <View style={styles.headerCard}>
         <Text style={styles.sectionTitle}>Paywall</Text>
-        <MetaRow
-          label="Paywall ID"
-          value={currentPaywall?.identifier ?? '…'}
-        />
+        <MetaRow label="Paywall ID" value={currentPaywall?.identifier ?? '…'} />
         <MetaRow label="Placement ID" value={placementId} />
         <MetaRow label="Screen ID" value={currentPaywall?.screenId ?? 'N/A'} />
         <MetaRow
@@ -673,7 +668,9 @@ export default function PaywallScreen({
 
       {displayProducts.map((product, index) => (
         <ProductCard
-          key={`${product.productId}-${product.basePlanId ?? ''}-${product.offerId ?? index}`}
+          key={`${product.productId}-${product.basePlanId ?? ''}-${
+            product.offerId ?? index
+          }`}
           product={product}
           onPurchase={() => onPurchase(product)}
           onViewProperties={() => {
@@ -703,7 +700,7 @@ export default function PaywallScreen({
       >
         <View style={styles.modalOverlay}>
           <Pressable
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             onPress={() => setPropertiesModal(null)}
           />
           <View style={styles.modalCard}>
@@ -741,12 +738,14 @@ export default function PaywallScreen({
       >
         <View style={styles.modalOverlay}>
           <Pressable
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             onPress={() => setAndroidOffersModal(null)}
           />
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>Choose offer</Text>
-            <Text style={styles.modalSubtitle}>{androidOffersModal?.productId}</Text>
+            <Text style={styles.modalSubtitle}>
+              {androidOffersModal?.productId}
+            </Text>
             <ScrollView
               style={styles.modalScroll}
               contentContainerStyle={styles.offerListContent}
@@ -756,7 +755,9 @@ export default function PaywallScreen({
             >
               {androidOffersModal?.options.map((item, index) => (
                 <TouchableOpacity
-                  key={`${item.productId}-${item.offerToken ?? item.offerId ?? index}`}
+                  key={`${item.productId}-${
+                    item.offerToken ?? item.offerId ?? index
+                  }`}
                   style={styles.offerOptionButton}
                   onPress={() => {
                     setAndroidOffersModal(null);
@@ -764,12 +765,18 @@ export default function PaywallScreen({
                   }}
                   activeOpacity={0.85}
                 >
-                  <Text style={styles.offerOptionTitle}>{item.formattedPrice}</Text>
-                  <Text style={styles.offerOptionSubtitle}>
-                    {`Standard: ${item.standardPriceLabel ?? item.formattedPrice}`}
+                  <Text style={styles.offerOptionTitle}>
+                    {item.formattedPrice}
                   </Text>
                   <Text style={styles.offerOptionSubtitle}>
-                    {`Offer period: ${item.offerPeriodLabel ?? 'Not specified'}`}
+                    {`Standard: ${
+                      item.standardPriceLabel ?? item.formattedPrice
+                    }`}
+                  </Text>
+                  <Text style={styles.offerOptionSubtitle}>
+                    {`Offer period: ${
+                      item.offerPeriodLabel ?? 'Not specified'
+                    }`}
                   </Text>
                 </TouchableOpacity>
               ))}

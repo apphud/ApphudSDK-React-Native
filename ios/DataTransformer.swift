@@ -13,6 +13,31 @@ protocol RNAdapter {
   func toMap() -> NSDictionary
 }
 
+/// JS-facing shape of an `NSError`. Mirrors `LoadingViewError` in `src/view/types.ts`.
+struct SerializedError: RNAdapter {
+  let code: Int
+  let userInfo: [AnyHashable: Any]?
+  let localizedDescription: String
+  let domain: String
+
+  init(from error: NSError) {
+    self.code = error.code
+    self.userInfo = error.userInfo
+    self.localizedDescription = error.localizedDescription
+    self.domain = error.domain
+  }
+
+  func toMap() -> NSDictionary {
+    var map: [AnyHashable: Any] = [:]
+    map["code"] = code
+    map["userInfo"] = userInfo
+    map["localizedDescription"] = localizedDescription
+    map["domain"] = domain
+
+    return map as NSDictionary
+  }
+}
+
 extension SKProduct : RNAdapter {
   func toMap() -> NSDictionary {
 

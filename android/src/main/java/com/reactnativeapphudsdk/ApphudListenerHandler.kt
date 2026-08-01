@@ -8,40 +8,62 @@ import com.apphud.sdk.ApphudDeeplinkAttributionKind
 import com.apphud.sdk.ApphudListener
 import com.apphud.sdk.domain.ApphudPlacement
 import com.apphud.sdk.domain.ApphudUser
+import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactContextBaseJavaModule
+import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.UiThreadUtil.runOnUiThread
+import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeMap
-import com.facebook.react.modules.core.DeviceEventManagerModule
 
-enum class ApphudSdkDelegateEvents(val value: String) {
-  PLACEMENTS_DID_FULLY_LOAD("placementsDidFullyLoad"),
-  USER_DID_LOAD("userDidLoad"),
-  APPHUD_DID_LOAD_STORE_PRODUCTS("apphudDidLoadStoreProducts"),
-  APPHUD_DID_CHANGE_USER_ID("apphudDidChangeUserID"),
-  APPHUD_SUBSCRIPTIONS_UPDATED("apphudSubscriptionsUpdated"),
-  APPHUD_NON_RENEWING_PURCHASES_UPDATED("apphudNonRenewingPurchasesUpdated"),
-  APPHUD_PRODUCT_IDENTIFIERS("apphudProductIdentifiers"),
-  APPHUD_DID_PURCHASE("apphudDidPurchase"),
-  APPHUD_WILL_PURCHASE("apphudWillPurchase"),
-  APPHUD_DID_FAIL_PURCHASE("apphudDidFailPurchase"),
-  APPHUD_DID_SELECT_SURVEY_ANSWER("apphudDidSelectSurveyAnswer"),
-  APPHUD_DEEPLINK_ATTRIBUTION("apphudDeeplinkAttribution"),
-  APPHUD_RULE_SCREEN_DID_APPEAR("apphudRuleScreenDidAppear"),
-  APPHUD_RULE_WILL_PURCHASE("apphudRuleWillPurchase"),
-  APPHUD_RULE_PURCHASE_COMPLETED("apphudRulePurchaseCompleted"),
-  APPHUD_RULE_SCREEN_WILL_DISMISS("apphudRuleScreenWillDismiss"),
-  APPHUD_RULE_SCREEN_DID_DISMISS("apphudRuleScreenDidDismiss"),
-  APPHUD_RULE_DID_SELECT_SURVEY_ANSWER("apphudRuleDidSelectSurveyAnswer"),
-  APPHUD_RULE_PAYWALL_WITHOUT_SCREEN("apphudRulePaywallWithoutScreen"),
+/**
+ * Rule events are produced by [ApphudRuleCallbackHandler], which is owned by
+ * [ApphudSdkModule]. Turbo Native Module events can only be emitted from the
+ * module that declares them, so rule callbacks are routed back here.
+ */
+internal enum class ApphudRuleEvent {
+  SCREEN_DID_APPEAR,
+  WILL_PURCHASE,
+  PURCHASE_COMPLETED,
+  SCREEN_WILL_DISMISS,
+  SCREEN_DID_DISMISS,
+  DID_SELECT_SURVEY_ANSWER,
+  PAYWALL_WITHOUT_SCREEN,
 }
 
 class ApphudListenerHandler(private val reactContext: ReactApplicationContext) :
-  ReactContextBaseJavaModule(reactContext), ApphudListener {
+  NativeApphudSdkEventsSpec(reactContext), ApphudListener {
+
   init {
+    current = this
     Apphud.setListener(this)
     Apphud.setDeeplinkHandler { attribution, kind, uri ->
       emitDeeplinkAttribution(attribution, kind, uri)
+    }
+  }
+
+  override fun invalidate() {
+    if (current === this) {
+      current = null
+    }
+    super.invalidate()
+  }
+
+  /** iOS-only: the App Store product identifiers allow-list. */
+  override fun setApphudProductIdentifiers(ids: ReadableArray, promise: Promise) {
+    promise.resolve(ids)
+  }
+
+  internal fun emitRuleEvent(event: ApphudRuleEvent, body: WritableMap) {
+    runOnUiThread {
+      when (event) {
+        ApphudRuleEvent.SCREEN_DID_APPEAR -> emitOnApphudRuleScreenDidAppear(body)
+        ApphudRuleEvent.WILL_PURCHASE -> emitOnApphudRuleWillPurchase(body)
+        ApphudRuleEvent.PURCHASE_COMPLETED -> emitOnApphudRulePurchaseCompleted(body)
+        ApphudRuleEvent.SCREEN_WILL_DISMISS -> emitOnApphudRuleScreenWillDismiss(body)
+        ApphudRuleEvent.SCREEN_DID_DISMISS -> emitOnApphudRuleScreenDidDismiss(body)
+        ApphudRuleEvent.DID_SELECT_SURVEY_ANSWER -> emitOnApphudRuleDidSelectSurveyAnswer(body)
+        ApphudRuleEvent.PAYWALL_WITHOUT_SCREEN -> emitOnApphudRulePaywallWithoutScreen(body)
+      }
     }
   }
 
@@ -63,43 +85,43 @@ class ApphudListenerHandler(private val reactContext: ReactApplicationContext) :
         putString("url", uri?.toString())
       }
 
-      reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-        .emit(ApphudSdkDelegateEvents.APPHUD_DEEPLINK_ATTRIBUTION.value, body)
+      emitOnApphudDeeplinkAttribution(body)
     }
   }
 
   override fun apphudDidChangeUserID(userId: String) {
-    reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-      .emit(ApphudSdkDelegateEvents.APPHUD_DID_CHANGE_USER_ID.value, userId)
+    runOnUiThread {
+      emitOnApphudDidChangeUserID(userId)
+    }
   }
 
   override fun apphudFetchProductDetails(details: List<ProductDetails>) {
-    val nativeProducts = details.toWritableNativeArray { it.toMap() }
-
-    reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-      .emit(ApphudSdkDelegateEvents.APPHUD_DID_LOAD_STORE_PRODUCTS.value, nativeProducts)
+    runOnUiThread {
+      emitOnApphudDidLoadStoreProducts(details.toWritableNativeArray { it.toMap() })
+    }
   }
 
   override fun placementsDidFullyLoad(placements: List<ApphudPlacement>) {
-    reactContext
-      .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-      .emit(
-        ApphudSdkDelegateEvents.PLACEMENTS_DID_FULLY_LOAD.value,
-        placements.toWritableNativeArray { it.toMap() }
-      )
+    runOnUiThread {
+      emitOnPlacementsDidFullyLoad(placements.toWritableNativeArray { it.toMap() })
+    }
   }
 
   override fun userDidLoad(user: ApphudUser) {
-    reactContext
-      .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-      .emit(ApphudSdkDelegateEvents.USER_DID_LOAD.value, user.toMap())
+    runOnUiThread {
+      emitOnUserDidLoad(user.toMap())
+    }
   }
 
   override fun apphudDidReceivePurchase(purchase: Purchase) {
     // do nothing
   }
 
-  override fun getName(): String {
-    return "ApphudSdkEvents"
+  companion object {
+    const val NAME = NativeApphudSdkEventsSpec.NAME
+
+    @Volatile
+    internal var current: ApphudListenerHandler? = null
+      private set
   }
 }

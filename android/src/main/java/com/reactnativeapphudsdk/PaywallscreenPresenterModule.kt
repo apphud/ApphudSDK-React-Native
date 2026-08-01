@@ -4,35 +4,33 @@ import com.apphud.sdk.Apphud
 import com.apphud.sdk.domain.ApphudPaywallScreenShowResult
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactContextBaseJavaModule
-import com.facebook.react.bridge.ReactMethod
-import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.modules.core.DeviceEventManagerModule
+import com.facebook.react.bridge.UiThreadUtil.runOnUiThread
+import com.facebook.react.bridge.WritableMap
 
-enum class PaywallscreenPresenterEvent(val eventName: String) {
-  ERROR("error"),
-  SCREEN_SHOWN("screenShown"),
-  CLOSE_BUTTON_TAPPED("closeButtonTapped"),
-  TRANSACTION_COMPLETED("transactionCompleted"),
-  TRANSACTION_STARTED("transactionStarted"),
+enum class PaywallscreenPresenterEvent {
+  ERROR,
+  SCREEN_SHOWN,
+  CLOSE_BUTTON_TAPPED,
+  TRANSACTION_COMPLETED,
+  TRANSACTION_STARTED,
 }
 
-class PaywallscreenPresenterModule(private val reactApplicationContext: ReactApplicationContext): ReactContextBaseJavaModule(reactApplicationContext) {
-  override fun getName(): String = "PaywallscreenPresenter"
+class PaywallscreenPresenterModule(
+  private val reactApplicationContext: ReactApplicationContext
+) : NativePaywallscreenPresenterSpec(reactApplicationContext) {
 
-  @ReactMethod
-  fun displayPaywallScreen(options: ReadableMap) {
+  override fun displayPaywallScreen(options: ReadableMap) {
     val paywallScreenPresenterId = options.getString("paywallScreenPresenterId") ?: return
 
     options.getString("placementIdentifier") ?: run {
-      emit(PaywallscreenPresenterEvent.ERROR, paywallScreenPresenterId, "Paywall not not found")
+      emit(PaywallscreenPresenterEvent.ERROR, paywallScreenPresenterId, "Paywall not found")
       return
     }
 
     Utils.paywall(options) { paywall ->
       if (paywall == null) {
-        emit(PaywallscreenPresenterEvent.ERROR, paywallScreenPresenterId, "Paywall not not found")
+        emit(PaywallscreenPresenterEvent.ERROR, paywallScreenPresenterId, "Paywall not found")
         return@paywall
       }
 
@@ -41,11 +39,19 @@ class PaywallscreenPresenterModule(private val reactApplicationContext: ReactApp
           emit(PaywallscreenPresenterEvent.SCREEN_SHOWN, paywallScreenPresenterId, null)
         },
         onTransactionStarted = {
-          emit(PaywallscreenPresenterEvent.TRANSACTION_STARTED, paywallScreenPresenterId, it?.toMap())
+          emit(
+            PaywallscreenPresenterEvent.TRANSACTION_STARTED,
+            paywallScreenPresenterId,
+            it?.toMap()?.toJsonString()
+          )
         },
         onTransactionCompleted = {
           if (it !is ApphudPaywallScreenShowResult.TransactionError) {
-            emit(PaywallscreenPresenterEvent.TRANSACTION_COMPLETED, paywallScreenPresenterId, it.toMap())
+            emit(
+              PaywallscreenPresenterEvent.TRANSACTION_COMPLETED,
+              paywallScreenPresenterId,
+              it.toMap().toJsonString()
+            )
           }
         },
         onCloseButtonTapped = {
@@ -59,28 +65,37 @@ class PaywallscreenPresenterModule(private val reactApplicationContext: ReactApp
     }
   }
 
-  private fun emit(event: PaywallscreenPresenterEvent, paywallScreenPresenterId: String, data: Any?) {
-    val params = Arguments.createMap().apply {
+  /**
+   * @param payload JSON-encoded event body, or a plain message for errors.
+   *   `null` for events that carry no data.
+   */
+  private fun emit(
+    event: PaywallscreenPresenterEvent,
+    paywallScreenPresenterId: String,
+    payload: String?
+  ) {
+    val body: WritableMap = Arguments.createMap().apply {
       putString("paywallScreenPresenterId", paywallScreenPresenterId)
 
-      when (data) {
-        null -> putNull("payload")
-        is String -> putString("payload", data)
-        is Boolean -> putBoolean("payload", data)
-        is Int -> putInt("payload", data)
-        is Double -> putDouble("payload", data)
-        is Float -> putDouble("payload", data.toDouble())
-        is Long -> putDouble("payload", data.toDouble())
-        is ReadableMap -> putMap("payload", data)
-        is ReadableArray -> putArray("payload", data)
-        else -> {
-          putString("payload", data.toString())
-        }
+      if (payload == null) {
+        putNull("payload")
+      } else {
+        putString("payload", payload)
       }
     }
 
-    reactApplicationContext
-      .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-      .emit(event.eventName, params)
+    runOnUiThread {
+      when (event) {
+        PaywallscreenPresenterEvent.ERROR -> emitOnError(body)
+        PaywallscreenPresenterEvent.SCREEN_SHOWN -> emitOnScreenShown(body)
+        PaywallscreenPresenterEvent.CLOSE_BUTTON_TAPPED -> emitOnCloseButtonTapped(body)
+        PaywallscreenPresenterEvent.TRANSACTION_COMPLETED -> emitOnTransactionCompleted(body)
+        PaywallscreenPresenterEvent.TRANSACTION_STARTED -> emitOnTransactionStarted(body)
+      }
+    }
+  }
+
+  companion object {
+    const val NAME = NativePaywallscreenPresenterSpec.NAME
   }
 }

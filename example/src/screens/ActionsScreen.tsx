@@ -1,7 +1,17 @@
 import * as React from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
-import { ListItem } from 'react-native-elements';
-import { ApphudSdk } from '@apphud/react-native-apphud-sdk';
+import {
+  Modal,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { ListItem } from '../components/ui';
+import {
+  ApphudSdk,
+  ApphudUserPropertyKey,
+} from '@apphud/react-native-apphud-sdk';
 import type { ApphudPlacement } from '@apphud/react-native-apphud-sdk';
 import type { ApphudUser } from '@apphud/react-native-apphud-sdk';
 import { ApphudSdkEventEmitter } from '@apphud/react-native-apphud-sdk';
@@ -11,8 +21,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { submitExamplePushToken } from '../push';
 import { clearStoredApiKey } from '../session';
 
-const 
-SDK_VERSION = (require('../../../package.json') as { version?: string })
+const SDK_VERSION = (require('../../../package.json') as { version?: string })
   ?.version;
 
 const styles = StyleSheet.create({
@@ -211,7 +220,8 @@ export default function ActionsScreen({ navigation }: Props) {
   const [hasPremiumAccess, setHasPremiumAccess] = React.useState<
     boolean | null
   >(null);
-  const [isRemoteConfigVisible, setIsRemoteConfigVisible] = React.useState(false);
+  const [isRemoteConfigVisible, setIsRemoteConfigVisible] =
+    React.useState(false);
 
   const resolvedExperimentName =
     userData?.experimentName ?? placements[0]?.experimentName ?? '-';
@@ -315,61 +325,166 @@ export default function ActionsScreen({ navigation }: Props) {
   };
 
   const callAll = () => {
+    const log = (label: string, value?: unknown) => {
+      if (value === undefined) {
+        console.log(`[ApphudExample] ${label}`);
+      } else {
+        console.log(`[ApphudExample] ${label}`, value);
+      }
+    };
+
     ApphudSdk.enableDebugLogs();
 
-    // ApphudSdk.setAdvertisingIdentifier('42ed88fd-b446-4eb1-81ae-83e3025c04cf')
+    ApphudSdk.userId().then((id) => log(`userId = ${id}`));
 
-    // ApphudSdk.userId().then((userId) => console.log(`Apphud: userId: ${userId}`));
     ApphudSdk.hasActiveSubscription().then((active) => {
-      console.log('START Has Active Subscription: = ' + active);
+      log(`hasActiveSubscription = ${active} (typeof ${typeof active})`);
     });
 
     ApphudSdk.attributeFromWeb({
       apphud_user_id: 'aaf48728-6854-4a37-9f3b-6ab59e66b4da',
     }).then((result) => {
-      console.log(
-        'attribute from web result: = ' + JSON.stringify(result, null, 2)
+      log('attributeFromWeb =', JSON.stringify(result, null, 2));
+    });
+
+    // --- Previously commented-out calls below, now exercised & logged ---
+
+    ApphudSdk.setUserProperty({
+      key: 'some_string_key2',
+      value: 'some_string_valueee',
+      setOnce: true,
+    });
+    log('setUserProperty(some_string_key2) sent (fire-and-forget)');
+
+    ApphudSdk.setUserProperty({
+      key: 'some_float_key3',
+      value: 1.45,
+      setOnce: true,
+    });
+    log('setUserProperty(some_float_key3) sent (fire-and-forget)');
+
+    ApphudSdk.setUserProperty({
+      key: ApphudUserPropertyKey.Email,
+      value: 'user2@apphud.com',
+      setOnce: false,
+    });
+    log('setUserProperty($email) sent (fire-and-forget)');
+
+    ApphudSdk.incrementUserProperty({ key: 'some2_float_key2', by: 2.01 });
+    log('incrementUserProperty(some2_float_key2) sent (fire-and-forget)');
+
+    // Android only; SDK no-ops this call on iOS.
+    ApphudSdk.collectDeviceIdentifiers();
+    log(`collectDeviceIdentifiers() sent (${Platform.OS})`);
+
+    ApphudSdk.isNonRenewingPurchaseActive(
+      'com.apphud.demo.nonconsumable.premium'
+    ).then((value) => {
+      log(`isNonRenewingPurchaseActive = ${value} (typeof ${typeof value})`);
+    });
+
+    ApphudSdk.nonRenewingPurchases().then((purchases) => {
+      log(
+        `nonRenewingPurchases (${purchases.length}) =`,
+        JSON.stringify(purchases)
       );
     });
 
-    // ApphudSdk.setUserProperty({key: 'some_string_key2', value: 'some_string_valueee', setOnce: true})
-    // ApphudSdk.setUserProperty({key: 'some_float_key3', value: 1.45, setOnce: true})
-    // // ApphudSdk.incrementUserProperty({key: 'some2_float_ke2y', by: 2.01})
-    // ApphudSdk.setUserProperty({key: ApphudUserPropertyKey.Email, value: 'user2@apphud.com', setOnce: false})
-    // ApphudSdk.addAttribution({data: {network: 'Facebook2', campaign: 'Campaign', adgroup: 'AdGroup', creative: 'Creative'}, identifier: 'abc-defgee', attributionProviderId: ApphudAttributionProvider.AppsFlyer})
-    // ApphudSdk.addAttribution({data: null, identifier: 'abc-xxcvcxv123345', attributionProviderId: ApphudAttributionProvider.Firebase})
-    // ApphudSdk.addAttribution({data: null, identifier: 'abc22-def-token1235556', attributionProviderId: ApphudAttributionProvider.AppleSearchAds})
-
-    // ApphudSdk.collectDeviceIdentifiers()
-
-    // ApphudSdk.isNonRenewingPurchaseActive('com.apphud.demo.nonconsumable.premium').then(value => {
-    //   console.log(`Apphud: isNonRenewingPurchaseActive: ${value}`)
-    //  })
-
-    //  ApphudSdk.nonRenewingPurchases().then(purchases => {
-    //   console.log(`Apphud: nonRenewingPurchases: ${JSON.stringify(purchases)}`)
-    //  })
     ApphudSdk.subscription().then((s) => {
-      console.log(`Apphud: subscription: ${JSON.stringify(s)}`);
+      log(
+        `subscription (typeof ${typeof s}) =`,
+        s === null ? 'null' : JSON.stringify(s)
+      );
     });
-    //  ApphudSdk.subscriptions().then(ss => {
-    //   console.log(`Apphud: subscriptions: ${JSON.stringify(ss)}`)
-    //  })
-    //  ApphudSdk.paywalls().then(paywalls => {
-    //   console.log(`Apphud: paywalls: ${JSON.stringify(paywalls)}`)
-    //  })
-    //  ApphudSdk.products().then(products => {
-    //   console.log(`Apphud: products: ${JSON.stringify(products)}`)
-    //  })
 
-    // ApphudSdk.optOutOfTracking()
+    ApphudSdk.subscriptions().then((ss) => {
+      log(`subscriptions (${ss.length}) =`, JSON.stringify(ss));
+    });
 
-    //  ApphudSdk.syncPurchasesInObserverMode().then(_ => {
-    //   console.log(`sync purchases finished`)
-    //  })
-    //  ApphudSdk.restorePurchases().then(result => {
-    //   console.log(`restore purchases finished ${JSON.stringify(result)}`)
-    //  })
+    ApphudSdk.products().then((products) => {
+      log(`products (${products.length}) =`, JSON.stringify(products));
+    });
+
+    // Must be called before start()/startManually() to take effect; calling
+    // it mid-session only verifies the bridge method itself doesn't crash.
+    ApphudSdk.optOutOfTracking();
+    log('optOutOfTracking() sent (fire-and-forget, no-op post-start)');
+
+    ApphudSdk.syncPurchasesInObserverMode().then((success) => {
+      log(
+        `syncPurchasesInObserverMode = ${success} (typeof ${typeof success})`
+      );
+    });
+
+    ApphudSdk.restorePurchases().then((result) => {
+      log('restorePurchases =', JSON.stringify(result));
+    });
+
+    // --- Extra coverage for methods the example never called before ---
+
+    ApphudSdk.rawPlacements().then((raw) => {
+      log(`rawPlacements (${raw.length}) =`, JSON.stringify(raw));
+    });
+
+    ApphudSdk.placement('__non_existent_placement__').then((placement) => {
+      log(
+        `placement("__non_existent_placement__") (typeof ${typeof placement}) =`,
+        placement === null ? 'null' : JSON.stringify(placement)
+      );
+    });
+
+    const firstPlacementId = placements[0]?.identifier;
+    if (firstPlacementId) {
+      ApphudSdk.placement(firstPlacementId, {
+        forceRefresh: true,
+        preferredTimeout: 21,
+        maxAttempts: 4,
+      }).then((placement) => {
+        log(
+          `placement("${firstPlacementId}") (typeof ${typeof placement}) =`,
+          placement === null ? 'null' : JSON.stringify(placement)
+        );
+      });
+
+      ApphudSdk.unloadPaywallScreen({ placementIdentifier: firstPlacementId })
+        .then(() => log(`unloadPaywallScreen("${firstPlacementId}") resolved`))
+        .catch((error) =>
+          log(`unloadPaywallScreen("${firstPlacementId}") rejected:`, error)
+        );
+    } else {
+      log('placement()/unloadPaywallScreen() skipped: no placement loaded yet');
+    }
+
+    ApphudSdk.preloadPaywallScreens(placements.map((p) => p.identifier));
+    log(`preloadPaywallScreens() sent (${placements.length} identifiers)`);
+
+    ApphudSdk.isCommitmentPlanPreferred({
+      productId: 'com.apphud.demo.nonconsumable.premium',
+    })
+      .then((value) => {
+        log(`isCommitmentPlanPreferred = ${value} (typeof ${typeof value})`);
+      })
+      .catch((error) => log('isCommitmentPlanPreferred rejected:', error));
+
+    ApphudSdk.idfv().then((idfv) => {
+      log(`idfv (typeof ${typeof idfv}) =`, idfv === null ? 'null' : idfv);
+    });
+
+    // Synthetic values: this only verifies the bridge accepts/rejects
+    // gracefully, it is not a real device push token or rule payload.
+    ApphudSdk.submitPushNotificationsToken('deadbeef')
+      .then((success) =>
+        log(
+          `submitPushNotificationsToken = ${success} (typeof ${typeof success})`
+        )
+      )
+      .catch((error) => log('submitPushNotificationsToken rejected:', error));
+
+    ApphudSdk.handlePushNotification({ rule_id: '__test_rule_id__' })
+      .then((handled) =>
+        log(`handlePushNotification = ${handled} (typeof ${typeof handled})`)
+      )
+      .catch((error) => log('handlePushNotification rejected:', error));
 
     void submitExamplePushToken();
   };
@@ -413,7 +528,9 @@ export default function ActionsScreen({ navigation }: Props) {
             <View style={styles.separator} />
             <View style={styles.detailsRow}>
               <Text style={styles.detailsKey}>Total Devices Count</Text>
-              <Text style={styles.detailsValue}>{resolvedTotalDevicesCount}</Text>
+              <Text style={styles.detailsValue}>
+                {resolvedTotalDevicesCount}
+              </Text>
             </View>
             <View style={styles.separator} />
             <View style={styles.detailsRow}>
@@ -651,7 +768,6 @@ export default function ActionsScreen({ navigation }: Props) {
             <ListItem.Subtitle style={styles.actionSubtitle}>
               End this demo session and return to login.
             </ListItem.Subtitle>
-
           </ListItem.Content>
         </ListItem>
       </View>

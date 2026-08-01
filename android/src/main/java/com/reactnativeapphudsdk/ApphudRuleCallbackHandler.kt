@@ -9,9 +9,7 @@ import com.apphud.sdk.domain.ApphudPaywall
 import com.apphud.sdk.domain.ApphudProduct
 import com.apphud.sdk.domain.Rule
 import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.UiThreadUtil.runOnUiThread
 import com.facebook.react.bridge.WritableNativeMap
-import com.facebook.react.modules.core.DeviceEventManagerModule
 
 /**
  * Process-scoped Rules callback passed into [com.apphud.sdk.Apphud.start].
@@ -32,7 +30,7 @@ class ApphudRuleCallbackHandler(
 
   override fun onScreenAppeared(rule: Rule) {
     emit(
-      ApphudSdkDelegateEvents.APPHUD_RULE_SCREEN_DID_APPEAR.value,
+      ApphudRuleEvent.SCREEN_DID_APPEAR,
       WritableNativeMap().apply {
         putMap("rule", rule.toMap())
       }
@@ -41,7 +39,7 @@ class ApphudRuleCallbackHandler(
 
   override fun onWillPurchase(rule: Rule, product: ApphudProduct?) {
     emit(
-      ApphudSdkDelegateEvents.APPHUD_RULE_WILL_PURCHASE.value,
+      ApphudRuleEvent.WILL_PURCHASE,
       WritableNativeMap().apply {
         putMap("rule", rule.toMap())
         product?.let { putMap("product", it.toMap()) }
@@ -51,7 +49,7 @@ class ApphudRuleCallbackHandler(
 
   override fun onPurchaseCompleted(rule: Rule, result: ApphudPurchaseResult) {
     emit(
-      ApphudSdkDelegateEvents.APPHUD_RULE_PURCHASE_COMPLETED.value,
+      ApphudRuleEvent.PURCHASE_COMPLETED,
       WritableNativeMap().apply {
         putMap("rule", rule.toMap())
         putMap("result", result.toMap())
@@ -61,7 +59,7 @@ class ApphudRuleCallbackHandler(
 
   override fun onScreenWillDismiss(rule: Rule, error: ApphudError?) {
     emit(
-      ApphudSdkDelegateEvents.APPHUD_RULE_SCREEN_WILL_DISMISS.value,
+      ApphudRuleEvent.SCREEN_WILL_DISMISS,
       WritableNativeMap().apply {
         putMap("rule", rule.toMap())
         putString("error", error?.message)
@@ -71,7 +69,7 @@ class ApphudRuleCallbackHandler(
 
   override fun onScreenDidDismiss(rule: Rule) {
     emit(
-      ApphudSdkDelegateEvents.APPHUD_RULE_SCREEN_DID_DISMISS.value,
+      ApphudRuleEvent.SCREEN_DID_DISMISS,
       WritableNativeMap().apply {
         putMap("rule", rule.toMap())
       }
@@ -80,7 +78,7 @@ class ApphudRuleCallbackHandler(
 
   override fun onDidSelectSurveyAnswer(rule: Rule, question: String, answer: String) {
     emit(
-      ApphudSdkDelegateEvents.APPHUD_RULE_DID_SELECT_SURVEY_ANSWER.value,
+      ApphudRuleEvent.DID_SELECT_SURVEY_ANSWER,
       WritableNativeMap().apply {
         putMap("rule", rule.toMap())
         putString("question", question)
@@ -91,7 +89,7 @@ class ApphudRuleCallbackHandler(
 
   override fun onRulePaywallWithoutScreen(rule: Rule, paywall: ApphudPaywall) {
     emit(
-      ApphudSdkDelegateEvents.APPHUD_RULE_PAYWALL_WITHOUT_SCREEN.value,
+      ApphudRuleEvent.PAYWALL_WITHOUT_SCREEN,
       WritableNativeMap().apply {
         putMap("rule", rule.toMap())
         putMap("paywall", paywall.toMap())
@@ -99,11 +97,7 @@ class ApphudRuleCallbackHandler(
     )
   }
 
-  private fun emit(eventName: String, body: WritableNativeMap) {
-    runOnUiThread {
-      reactContext
-        .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-        .emit(eventName, body)
-    }
+  private fun emit(event: ApphudRuleEvent, body: WritableNativeMap) {
+    ApphudListenerHandler.current?.emitRuleEvent(event, body)
   }
 }

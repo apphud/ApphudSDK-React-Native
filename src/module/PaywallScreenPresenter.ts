@@ -4,14 +4,10 @@ import type {
   IDisposable,
   PlacementsOptions,
 } from './types';
-import {
-  NativeModules,
-  NativeEventEmitter,
-  type EventSubscription,
-} from 'react-native';
-
-const { PaywallscreenPresenter: PaywallscreenPresenterInternal } =
-  NativeModules;
+import { type EventSubscription } from 'react-native';
+import NativePaywallscreenPresenter, {
+  type PresenterEvent,
+} from '../specs/NativePaywallscreenPresenter';
 
 /**
  * Options for displaying the paywall screen.
@@ -84,7 +80,37 @@ type EventCallbacks = {
   [EVENT_TYPES.SCREEN_SHOWN]: () => void;
 };
 
-const emitter = new NativeEventEmitter(PaywallscreenPresenterInternal);
+/**
+ * Native subscribers, keyed by the public event name.
+ *
+ * Codegen requires event payloads to be statically typed, so the native side
+ * sends the body as a JSON string and it is decoded here.
+ */
+const NATIVE_SUBSCRIBERS: Record<
+  keyof EventCallbacks,
+  (handler: (event: PresenterEvent) => void) => EventSubscription
+> = {
+  [EVENT_TYPES.TRANSACTION_STARTED]:
+    NativePaywallscreenPresenter.onTransactionStarted,
+  [EVENT_TYPES.TRANSACTION_COMPLETED]:
+    NativePaywallscreenPresenter.onTransactionCompleted,
+  [EVENT_TYPES.CLOSE_BUTTON_TAPPED]:
+    NativePaywallscreenPresenter.onCloseButtonTapped,
+  [EVENT_TYPES.ERROR]: NativePaywallscreenPresenter.onError,
+  [EVENT_TYPES.SCREEN_SHOWN]: NativePaywallscreenPresenter.onScreenShown,
+};
+
+function decodePayload(payload: string | null): any {
+  if (payload == null) {
+    return undefined;
+  }
+
+  try {
+    return JSON.parse(payload);
+  } catch {
+    return payload;
+  }
+}
 
 const NOP = () => {};
 
@@ -130,7 +156,7 @@ export class PaywallScreenPresenter implements IDisposable {
    * - unique presenter identifier
    */
   displayPaywallScreen() {
-    PaywallscreenPresenterInternal.displayPaywallScreen({
+    NativePaywallscreenPresenter.displayPaywallScreen({
       ...this.options,
       paywallScreenPresenterId: this.id,
     });
@@ -155,11 +181,10 @@ export class PaywallScreenPresenter implements IDisposable {
       return NOP;
     }
 
-    const subscription = emitter.addListener(
-      name,
+    const subscription = NATIVE_SUBSCRIBERS[name](
       ({ paywallScreenPresenterId, payload }) => {
         if (paywallScreenPresenterId === this.id) {
-          callback(payload);
+          (callback as (arg?: any) => void)(decodePayload(payload));
         }
       }
     );

@@ -16,4 +16,6 @@ enum ApphudSdkVersion {
 `;
 
 fs.writeFileSync(swiftPath, swiftContents, 'utf8');
-console.log(`Synced RN Apphud SDK version ${version} -> ios/ApphudSdkVersion.swift`);
+console.log(
+  `Synced RN Apphud SDK version ${version} -> ios/ApphudSdkVersion.swift`
+);
