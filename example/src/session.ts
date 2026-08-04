@@ -13,9 +13,7 @@ const API_KEY_STORAGE_KEY = 'apphud_demo_api_key';
 
 export function getDefaultApiKey(): string {
   const platformKey =
-    Platform.OS === 'android'
-      ? APPHUD_API_KEY_ANDROID
-      : APPHUD_API_KEY_IOS;
+    Platform.OS === 'android' ? APPHUD_API_KEY_ANDROID : APPHUD_API_KEY_IOS;
 
   return platformKey?.trim() || APPHUD_API_KEY?.trim() || '';
 }

@@ -1,16 +1,22 @@
 import ApphudSDK
 import StoreKit
 
-@objc(ApphudSdk)
-class ApphudSdk: NSObject {
+/// Implementation behind the `ApphudSdk` Turbo Native Module.
+///
+/// The module itself is `ApphudSdkModule` (Obj-C++), because Codegen generates
+/// the `NativeApphudSdkSpec` protocol as Obj-C++, which Swift cannot import.
+/// This class holds all the logic and is called through the generated
+/// `-Swift.h` header, so its API has to be `public` and Obj-C representable.
+@objc(ApphudSdkImpl)
+public final class ApphudSdkImpl: NSObject {
 
   private func applyBaseUrl(from options: NSDictionary) {
     if let baseUrl = options["baseUrl"] as? String, !baseUrl.isEmpty {
       ApphudHttpClient.shared.domainUrlString = baseUrl
     }
   }
-    
-  override init() {
+
+  public override init() {
     ApphudHttpClient.shared.sdkType = "reactnative"
     let current = ApphudHttpClient.shared.sdkVersion
     if !current.contains("(") {
@@ -19,21 +25,21 @@ class ApphudSdk: NSObject {
   }
 
   @objc(start:withResolver:withRejecter:)
-  func start(
+  public func start(
     options: NSDictionary,
     resolve: @escaping RCTPromiseResolveBlock,
     reject: RCTPromiseRejectBlock
   ) {
-    
+
     guard let apiKey = options["apiKey"] as? String else {
       reject("Error", "apiKey not set", nil)
       return
     }
-    
+
     let userID = options["userId"] as? String;
     let observerMode = options["observerMode"] as? Bool ?? false;
     applyBaseUrl(from: options)
-    
+
     DispatchQueue.main.async {
 #if DEBUG
       ApphudUtils.enableAllLogs()
@@ -45,7 +51,7 @@ class ApphudSdk: NSObject {
         resolve(user.toMap())
         return
       }
-      
+
       Apphud
         .start(
           apiKey: apiKey,
@@ -58,12 +64,12 @@ class ApphudSdk: NSObject {
         }
 
       // `start` resets the deep link handler when it's not passed as an argument.
-      ApphudSdkEvents.reapplyDeeplinkHandlerIfNeeded()
+      ApphudSdkEventsImpl.reapplyDeeplinkHandlerIfNeeded()
     }
   }
-    
+
   @objc(startManually:withResolver:withRejecter:)
-  func startManually(
+  public func startManually(
     options: NSDictionary,
     resolve: @escaping RCTPromiseResolveBlock,
     reject: RCTPromiseRejectBlock
@@ -102,17 +108,17 @@ class ApphudSdk: NSObject {
         }
 
       // `startManually` resets the deep link handler when it's not passed as an argument.
-      ApphudSdkEvents.reapplyDeeplinkHandlerIfNeeded()
+      ApphudSdkEventsImpl.reapplyDeeplinkHandlerIfNeeded()
     }
   }
 
   @objc(setHost:)
-  func setHost(url: String) {
+  public func setHost(url: String) {
     ApphudHttpClient.shared.domainUrlString = url
   }
 
   @objc(handleDeeplinkUrl:)
-  func handleDeeplinkUrl(url: String) {
+  public func handleDeeplinkUrl(url: String) {
     guard let deeplinkUrl = URL(string: url) else { return }
 
     Task { @MainActor in
@@ -121,7 +127,7 @@ class ApphudSdk: NSObject {
   }
 
   @objc(requestDeferredDeeplinkAttribution:withRejecter:)
-  func requestDeferredDeeplinkAttribution(
+  public func requestDeferredDeeplinkAttribution(
     resolve: @escaping RCTPromiseResolveBlock,
     reject: RCTPromiseRejectBlock
   ) {
@@ -132,7 +138,7 @@ class ApphudSdk: NSObject {
   }
 
   @objc(rawPlacements:withRejecter:)
-  func rawPlacements(
+  public func rawPlacements(
     resolve: @escaping RCTPromiseResolveBlock,
     reject: RCTPromiseRejectBlock
   ) {
@@ -142,7 +148,7 @@ class ApphudSdk: NSObject {
   }
 
   @objc(placement:options:withResolver:withRejecter:)
-  func placement(
+  public func placement(
     identifier: String,
     options: NSDictionary,
     resolve: @escaping RCTPromiseResolveBlock,
@@ -159,7 +165,7 @@ class ApphudSdk: NSObject {
   }
 
   @objc(isCommitmentPlanPreferred:withResolver:withRejecter:)
-  func isCommitmentPlanPreferred(
+  public func isCommitmentPlanPreferred(
     options: NSDictionary,
     resolve: @escaping RCTPromiseResolveBlock,
     reject: @escaping RCTPromiseRejectBlock
@@ -189,7 +195,7 @@ class ApphudSdk: NSObject {
   }
 
   @objc(isCommitmentPlanSupported:withResolver:withRejecter:)
-  func isCommitmentPlanSupported(
+  public func isCommitmentPlanSupported(
     options: NSDictionary,
     resolve: @escaping RCTPromiseResolveBlock,
     reject: @escaping RCTPromiseRejectBlock
@@ -222,18 +228,18 @@ class ApphudSdk: NSObject {
       }
     }
   }
-  
+
   @MainActor
   @objc(refreshUserData:withRejecter:)
-  func refreshUserData(resolve: @escaping RCTPromiseResolveBlock,
-                       reject: RCTPromiseRejectBlock) {
+  public func refreshUserData(resolve: @escaping RCTPromiseResolveBlock,
+                              reject: RCTPromiseRejectBlock) {
     Apphud.refreshUserData { user in
       resolve(user?.toMap())
     }
   }
-    
+
   @objc(logout:withRejecter:)
-  func logout(
+  public func logout(
     resolve: @escaping RCTPromiseResolveBlock,
     reject:RCTPromiseRejectBlock
   ) {
@@ -242,27 +248,27 @@ class ApphudSdk: NSObject {
       resolve(nil)
     }
   }
-    
+
   @objc(hasActiveSubscription:withRejecter:)
-  func hasActiveSubscription(resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+  public func hasActiveSubscription(resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
     resolve(Apphud.hasActiveSubscription());
   }
 
   @objc(hasPremiumAccess:withRejecter:)
-  func hasPremiumAccess(resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+  public func hasPremiumAccess(resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
     resolve(Apphud.hasPremiumAccess());
   }
 
   @objc(products:withRejecter:)
-  func products(resolve: @escaping RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+  public func products(resolve: @escaping RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
     Apphud.fetchProducts { products, error in
-      
+
       resolve(products.map { $0.toMap() });
     }
   }
-  
+
   @objc(purchase:withResolver:withRejecter:)
-  func purchase(args: NSDictionary, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+  public func purchase(args: NSDictionary, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
     Task { @MainActor in
       guard let product = await self.findProduct(from: args) else {
         if (args["productId"] as? String)?.isEmpty != false {
@@ -280,7 +286,7 @@ class ApphudSdk: NSObject {
   }
 
   @objc(checkEligibilityForPromotionalOffer:withResolver:withRejecter:)
-  func checkEligibilityForPromotionalOffer(
+  public func checkEligibilityForPromotionalOffer(
     args: NSDictionary,
     resolve: @escaping RCTPromiseResolveBlock,
     reject: @escaping RCTPromiseRejectBlock
@@ -309,7 +315,7 @@ class ApphudSdk: NSObject {
   }
 
   @objc(purchasePromo:withResolver:withRejecter:)
-  func purchasePromo(args: NSDictionary, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+  public func purchasePromo(args: NSDictionary, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
     guard let discountID = args["discountID"] as? String, !discountID.isEmpty else {
       reject("Error", "discountID not set", nil)
       return
@@ -332,14 +338,14 @@ class ApphudSdk: NSObject {
   }
 
   @objc(paywallShown:)
-  func paywallShown(options: [AnyHashable : Any]) {
+  public func paywallShown(options: [AnyHashable : Any]) {
     let placementIdentifier = options["placementIdentifier"] as? String
     let paywallIdentifier = options["paywallIdentifier"] as? String
-    
+
     if placementIdentifier == nil && paywallIdentifier == nil {
       return
     }
-    
+
     Task { @MainActor in
       let paywall = await ApphudPaywallsHelper.getPaywall(options: options)
 
@@ -350,7 +356,7 @@ class ApphudSdk: NSObject {
   }
 
   @MainActor @objc(subscription:withRejecter:)
-  func subscription(resolve: RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+  public func subscription(resolve: RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
     guard let subscription = Apphud.subscription() else {
       reject("Error", "User has no subscriptions", nil)
       return
@@ -359,30 +365,30 @@ class ApphudSdk: NSObject {
     resolve(subscription.toMap());
   }
 
-    
+
   @MainActor @objc(subscriptions:withRejecter:)
-  func subscriptions(resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+  public func subscriptions(resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
     let subs = Apphud.subscriptions() ?? []
     let array: Array = subs.map { $0.toMap() }
     resolve(array as NSArray)
   }
 
   @MainActor @objc(isNonRenewingPurchaseActive:withResolver:withRejecter:)
-  func isNonRenewingPurchaseActive(productIdentifier: String, resolve: RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+  public func isNonRenewingPurchaseActive(productIdentifier: String, resolve: RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
     resolve(
       Apphud.isNonRenewingPurchaseActive(productIdentifier: productIdentifier)
     );
   }
 
   @MainActor @objc(nonRenewingPurchases:withRejecter:)
-  func nonRenewingPurchases(resolve: RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+  public func nonRenewingPurchases(resolve: RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
     let purchases = Apphud.nonRenewingPurchases() ?? []
     let array: Array = purchases.map { $0.toMap() }
     resolve(array)
   }
-    
+
   @MainActor @objc(restorePurchases:withRejecter:)
-  func restorePurchases(resolve: @escaping RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+  public func restorePurchases(resolve: @escaping RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
     Apphud.restorePurchases { result in
       resolve(
         [
@@ -393,16 +399,16 @@ class ApphudSdk: NSObject {
       )
     }
   }
-    
+
   @MainActor @objc(userId:withRejecter:)
-  func userId(resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+  public func userId(resolve:RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
     resolve(
       Apphud.userID()
     );
   }
-    
+
   @objc(setAttribution:withResolver:withRejecter:)
-  func setAttribution(
+  public func setAttribution(
     options: NSDictionary,
     resolve: @escaping RCTPromiseResolveBlock,
     reject:RCTPromiseRejectBlock
@@ -423,17 +429,17 @@ class ApphudSdk: NSObject {
   }
 
   @objc(setUserProperty:)
-  func setUserProperty(options: NSDictionary) {
+  public func setUserProperty(options: NSDictionary) {
     guard let key = options["key"] as? String else {return}
-        
+
     let value = options["value"]
     let setOnce: Bool = (options["setOnce"] as? Bool) ?? false
     let _key = ApphudUserPropertyKey.init(key)
     Apphud.setUserProperty(key: _key, value: value, setOnce: setOnce)
   }
-    
+
   @objc(incrementUserProperty:)
-  func incrementUserProperty(options: NSDictionary) {
+  public func incrementUserProperty(options: NSDictionary) {
     guard let key = options["key"] as? String, let by = options["by"] else {
       return
     }
@@ -444,37 +450,37 @@ class ApphudSdk: NSObject {
 
   // TODO
   @MainActor @objc(syncPurchasesInObserverMode:withRejecter:)
-  func syncPurchasesInObserverMode(resolve: @escaping RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+  public func syncPurchasesInObserverMode(resolve: @escaping RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
     Apphud.restorePurchases { result in
       resolve(result.error == nil)
     }
   }
 
   @objc(setDeviceIdentifiers:)
-  func setDeviceIdentifiers(options: NSDictionary) {
+  public func setDeviceIdentifiers(options: NSDictionary) {
     let idfa = options["idfa"] as? String
     let idfv = options["idfv"] as? String
-    
+
     Apphud.setDeviceIdentifiers(idfa: idfa, idfv: idfv)
   }
 
   @objc(enableDebugLogs)
-  func enableDebugLogs() {
+  public func enableDebugLogs() {
     ApphudUtils.enableAllLogs()
   }
 
   @objc(optOutOfTracking)
-  func optOutOfTracking() {
+  public func optOutOfTracking() {
     Apphud.optOutOfTracking()
   }
 
   @objc(collectDeviceIdentifiers)
-  func collectDeviceIdentifiers() {
+  public func collectDeviceIdentifiers() {
     // do nothing
   }
 
   @objc(checkRules:withRejecter:)
-  func checkRules(
+  public func checkRules(
     resolve: @escaping RCTPromiseResolveBlock,
     reject: @escaping RCTPromiseRejectBlock
   ) {
@@ -486,7 +492,7 @@ class ApphudSdk: NSObject {
 
   @MainActor
   @objc(pendingRule:withRejecter:)
-  func pendingRule(
+  public func pendingRule(
     resolve: @escaping RCTPromiseResolveBlock,
     reject: @escaping RCTPromiseRejectBlock
   ) {
@@ -503,7 +509,7 @@ class ApphudSdk: NSObject {
 
   @MainActor
   @objc(showPendingRuleScreen:withRejecter:)
-  func showPendingRuleScreen(
+  public func showPendingRuleScreen(
     resolve: @escaping RCTPromiseResolveBlock,
     reject: @escaping RCTPromiseRejectBlock
   ) {
@@ -515,7 +521,7 @@ class ApphudSdk: NSObject {
   }
 
   @objc(submitPushNotificationsToken:withResolver:withRejecter:)
-  func submitPushNotificationsToken(
+  public func submitPushNotificationsToken(
     token: String,
     resolve: @escaping RCTPromiseResolveBlock,
     reject: @escaping RCTPromiseRejectBlock
@@ -526,7 +532,7 @@ class ApphudSdk: NSObject {
   }
 
   @objc(handlePushNotification:withResolver:withRejecter:)
-  func handlePushNotification(
+  public func handlePushNotification(
     apsInfo: NSDictionary,
     resolve: @escaping RCTPromiseResolveBlock,
     reject: @escaping RCTPromiseRejectBlock
@@ -540,55 +546,55 @@ class ApphudSdk: NSObject {
       resolve(handled)
     }
   }
-  
+
   @MainActor @objc(attributeFromWeb:withResolver:withRejecter:)
-  func attributeFromWeb(
+  public func attributeFromWeb(
     data: [AnyHashable: Any],
     resolve: @escaping RCTPromiseResolveBlock,
     reject: @escaping RCTPromiseRejectBlock) {
       Apphud.attributeFromWeb(data: data) { success, user in
-      
+
         var result: [String: Any] = [:]
-      
+
         if let userId = user?.userId {
           result["userId"] = userId
         }
-      
+
         result["isPremium"] = Apphud.hasPremiumAccess()
         result["result"] = success
-      
+
         resolve(result)
       }
     }
-  
+
   @MainActor @objc(placements:withResolver:withRejecter:)
-  func placements(
+  public func placements(
     options: NSDictionary,
     resolve: @escaping RCTPromiseResolveBlock,
     reject: @escaping RCTPromiseRejectBlock
   ) {
     let maxAttempts = options["maxAttempts"] as? Int ?? APPHUD_DEFAULT_RETRIES
     let forceRefresh = options["forceRefresh"] as? Bool ?? false
-    
+
     Apphud.fetchPlacements(maxAttempts: maxAttempts, forceRefresh: forceRefresh) { placements, error in
       if let error {
         reject("Error", error.localizedDescription, nil)
         return
       }
-      
+
       resolve(placements.map({ $0.toMap() }))
     }
   }
-  
+
   @MainActor
   @objc(preloadPaywallScreens:)
-  func preloadPaywallScreens(placementIdentifiers: [String]) {
+  public func preloadPaywallScreens(placementIdentifiers: [String]) {
     Apphud.preloadPaywallScreens(placementIdentifiers: placementIdentifiers)
   }
 
   @MainActor
   @objc(unloadPaywallScreen:withResolver:withRejecter:)
-  func unloadPaywallScreen(
+  public func unloadPaywallScreen(
     options: NSDictionary,
     resolve: @escaping RCTPromiseResolveBlock,
     reject: @escaping RCTPromiseRejectBlock
@@ -597,10 +603,10 @@ class ApphudSdk: NSObject {
       reject("Error", "Param placementIdentifier is required", nil)
       return
     }
-    
+
     let maxAttempts = options["maxAttempts"] as? Int ?? APPHUD_DEFAULT_RETRIES
     let forceRefresh = options["forceRefresh"] as? Bool ?? false
-    
+
     Apphud.fetchPlacements(maxAttempts: maxAttempts, forceRefresh: forceRefresh) { [resolve, reject] placements, error in
       if let error {
         reject("Error", error.localizedDescription, nil)
@@ -610,25 +616,25 @@ class ApphudSdk: NSObject {
       let placement = placements.first { placement in
         placement.identifier == placementIdentifier
       }
-      
+
       guard let paywall = placement?.paywall else {
         reject("Error", "Paywall not found", nil)
         return
       }
-      
+
       Apphud.unloadPaywallScreen(paywall)
       resolve(nil)
     }
   }
-  
+
   @objc(idfv:withRejecter:)
-  func idfv(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+  public func idfv(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
     resolve(UIDevice.current.identifierForVendor?.uuidString)
   }
-  
+
   @MainActor
   @objc(updateUserID:withResolver:withRejecter:)
-  func updateUserID(userID: String, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+  public func updateUserID(userID: String, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
     Apphud.updateUserID(userID) { user in
       Task { @MainActor in
         resolve(user?.toMap())
@@ -637,7 +643,7 @@ class ApphudSdk: NSObject {
   }
 }
 
-private extension ApphudSdk {
+private extension ApphudSdkImpl {
   @MainActor
   func findProduct(from args: NSDictionary) async -> ApphudProduct? {
     guard let productId = args["productId"] as? String, !productId.isEmpty else {

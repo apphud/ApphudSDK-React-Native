@@ -1,18 +1,14 @@
 package com.reactnativeapphudsdk
 
 import android.net.Uri
-import android.telecom.Call
 import android.util.Log
-import com.apphud.sdk.APPHUD_DEFAULT_MAX_TIMEOUT
 import com.apphud.sdk.Apphud
 import com.apphud.sdk.ApphudAttributionProvider
 import com.apphud.sdk.ApphudPurchasesRestoreResult
 import com.apphud.sdk.ApphudUserPropertyKey
 import com.apphud.sdk.ApphudUtils
-import com.apphud.sdk.domain.ApphudPaywallScreenShowResult
 import com.apphud.sdk.domain.ApphudProduct
 import com.apphud.sdk.internal.data.network.SdkHeaders
-//import com.apphud.sdk.managers.HeadersInterceptor
 import com.facebook.react.bridge.*
 import com.facebook.react.bridge.UiThreadUtil.runOnUiThread
 import kotlinx.coroutines.CoroutineScope
@@ -21,15 +17,10 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 class ApphudSdkModule(reactContext: ReactApplicationContext) :
-  ReactContextBaseJavaModule(reactContext) {
+  NativeApphudSdkSpec(reactContext) {
 
   private val moduleScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-  private val unSupportMethodMsg: String = "Unsupported method"
   private val ruleCallbackHandler = ApphudRuleCallbackHandler(reactContext)
-
-  override fun getName(): String {
-    return "ApphudSdk"
-  }
 
   init {
     SdkHeaders.X_SDK = "reactnative"
@@ -40,8 +31,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
     }
   }
 
-  @ReactMethod
-  fun start(options: ReadableMap, promise: Promise) {
+    override fun start(options: ReadableMap, promise: Promise) {
     startManually(options, promise)
   }
 
@@ -54,13 +44,11 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
     }
   }
 
-  @ReactMethod
-  fun setHost(url: String) {
+    override fun setHost(url: String) {
     ApphudUtils.overrideBaseUrl(url)
   }
 
-  @ReactMethod
-  fun startManually(options: ReadableMap, promise: Promise) {
+    override fun startManually(options: ReadableMap, promise: Promise) {
     val apiKey = options.getString("apiKey")
     Log.d("ApphudSdkModule", "apiKey: $apiKey")
     val userId = options.getString("userId")
@@ -127,37 +115,33 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
     return true
   }
 
-  @ReactMethod
-  fun setDeviceIdentifiers(options: ReadableMap, promise: Promise) {
-    promise.resolve(null)
+    /** iOS-only (IDFA / IDFV). Kept as a no-op so the spec is satisfied. */
+  override fun setDeviceIdentifiers(options: ReadableMap) {
+    // no-op on Android
   }
 
-  @ReactMethod
-  fun userId(promise: Promise) {
+    override fun userId(promise: Promise) {
     runOnUiThread {
       promise.resolve(Apphud.userId())
     }
   }
 
 
-  @ReactMethod
-  fun hasActiveSubscription(promise: Promise) {
+    override fun hasActiveSubscription(promise: Promise) {
     promise.resolve(
       Apphud.hasActiveSubscription()
     )
   }
 
-  @ReactMethod
-  fun paywallShown(options: ReadableMap) {
+    override fun paywallShown(options: ReadableMap) {
     Utils.paywall(options) { paywall ->
       paywall?.let {
-        Apphud.paywallShown(paywall)
+        Apphud.paywallShown(it)
       }
     }
   }
 
-  @ReactMethod
-  fun purchase(args: ReadableMap, promise: Promise) {
+    override fun purchase(args: ReadableMap, promise: Promise) {
     val productId = args.getString("productId")
 
     if (productId.isNullOrEmpty()) {
@@ -186,6 +170,15 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
     }
   }
 
+  /** Promotional offers are an App Store feature; Android never qualifies. */
+  override fun checkEligibilityForPromotionalOffer(props: ReadableMap, promise: Promise) {
+    promise.resolve(false)
+  }
+
+  override fun purchasePromo(props: ReadableMap, promise: Promise) {
+    promise.reject("unsupported", "purchasePromo is only available on iOS")
+  }
+
   private fun purchaseSubscription(product: ApphudProduct, offerToken: String?, promise: Promise) {
     reactApplicationContext.currentActivity?.let {
       Apphud.purchase(it, product, offerToken) { res ->
@@ -210,8 +203,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
     }
   }
 
-  @ReactMethod
-  fun setAttribution(options: ReadableMap, promise: Promise) {
+    override fun setAttribution(options: ReadableMap, promise: Promise) {
     val attributionParams = options.getAttributionParams() ?: run {
       promise.reject("Error", "Options not valid")
       return
@@ -226,8 +218,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
     promise.resolve(true)
   }
 
-  @ReactMethod
-  fun attributeFromWeb(options: ReadableMap, promise: Promise) {
+    override fun attributeFromWeb(options: ReadableMap, promise: Promise) {
     val data = options.toHashMap().let {
       val result = mutableMapOf<String, Any>()
 
@@ -259,8 +250,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
     }
   }
 
-  @ReactMethod
-  fun products(promise: Promise) {
+    override fun products(promise: Promise) {
     moduleScope.launch {
       try {
         val placements = Apphud.placements()
@@ -275,15 +265,13 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
     }
   }
 
-  @ReactMethod
-  fun rawPlacements(promise: Promise) {
+    override fun rawPlacements(promise: Promise) {
     runOnUiThread {
       promise.resolve(Apphud.rawPlacements().toWritableNativeArray { it.toMap() })
     }
   }
 
-  @ReactMethod
-  fun placement(identifier: String, options: ReadableMap, promise: Promise) {
+    override fun placement(identifier: String, options: ReadableMap, promise: Promise) {
     val placementsOptions = options.getPlacementsOptions()
     moduleScope.launch {
       try {
@@ -303,8 +291,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
     }
   }
 
-  @ReactMethod
-  fun handleDeeplinkUrl(url: String) {
+    override fun handleDeeplinkUrl(url: String) {
     if (url.isEmpty()) {
       return
     }
@@ -312,8 +299,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
     Apphud.handleUri(Uri.parse(url))
   }
 
-  @ReactMethod
-  fun requestDeferredDeeplinkAttribution(promise: Promise) {
+    override fun requestDeferredDeeplinkAttribution(promise: Promise) {
     val activity = reactApplicationContext.currentActivity ?: run {
       promise.reject(
         "no_activity",
@@ -329,18 +315,15 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
     }
   }
 
-  @ReactMethod
-  fun isCommitmentPlanPreferred(options: ReadableMap, promise: Promise) {
+    override fun isCommitmentPlanPreferred(options: ReadableMap, promise: Promise) {
     promise.resolve(false)
   }
 
-  @ReactMethod
-  fun isCommitmentPlanSupported(options: ReadableMap, promise: Promise) {
+    override fun isCommitmentPlanSupported(options: ReadableMap, promise: Promise) {
     promise.resolve(false)
   }
 
-  @ReactMethod
-  fun subscription(promise: Promise) {
+    override fun subscription(promise: Promise) {
     Apphud.subscription()?.let {
       promise.resolve(it.toMap())
     } ?: run {
@@ -348,25 +331,21 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
     }
   }
 
-  @ReactMethod
-  fun subscriptions(promise: Promise) {
+    override fun subscriptions(promise: Promise) {
     promise.resolve(Apphud.subscriptions().toWritableNativeArray { it.toMap() })
   }
 
-  @ReactMethod
-  fun nonRenewingPurchases(promise: Promise) {
+    override fun nonRenewingPurchases(promise: Promise) {
     promise.resolve(Apphud.nonRenewingPurchases().toWritableNativeArray { it.toMap() })
   }
 
-  @ReactMethod
-  fun isNonRenewingPurchaseActive(productIdentifier: String, promise: Promise) {
+    override fun isNonRenewingPurchaseActive(productIdentifier: String, promise: Promise) {
     promise.resolve(
       Apphud.isNonRenewingPurchaseActive(productIdentifier)
     )
   }
 
-  @ReactMethod
-  fun setUserProperty(args: ReadableMap) {
+    override fun setUserProperty(args: ReadableMap) {
     val hash = args.toHashMap()
     val key = hash["key"] as? String
     val value = hash["value"]
@@ -378,8 +357,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
     }
   }
 
-  @ReactMethod
-  fun incrementUserProperty(args: ReadableMap) {
+    override fun incrementUserProperty(args: ReadableMap) {
     val hash = args.toHashMap()
     val key = hash["key"] as? String
     val value = hash["by"]
@@ -390,8 +368,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
     }
   }
 
-  @ReactMethod
-  fun restorePurchases(promise: Promise) {
+    override fun restorePurchases(promise: Promise) {
     Apphud.restorePurchases { result ->
       val resultMap = WritableNativeMap()
 
@@ -410,55 +387,42 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
     }
   }
 
-  @ReactMethod
-  fun hasPremiumAccess(promise: Promise) {
+    override fun hasPremiumAccess(promise: Promise) {
     promise.resolve(Apphud.hasPremiumAccess())
   }
 
-  @ReactMethod
-  fun syncPurchasesInObserverMode(promise: Promise) {
+    override fun syncPurchasesInObserverMode(promise: Promise) {
     Apphud.restorePurchases { result ->
       promise.resolve(result is ApphudPurchasesRestoreResult.Success)
     }
   }
 
-  @ReactMethod
-  fun optOutOfTracking() {
+    override fun optOutOfTracking() {
     Apphud.optOutOfTracking()
   }
 
-  @ReactMethod
-  fun collectDeviceIdentifiers() {
+    override fun collectDeviceIdentifiers() {
     Apphud.collectDeviceIdentifiers()
   }
 
-  @ReactMethod
-  fun setAdvertisingIdentifiers(options: ReadableMap) {
-    Apphud.collectDeviceIdentifiers()
-  }
-
-  @ReactMethod
-  fun enableDebugLogs() {
+  override fun enableDebugLogs() {
     ApphudUtils.enableAllLogs()
   }
 
-  @ReactMethod
-  fun checkRules(promise: Promise) {
+    override fun checkRules(promise: Promise) {
     runOnUiThread {
       Apphud.checkRules()
       promise.resolve(null)
     }
   }
 
-  @ReactMethod
-  fun pendingRule(promise: Promise) {
+    override fun pendingRule(promise: Promise) {
     runOnUiThread {
       promise.resolve(Apphud.pendingRule()?.toMap())
     }
   }
 
-  @ReactMethod
-  fun showPendingRuleScreen(promise: Promise) {
+    override fun showPendingRuleScreen(promise: Promise) {
     runOnUiThread {
       Apphud.showPendingScreen { shown ->
         promise.resolve(shown)
@@ -466,15 +430,13 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
     }
   }
 
-  @ReactMethod
-  fun submitPushNotificationsToken(token: String, promise: Promise) {
+    override fun submitPushNotificationsToken(token: String, promise: Promise) {
     Apphud.submitPushNotificationsToken(token) { success ->
       promise.resolve(success)
     }
   }
 
-  @ReactMethod
-  fun handlePushNotification(apsInfo: ReadableMap, promise: Promise) {
+    override fun handlePushNotification(apsInfo: ReadableMap, promise: Promise) {
     runOnUiThread {
       val data = mutableMapOf<String, Any>()
       for ((key, value) in apsInfo.toHashMap()) {
@@ -486,8 +448,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
     }
   }
 
-  @ReactMethod
-  fun placements(options: ReadableMap, promise: Promise) {
+    override fun placements(options: ReadableMap, promise: Promise) {
     val placementsOptions = options.getPlacementsOptions()
 
     Apphud.fetchPlacements(preferredTimeout = placementsOptions.preferredTimeout, forceRefresh = placementsOptions.forceRefresh) { placements, error ->
@@ -500,24 +461,25 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
     }
   }
 
-  @ReactMethod
-  fun idfv(promise: Promise) {
+    override fun idfv(promise: Promise) {
     promise.resolve(null)
   }
 
-  @ReactMethod
-  fun unloadPaywallScreen(options: ReadableMap, promise: Promise) {
+    /** Paywall screens are not preloaded on Android; kept for spec parity. */
+  override fun preloadPaywallScreens(placementIdentifiers: ReadableArray) {
+    // no-op on Android
+  }
+
+  override fun unloadPaywallScreen(options: ReadableMap, promise: Promise) {
     promise.resolve(null)
   }
 
-  @ReactMethod
-  fun logout(promise: Promise) {
+    override fun logout(promise: Promise) {
     Apphud.logout()
     promise.resolve(null)
   }
 
-  @ReactMethod
-  fun updateUserID(userID: String, promise: Promise) {
+    override fun updateUserID(userID: String, promise: Promise) {
     Apphud.updateUserId(userID) { promise.resolve(it?.toMap()) }
   }
 
@@ -531,5 +493,9 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
       "phone" -> ApphudUserPropertyKey.Phone
       else -> ApphudUserPropertyKey.CustomProperty(key)
     }
+  }
+
+  companion object {
+    const val NAME = NativeApphudSdkSpec.NAME
   }
 }

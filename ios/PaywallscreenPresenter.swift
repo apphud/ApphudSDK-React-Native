@@ -2,7 +2,7 @@ import Foundation
 import React
 import ApphudSDK
 
-enum PaywallscreenPresenterEvent: String, CaseIterable {
+enum PaywallscreenPresenterEvent {
   case error
   case screenShown
   case closeButtonTapped
@@ -10,28 +10,35 @@ enum PaywallscreenPresenterEvent: String, CaseIterable {
   case transactionStarted
 }
 
-@objc(PaywallscreenPresenter)
-class PaywallscreenPresenter : RCTEventEmitter {
+/// Implementation behind the `PaywallscreenPresenter` Turbo Native Module.
+///
+/// Presents a paywall screen modally and reports its lifecycle back to JS
+/// through `emitter`, the Obj-C++ module wrapper.
+@objc(PaywallscreenPresenterImpl)
+public final class PaywallscreenPresenterImpl: NSObject {
+
+  @objc public weak var emitter: (any ApphudPaywallScreenPresenterEmitting)?
+
   @MainActor
   @objc(displayPaywallScreen:)
-  func displayPaywallScreen(options: NSDictionary) {
+  public func displayPaywallScreen(options: NSDictionary) {
     guard let paywallScreenPresenterId = options["paywallScreenPresenterId"] as? String else {
       return
     }
-    
+
     guard let placementIdentifier = options["placementIdentifier"] as? String else {
       sendEvent(.error, to: paywallScreenPresenterId, with: NSError(
         domain: "ApphudModule",
         code: 400,
         userInfo: [NSLocalizedDescriptionKey: "placementIdentifier is required"]
       ))
-      
+
       return
     }
-    
+
     let maxAttempts = options["maxAttempts"] as? Int ?? APPHUD_DEFAULT_RETRIES
     let forceRefresh = options["forceRefresh"] as? Bool ?? false
-    
+
     Apphud
       .fetchPlacements(maxAttempts: maxAttempts, forceRefresh: forceRefresh) {
         [
@@ -43,7 +50,7 @@ class PaywallscreenPresenter : RCTEventEmitter {
         let placement = placements.first {
           $0.identifier == placementIdentifier
         }
-        
+
         if let paywall = placement?.paywall {
           Apphud.fetchPaywallScreen(paywall) { result in
             switch result {
@@ -51,7 +58,7 @@ class PaywallscreenPresenter : RCTEventEmitter {
               guard let rootViewController = RCTPresentedViewController() else {
                 return
               }
-              
+
               controller.onTransactionStarted = { product in
                 self?.sendEvent(
                   .transactionStarted,
@@ -59,7 +66,7 @@ class PaywallscreenPresenter : RCTEventEmitter {
                   with: product?.toMap()
                 )
               }
-              
+
               controller.onTransactionCompleted = { result in
                 if result.success {
                   self?.sendEvent(
@@ -69,7 +76,7 @@ class PaywallscreenPresenter : RCTEventEmitter {
                   )
                 }
               }
-              
+
               controller.onCloseButtonTapped = {
                 self?.sendEvent(
                   .closeButtonTapped,
@@ -77,17 +84,17 @@ class PaywallscreenPresenter : RCTEventEmitter {
                   with: nil
                 )
               }
-              
-              
+
+
               DispatchQueue.main.async {
                 rootViewController.present(controller, animated: true)
               }
-              
+
               return
-              
+
             case .error(let error):
               self?.sendEvent(.error, to: paywallScreenPresenterId, with: error)
-              
+
               return
             }
           }
@@ -100,27 +107,37 @@ class PaywallscreenPresenter : RCTEventEmitter {
         }
       }
   }
-  
-  override func startObserving() {
-    // Nop
-  }
-  
-  override func stopObserving() {
-    // Nop
-  }
-  
+
+  /// Codegen event payloads are statically typed, so the Apphud entities travel
+  /// as a JSON string and are decoded back in `PaywallScreenPresenter.ts`.
   private func sendEvent(
     _ event: PaywallscreenPresenterEvent,
     to id: String,
-    with payload: Any!
+    with payload: Any?
   ) {
-    sendEvent(
-      withName: event.rawValue,
-      body: ["paywallScreenPresenterId": id, "payload": payload]
-    )
-  }
-  
-  override func supportedEvents() -> [String]! {
-    return PaywallscreenPresenterEvent.allCases.map { $0.rawValue }
+    let encodable: Any?
+    if let error = payload as? NSError {
+      encodable = SerializedError(from: error).toMap()
+    } else {
+      encodable = payload
+    }
+
+    let body: [String: Any] = [
+      "paywallScreenPresenterId": id,
+      "payload": ApphudJSONStringFromObject(encodable) ?? NSNull(),
+    ]
+
+    switch event {
+    case .error:
+      emitter?.emitPresenterError(body)
+    case .screenShown:
+      emitter?.emitPresenterScreenShown(body)
+    case .closeButtonTapped:
+      emitter?.emitPresenterCloseButtonTapped(body)
+    case .transactionCompleted:
+      emitter?.emitPresenterTransactionCompleted(body)
+    case .transactionStarted:
+      emitter?.emitPresenterTransactionStarted(body)
+    }
   }
 }

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Platform, KeyboardAvoidingView } from 'react-native';
-import { Input, Button } from 'react-native-elements';
+import { Input, Button } from '../components/ui';
 import type { StackScreenProps } from '@react-navigation/stack';
 import { getDefaultApiKey, startApphudSession } from '../session';
 
@@ -43,7 +43,6 @@ export default function LoginScreen({ navigation }: Props) {
         onChangeText={setDeviceId}
       />
       <Button
-        type="solid"
         title="Start"
         onPress={onStartHandler}
         disabled={isStarting}

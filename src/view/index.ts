@@ -1,1 +1,2 @@
-export { PaywallScreenView } from './NativePaywallScreenView';
+export { PaywallScreenView } from './PaywallScreenView';
+export type { LoadingViewError } from './types';

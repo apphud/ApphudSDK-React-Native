@@ -6,43 +6,34 @@ import StoreKit
 import UIKit
 #endif
 
-enum ApphudSdkDelegateEvents: String, CaseIterable {
-  case placementsDidFullyLoad
-  case userDidLoad
-  case apphudDidLoadStoreProducts
-  case apphudDidChangeUserID
-  case apphudSubscriptionsUpdated
-  case apphudNonRenewingPurchasesUpdated
-  case apphudProductIdentifiers
-  case apphudScreenDidAppear
-  case apphudDidPurchase
-  case apphudWillPurchase
-  case apphudDidFailPurchase
-  case apphudDidSelectSurveyAnswer
-  case apphudDeeplinkAttribution
-  case apphudRuleScreenDidAppear
-  case apphudRuleWillPurchase
-  case apphudRulePurchaseCompleted
-  case apphudRuleScreenWillDismiss
-  case apphudRuleScreenDidDismiss
-  case apphudRuleDidSelectSurveyAnswer
-  case apphudRulePaywallWithoutScreen
-}
+/// Implementation behind the `ApphudSdkEvents` Turbo Native Module.
+///
+/// Forwards Apphud delegate callbacks to `emitter`, which is the Obj-C++ module
+/// wrapper (`ApphudSdkEventsModule`). The wrapper owns the Codegen-generated
+/// `emitOn…` methods, which cannot be reached from Swift.
+///
+/// The delegate conformances deliberately live on a file-private proxy: this
+/// class ends up in the generated `-Swift.h`, and adopting the Apphud protocols
+/// here would drag their whole Obj-C surface — and any Swift-only type in their
+/// signatures — into every Obj-C++ translation unit that includes that header.
+@objc(ApphudSdkEventsImpl)
+public final class ApphudSdkEventsImpl: NSObject {
 
-@objc(ApphudSdkEvents)
-class ApphudSdkEvents: RCTEventEmitter {
-    
-  var productIdentifiers:[String] = [];
+  @objc public weak var emitter: (any ApphudSdkEventsEmitting)?
+
+  fileprivate var productIdentifiers: [String] = []
+
+  private lazy var delegateProxy = ApphudEventsDelegateProxy(owner: self)
 
   /// Keeps the events module that installed the deep link handler, so it can be
   /// re-applied after `Apphud.start` / `startManually`, which reset the native
   /// handler to `nil` when no `deeplinkHandler` argument is passed.
-  private static weak var shared: ApphudSdkEvents?
+  private static weak var shared: ApphudSdkEventsImpl?
 
-  override init() {
-    super.init();
-    Apphud.setDelegate(self);
-    Apphud.setUIDelegate(self);
+  public override init() {
+    super.init()
+    Apphud.setDelegate(delegateProxy)
+    Apphud.setUIDelegate(delegateProxy)
     Self.shared = self
     Task { @MainActor in
       self.installDeeplinkHandler()
@@ -79,75 +70,84 @@ class ApphudSdkEvents: RCTEventEmitter {
 
     // Deferred attribution may be delivered from a background thread.
     if Thread.isMainThread {
-      self.sendEvent(.apphudDeeplinkAttribution, body: body)
+      self.emitter?.emitApphudDeeplinkAttribution(body)
     } else {
       DispatchQueue.main.async {
-        self.sendEvent(.apphudDeeplinkAttribution, body: body)
+        self.emitter?.emitApphudDeeplinkAttribution(body)
       }
     }
   }
-    
-  @objc(setApphudProductIdentifiers:withResolve:withReject:)
-  public func setApphudProductIdentifiers(ids: NSArray, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
-    self.productIdentifiers = ids as? [String] ?? []
-    resolve(self.productIdentifiers);
-  }
 
-  override func supportedEvents() -> [String]! {
-    ApphudSdkDelegateEvents.allCases.map { $0.rawValue }
+  @objc(setApphudProductIdentifiers:withResolve:withReject:)
+  public func setApphudProductIdentifiers(
+    ids: NSArray,
+    resolve: RCTPromiseResolveBlock,
+    reject: RCTPromiseRejectBlock
+  ) -> Void {
+    self.productIdentifiers = ids as? [String] ?? []
+    resolve(self.productIdentifiers)
   }
 }
 
-extension ApphudSdkEvents: ApphudDelegate {
-    
-  func sendEvent(_ event: ApphudSdkDelegateEvents, body: Any!) {
-    self.sendEvent(withName: event.rawValue, body: body)
+/// Receives every Apphud delegate callback on behalf of `ApphudSdkEventsImpl`.
+private final class ApphudEventsDelegateProxy: NSObject {
+  private weak var owner: ApphudSdkEventsImpl?
+
+  init(owner: ApphudSdkEventsImpl) {
+    self.owner = owner
   }
 
+  var emitter: (any ApphudSdkEventsEmitting)? {
+    owner?.emitter
+  }
+}
+
+extension ApphudEventsDelegateProxy: ApphudDelegate {
+
   func apphudDidFetchStoreKitProducts(_ products: [SKProduct]) {
-    let result:[NSDictionary] = products.map{ (product) -> NSDictionary in
+    let result: [NSDictionary] = products.map { (product) -> NSDictionary in
       return product.toMap();
     }
-    self.sendEvent(.apphudDidLoadStoreProducts, body: result);
+    self.emitter?.emitApphudDidLoadStoreProducts(result)
   }
 
   func apphudDidChangeUserID(_ userID: String) {
-    self.sendEvent(.apphudDidChangeUserID, body: userID);
+    self.emitter?.emitApphudDidChangeUserID(userID)
   }
-    
+
   func apphudSubscriptionsUpdated(_ subscriptions: [ApphudSubscription]) {
-    let result:[NSDictionary] = subscriptions.map{ (
+    let result: [NSDictionary] = subscriptions.map { (
       subscription
     ) -> NSDictionary in
       return subscription.toMap();
     }
-    self.sendEvent(.apphudSubscriptionsUpdated, body: result);
+    self.emitter?.emitApphudSubscriptionsUpdated(result)
   }
-    
+
   func apphudNonRenewingPurchasesUpdated(
     _ purchases: [ApphudNonRenewingPurchase]
   ) {
-    let result = purchases.map{ $0.toMap() }
-    self.sendEvent(.apphudNonRenewingPurchasesUpdated, body: result);
+    let result = purchases.map { $0.toMap() }
+    self.emitter?.emitApphudNonRenewingPurchasesUpdated(result)
   }
-    
+
   func apphudProductIdentifiers() -> [String] {
-    return self.productIdentifiers;
+    return owner?.productIdentifiers ?? []
   }
-    
+
   func placementsDidFullyLoad(placements: [ApphudPlacement]) {
     let result = placements.map { $0.toMap() }
-    self.sendEvent(.placementsDidFullyLoad, body: result);
+    self.emitter?.emitPlacementsDidFullyLoad(result)
   }
 
   func userDidLoad(user: ApphudUser) {
     Task { @MainActor in
-      self.sendEvent(.userDidLoad, body: user.toMap());
+      self.emitter?.emitUserDidLoad(user.toMap() as! [AnyHashable: Any])
     }
   }
 }
 
-extension ApphudSdkEvents: ApphudUIDelegate {
+extension ApphudEventsDelegateProxy: ApphudUIDelegate {
 
   private func sanitize(_ map: [String: Any?]) -> [String: Any] {
     var result: [String: Any] = [:]
@@ -161,6 +161,8 @@ extension ApphudSdkEvents: ApphudUIDelegate {
     return result
   }
 
+  /// `ApphudUIDelegate` is `@MainActor`, so every caller of this helper is too.
+  @MainActor
   private func currentRuleMap(screenName: String?) -> [String: Any] {
     if let rule = Apphud.pendingRule() {
       return sanitize(rule.toMap())
@@ -250,7 +252,7 @@ extension ApphudSdkEvents: ApphudUIDelegate {
   }
 
   func apphudRuleWithoutPaywallScreen(rule: ApphudRule, paywall: ApphudPaywall) {
-    self.sendEvent(.apphudRulePaywallWithoutScreen, body: [
+    self.emitter?.emitApphudRulePaywallWithoutScreen([
       "rule": sanitize(rule.toMap()),
       "paywall": paywall.toMap(),
     ])
@@ -261,8 +263,8 @@ extension ApphudSdkEvents: ApphudUIDelegate {
 
   func apphudScreenDidAppear(screenName: String) {
     // Legacy iOS-only event (backward compatibility).
-    self.sendEvent(.apphudScreenDidAppear, body: ["screenName": screenName])
-    self.sendEvent(.apphudRuleScreenDidAppear, body: [
+    self.emitter?.emitApphudScreenDidAppear(["screenName": screenName])
+    self.emitter?.emitApphudRuleScreenDidAppear([
       "rule": currentRuleMap(screenName: screenName),
     ])
   }
@@ -273,12 +275,12 @@ extension ApphudSdkEvents: ApphudUIDelegate {
     screenName: String
   ) {
     // Legacy iOS-only event (backward compatibility).
-    self.sendEvent(.apphudWillPurchase, body: [
+    self.emitter?.emitApphudWillPurchase([
       "product": product.toMap(),
       "offerId": offerID as Any,
-      "screenName": screenName
-    ]);
-    self.sendEvent(.apphudRuleWillPurchase, body: [
+      "screenName": screenName,
+    ])
+    self.emitter?.emitApphudRuleWillPurchase([
       "rule": currentRuleMap(screenName: screenName),
       "product": productMap(from: product),
     ])
@@ -290,11 +292,11 @@ extension ApphudSdkEvents: ApphudUIDelegate {
     offerID: String?,
     screenName: String
   ) {
-    self.sendEvent(.apphudDidPurchase, body: [
+    self.emitter?.emitApphudDidPurchase([
       "product": product.toMap(),
       "offerId": offerID as Any,
-      "screenName": screenName
-    ]);
+      "screenName": screenName,
+    ])
   }
 
   // New rule-scoped purchase completed — only the transaction overload, so the
@@ -324,7 +326,7 @@ extension ApphudSdkEvents: ApphudUIDelegate {
       result["transaction"] = transactionMap
     }
 
-    self.sendEvent(.apphudRulePurchaseCompleted, body: [
+    self.emitter?.emitApphudRulePurchaseCompleted([
       "rule": currentRuleMap(screenName: screenName),
       "result": result,
     ])
@@ -337,14 +339,14 @@ extension ApphudSdkEvents: ApphudUIDelegate {
     screenName: String
   ) {
     // Legacy iOS-only event (backward compatibility).
-    self.sendEvent(.apphudDidFailPurchase, body: [
+    self.emitter?.emitApphudDidFailPurchase([
       "product": product.toMap(),
       "offerId": offerID as Any,
       "screenName": screenName,
-      "errorCode": errorCode.rawValue
-    ]);
+      "errorCode": errorCode.rawValue,
+    ])
 
-    self.sendEvent(.apphudRulePurchaseCompleted, body: [
+    self.emitter?.emitApphudRulePurchaseCompleted([
       "rule": currentRuleMap(screenName: screenName),
       "result": [
         "error": [
@@ -357,7 +359,7 @@ extension ApphudSdkEvents: ApphudUIDelegate {
   }
 
   func apphudScreenWillDismiss(screenName: String, error: Error?) {
-    self.sendEvent(.apphudRuleScreenWillDismiss, body: [
+    self.emitter?.emitApphudRuleScreenWillDismiss([
       "rule": currentRuleMap(screenName: screenName),
       "error": error?.localizedDescription ?? NSNull(),
     ])
@@ -366,7 +368,7 @@ extension ApphudSdkEvents: ApphudUIDelegate {
 #if os(iOS)
   // Only the screenName overload — implementing both would double-fire.
   func apphudDidDismissScreen(controller: UIViewController, screenName: String?) {
-    self.sendEvent(.apphudRuleScreenDidDismiss, body: [
+    self.emitter?.emitApphudRuleScreenDidDismiss([
       "rule": currentRuleMap(screenName: screenName),
     ])
   }
@@ -378,12 +380,12 @@ extension ApphudSdkEvents: ApphudUIDelegate {
     screenName: String
   ) {
     // Legacy iOS-only event (backward compatibility).
-    self.sendEvent(.apphudDidSelectSurveyAnswer, body: [
+    self.emitter?.emitApphudDidSelectSurveyAnswer([
       "question": question,
       "answer": answer,
-      "screenName": screenName
+      "screenName": screenName,
     ])
-    self.sendEvent(.apphudRuleDidSelectSurveyAnswer, body: [
+    self.emitter?.emitApphudRuleDidSelectSurveyAnswer([
       "rule": currentRuleMap(screenName: screenName),
       "question": question,
       "answer": answer,

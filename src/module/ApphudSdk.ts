@@ -1,4 +1,5 @@
-import { NativeModules, Platform } from 'react-native';
+import { Platform } from 'react-native';
+import NativeApphudSdk from '../specs/NativeApphudSdk';
 import {
   PaywallScreenPresenter,
   type Options as PaywallScreenPresenterOptions,
@@ -133,12 +134,6 @@ interface IApphudSdk {
    * Logs a "Paywall Shown" (Paywall View) event which is required for A/B Testing Analytics.
    */
   paywallShown(options: PaywallLogsInfo & Partial<PlacementsOptions>): void;
-
-  /**
-   * Available on iOS and Android.
-   * Logs a "Paywall Closed" event. Optional.
-   */
-  paywallClosed(options: PaywallLogsInfo & Partial<PlacementsOptions>): void;
 
   /**
    * Available on iOS and Android.
@@ -414,11 +409,11 @@ interface IApphudSdk {
   idfv(): Promise<string | null>;
 
   /**
-   * Available on iOS only
+   * Available on iOS only (no-op on Android).
    *
    * @param placementIdentifiers
    */
-  preloadPaywallScreens?(placementIdentifiers: string[]): void;
+  preloadPaywallScreens(placementIdentifiers: string[]): void;
 
   /**
    * Available on iOS only
@@ -436,14 +431,6 @@ interface IApphudSdk {
   updateUserID(userID: string): Promise<ApphudUser | null>;
 }
 
-const { ApphudSdk: _ApphudSdk } = NativeModules;
-
-if (!_ApphudSdk && __DEV__) {
-  console.error(
-    'NativeModule "ApphudSdk" is not linked. Make sure to run pod install on iOS and rebuild your app'
-  );
-}
-
 type ApphudSdkPresenterProvider = {
   /**
    *
@@ -455,93 +442,104 @@ type ApphudSdkPresenterProvider = {
   ): PaywallScreenPresenter;
 };
 
-const ApphudSdkBase = _ApphudSdk as IApphudSdk;
-
 export const ApphudSdk: IApphudSdk & ApphudSdkPresenterProvider = {
-  start: (options: StartProperties) => ApphudSdkBase.start(options),
+  start: (options: StartProperties) =>
+    NativeApphudSdk.start(options) as Promise<ApphudUser>,
   startManually: (options: StartProperties) =>
-    ApphudSdkBase.startManually(options),
-  userId: () => ApphudSdkBase.userId(),
+    NativeApphudSdk.startManually(options) as Promise<ApphudUser>,
+  userId: () => NativeApphudSdk.userId(),
   placements: (options?: Partial<PlacementsOptions>) =>
-    ApphudSdkBase.placements(options ?? {}),
+    NativeApphudSdk.placements(options ?? {}) as Promise<ApphudPlacement[]>,
   placement: (identifier: string, options?: Partial<PlacementsOptions>) =>
-    ApphudSdkBase.placement(identifier, options ?? {}),
-  rawPlacements: () => ApphudSdkBase.rawPlacements(),
-  setHost: (url: string) => ApphudSdkBase.setHost(url),
-  handleDeeplinkUrl: (url: string) => ApphudSdkBase.handleDeeplinkUrl(url),
+    NativeApphudSdk.placement(
+      identifier,
+      options ?? {}
+    ) as Promise<ApphudPlacement | null>,
+  rawPlacements: () =>
+    NativeApphudSdk.rawPlacements() as Promise<ApphudPlacement[]>,
+  setHost: (url: string) => NativeApphudSdk.setHost(url),
+  handleDeeplinkUrl: (url: string) => NativeApphudSdk.handleDeeplinkUrl(url),
   requestDeferredDeeplinkAttribution: () =>
-    ApphudSdkBase.requestDeferredDeeplinkAttribution(),
+    NativeApphudSdk.requestDeferredDeeplinkAttribution(),
   isCommitmentPlanPreferred: (options: CommitmentPlanProductOptions) =>
-    ApphudSdkBase.isCommitmentPlanPreferred(options),
+    NativeApphudSdk.isCommitmentPlanPreferred(options),
   isCommitmentPlanSupported: (options: CommitmentPlanProductOptions) =>
-    ApphudSdkBase.isCommitmentPlanSupported(options),
+    NativeApphudSdk.isCommitmentPlanSupported(options),
   paywallShown: (options: PaywallLogsInfo & Partial<PlacementsOptions>) =>
-    ApphudSdkBase.paywallShown(options),
-  paywallClosed: (options: PaywallLogsInfo) =>
-    ApphudSdkBase.paywallClosed(options),
-  products: () => ApphudSdkBase.products(),
-  hasPremiumAccess: () => ApphudSdkBase.hasPremiumAccess(),
-  hasActiveSubscription: () => ApphudSdkBase.hasActiveSubscription(),
+    NativeApphudSdk.paywallShown(options),
+  products: () => NativeApphudSdk.products() as Promise<ApphudProduct[]>,
+  hasPremiumAccess: () => NativeApphudSdk.hasPremiumAccess(),
+  hasActiveSubscription: () => NativeApphudSdk.hasActiveSubscription(),
   purchase: (props: ApphudPurchaseProps & Partial<PlacementsOptions>) =>
-    ApphudSdkBase.purchase(props),
+    NativeApphudSdk.purchase(props) as Promise<ApphudPurchaseResult>,
   checkEligibilityForPromotionalOffer: (
     props: ApphudPurchaseProps & Partial<PlacementsOptions>
   ) =>
     Platform.OS === 'ios'
-      ? ApphudSdkBase.checkEligibilityForPromotionalOffer(props)
+      ? NativeApphudSdk.checkEligibilityForPromotionalOffer(props)
       : Promise.resolve(false),
-  purchasePromo: (props: ApphudPurchasePromoProps & Partial<PlacementsOptions>) => {
+  purchasePromo: (
+    props: ApphudPurchasePromoProps & Partial<PlacementsOptions>
+  ) => {
     if (Platform.OS !== 'ios') {
       return Promise.reject(
         new Error('purchasePromo is only available on iOS')
       );
     }
-    return ApphudSdkBase.purchasePromo(props);
+    return NativeApphudSdk.purchasePromo(
+      props
+    ) as Promise<ApphudPurchaseResult>;
   },
-  restorePurchases: () => ApphudSdkBase.restorePurchases(),
+  restorePurchases: () =>
+    NativeApphudSdk.restorePurchases() as Promise<RestorePurchase>,
   syncPurchasesInObserverMode: () =>
-    ApphudSdkBase.syncPurchasesInObserverMode(),
-  subscription: () => ApphudSdkBase.subscription(),
-  subscriptions: () => ApphudSdkBase.subscriptions(),
-  nonRenewingPurchases: () => ApphudSdkBase.nonRenewingPurchases(),
+    NativeApphudSdk.syncPurchasesInObserverMode(),
+  subscription: () =>
+    NativeApphudSdk.subscription() as Promise<ApphudSubscription>,
+  subscriptions: () =>
+    NativeApphudSdk.subscriptions() as Promise<ApphudSubscription[]>,
+  nonRenewingPurchases: () =>
+    NativeApphudSdk.nonRenewingPurchases() as Promise<
+      ApphudNonRenewingPurchase[]
+    >,
   isNonRenewingPurchaseActive: (productIdentifier: string) =>
-    ApphudSdkBase.isNonRenewingPurchaseActive(productIdentifier),
+    NativeApphudSdk.isNonRenewingPurchaseActive(productIdentifier),
   setAttribution: (options: AttributionProperties) =>
-    ApphudSdkBase.setAttribution(options),
+    NativeApphudSdk.setAttribution(options),
   attributeFromWeb: (options: Record<string, string>) =>
-    ApphudSdkBase.attributeFromWeb(options),
+    NativeApphudSdk.attributeFromWeb(
+      options
+    ) as Promise<ApphudWebRestoreResult>,
   setUserProperty: (args: {
     key: ApphudUserPropertyKey | string;
     value: any;
     setOnce: boolean;
-  }) => ApphudSdkBase.setUserProperty(args),
+  }) => NativeApphudSdk.setUserProperty(args),
   incrementUserProperty: (args: {
     key: ApphudUserPropertyKey | string;
     by: number;
-  }) => ApphudSdkBase.incrementUserProperty(args),
-  collectDeviceIdentifiers: () => ApphudSdkBase.collectDeviceIdentifiers(),
+  }) => NativeApphudSdk.incrementUserProperty(args),
+  collectDeviceIdentifiers: () => NativeApphudSdk.collectDeviceIdentifiers(),
   setDeviceIdentifiers: (options: Partial<Identifiers>) =>
-    ApphudSdkBase.setDeviceIdentifiers(options),
-  optOutOfTracking: () => ApphudSdkBase.optOutOfTracking(),
-  logout: () => ApphudSdkBase.logout(),
-  enableDebugLogs: () => ApphudSdkBase.enableDebugLogs(),
-  checkRules: () => ApphudSdkBase.checkRules(),
-  pendingRule: () => ApphudSdkBase.pendingRule(),
-  showPendingRuleScreen: () => ApphudSdkBase.showPendingRuleScreen(),
+    NativeApphudSdk.setDeviceIdentifiers(options),
+  optOutOfTracking: () => NativeApphudSdk.optOutOfTracking(),
+  logout: () => NativeApphudSdk.logout(),
+  enableDebugLogs: () => NativeApphudSdk.enableDebugLogs(),
+  checkRules: () => NativeApphudSdk.checkRules(),
+  pendingRule: () =>
+    NativeApphudSdk.pendingRule() as Promise<ApphudRule | null>,
+  showPendingRuleScreen: () => NativeApphudSdk.showPendingRuleScreen(),
   submitPushNotificationsToken: (token: string) =>
-    ApphudSdkBase.submitPushNotificationsToken(token),
+    NativeApphudSdk.submitPushNotificationsToken(token),
   handlePushNotification: (payload: Record<string, unknown>) =>
-    ApphudSdkBase.handlePushNotification(payload),
-  idfv: () => ApphudSdkBase.idfv(),
-  preloadPaywallScreens:
-    _ApphudSdk.preloadPaywallScreens &&
-    ((placementIdentifiers: string[]) =>
-      _ApphudSdk.preloadPaywallScreens(placementIdentifiers)),
-  unloadPaywallScreen:
-    _ApphudSdk.unloadPaywallScreen &&
-    ((options: { placementIdentifier?: string }) =>
-      _ApphudSdk.unloadPaywallScreen(options)),
-  updateUserID: (userID: string) => ApphudSdkBase.updateUserID(userID),
+    NativeApphudSdk.handlePushNotification(payload),
+  idfv: () => NativeApphudSdk.idfv(),
+  preloadPaywallScreens: (placementIdentifiers: string[]) =>
+    NativeApphudSdk.preloadPaywallScreens(placementIdentifiers),
+  unloadPaywallScreen: (options: { placementIdentifier?: string }) =>
+    NativeApphudSdk.unloadPaywallScreen(options),
+  updateUserID: (userID: string) =>
+    NativeApphudSdk.updateUserID(userID) as Promise<ApphudUser | null>,
   createPresenter: (options: PaywallScreenPresenterOptions) =>
     new PaywallScreenPresenter(options),
 };
