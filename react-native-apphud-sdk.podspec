@@ -18,6 +18,6 @@ Pod::Spec.new do |s|
 
 
   s.dependency "React-Core"
-  # Requires CocoaPods trunk spec for ApphudSDK 4.2.3+. Run: pod install --repo-update
-  s.dependency "ApphudSDK", "4.2.3"
+  # Requires CocoaPods trunk spec for ApphudSDK 4.4.8+. Run: pod install --repo-update
+  s.dependency "ApphudSDK", "4.4.8"
 end

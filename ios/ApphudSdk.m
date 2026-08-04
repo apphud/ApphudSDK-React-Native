@@ -65,8 +65,22 @@ RCT_EXTERN_METHOD(setAttribution:(NSDictionary*)options
                   withRejecter:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(setUserProperty:(NSDictionary*)options)
 RCT_EXTERN_METHOD(incrementUserProperty:(NSDictionary*)options)
-RCT_EXTERN_METHOD(submitPushNotificationsToken:(NSString*)token)
-RCT_EXTERN_METHOD(handlePushNotification:(NSDictionary*)apsInfo)
+RCT_EXTERN_METHOD(checkRules:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(pendingRule:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(showPendingRuleScreen:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(submitPushNotificationsToken:(NSString*)token
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(handlePushNotification:(NSDictionary*)apsInfo
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(attributeFromWeb:(NSDictionary*)args
                   withResolver:(RCTPromiseResolveBlock)resolve
@@ -90,7 +104,9 @@ RCT_EXTERN_METHOD(updateUserID:(NSString*)args
 
 RCT_EXTERN_METHOD(setHost:(NSString*)url)
 
-RCT_EXTERN_METHOD(attributeFromDeeplink:(RCTPromiseResolveBlock)resolve
+RCT_EXTERN_METHOD(handleDeeplinkUrl:(NSString*)url)
+
+RCT_EXTERN_METHOD(requestDeferredDeeplinkAttribution:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(rawPlacements:(RCTPromiseResolveBlock)resolve

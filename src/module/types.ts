@@ -1,6 +1,38 @@
 /**
  * Properties for initializing Apphud SDK.
  */
+/**
+ * Rule metadata delivered by Apphud Rules (push or backend poll).
+ * Available on iOS and Android.
+ */
+export interface ApphudRule {
+  /**
+   * Rule name from Apphud Rules Dashboard.
+   */
+  ruleName: string;
+
+  /**
+   * Screen name from Apphud Screens Dashboard.
+   */
+  screenName: string;
+
+  /**
+   * Screen identifier associated with the rule.
+   */
+  screenId?: string | null;
+
+  /**
+   * Paywall id when the rule targets a Figma paywall.
+   */
+  paywallId?: string | null;
+
+  /**
+   * Custom paywall identifier when the rule targets a Figma paywall.
+   * `null` for legacy HTML rule screens.
+   */
+  paywallIdentifier?: string | null;
+}
+
 export interface StartProperties {
   apiKey: string;
 
@@ -403,6 +435,13 @@ export interface ApphudPaywall {
    * Current paywall's placement identifier, if available.
    */
   placementIdentifier?: string;
+
+  /**
+   * Identifier of the visual screen attached to this paywall, if available.
+   *
+   * Available on iOS.
+   */
+  screenId?: string;
 }
 
 /**

@@ -1,44 +1,33 @@
 import * as React from 'react';
 import { Platform, KeyboardAvoidingView } from 'react-native';
 import { Input, Button } from 'react-native-elements';
-import { ApphudSdk } from '@apphud/react-native-apphud-sdk';
 import type { StackScreenProps } from '@react-navigation/stack';
-import { APPHUD_API_KEY, APPHUD_HOST } from '@env';
+import { getDefaultApiKey, startApphudSession } from '../session';
 
 export type Props = StackScreenProps<any>;
 
 export default function LoginScreen({ navigation }: Props) {
-  const [apiKey, setApiKey] = React.useState<string>(
-    APPHUD_API_KEY ?? ''
-  );
-
-  const [userId, setUserId] = React.useState<any>(null);
-  const [deviceId, setDeviceId] = React.useState<any>(null);
+  const [apiKey, setApiKey] = React.useState<string>(getDefaultApiKey());
+  const [userId, setUserId] = React.useState<string>('');
+  const [deviceId, setDeviceId] = React.useState<string>('');
+  const [isStarting, setIsStarting] = React.useState(false);
 
   const onStartHandler = async () => {
-    const resolvedApiKey = apiKey.trim() || APPHUD_API_KEY?.trim() || '';
-    if (!resolvedApiKey) {
-      throw new Error(
-        'Missing APPHUD_API_KEY. Add APPHUD_API_KEY to example/.env.'
-      );
+    if (isStarting) {
+      return;
     }
 
-    const resolvedHost = APPHUD_HOST?.trim();
-    if (resolvedHost) {
-      await ApphudSdk.setHost(resolvedHost);
+    setIsStarting(true);
+    try {
+      await startApphudSession({
+        apiKey,
+        userId: userId || null,
+        deviceId: deviceId || null,
+      });
+      navigation.replace('Actions');
+    } finally {
+      setIsStarting(false);
     }
-
-    await ApphudSdk.start({
-      apiKey: resolvedApiKey,
-      userId,
-      deviceId,
-      observerMode: false,
-    });
-    await ApphudSdk.setDeviceIdentifiers({
-      idfv: (await ApphudSdk.idfv()) ?? undefined,
-    });
-
-    navigation.replace('Actions');
   };
 
   return (
@@ -53,7 +42,13 @@ export default function LoginScreen({ navigation }: Props) {
         value={deviceId}
         onChangeText={setDeviceId}
       />
-      <Button type="solid" title="Start" onPress={onStartHandler} />
+      <Button
+        type="solid"
+        title="Start"
+        onPress={onStartHandler}
+        disabled={isStarting}
+        loading={isStarting}
+      />
     </KeyboardAvoidingView>
   );
 }

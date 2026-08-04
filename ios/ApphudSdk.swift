@@ -38,6 +38,13 @@ class ApphudSdk: NSObject {
 #if DEBUG
       ApphudUtils.enableAllLogs()
 #endif
+
+      // JS can remount while the process-scoped native SDK is still initialized.
+      // Return the existing user instead of calling start again.
+      if let user = Apphud.currentUser() {
+        resolve(user.toMap())
+        return
+      }
       
       Apphud
         .start(
@@ -49,6 +56,9 @@ class ApphudSdk: NSObject {
             resolve(user.toMap())
           }
         }
+
+      // `start` resets the deep link handler when it's not passed as an argument.
+      ApphudSdkEvents.reapplyDeeplinkHandlerIfNeeded()
     }
   }
     
@@ -74,6 +84,11 @@ class ApphudSdk: NSObject {
 
 
     DispatchQueue.main.async {
+      if let user = Apphud.currentUser() {
+        resolve(user.toMap())
+        return
+      }
+
       Apphud
         .startManually(
           apiKey: apiKey,
@@ -85,6 +100,9 @@ class ApphudSdk: NSObject {
             resolve(user.toMap())
           }
         }
+
+      // `startManually` resets the deep link handler when it's not passed as an argument.
+      ApphudSdkEvents.reapplyDeeplinkHandlerIfNeeded()
     }
   }
 
@@ -93,14 +111,23 @@ class ApphudSdk: NSObject {
     ApphudHttpClient.shared.domainUrlString = url
   }
 
-  @MainActor
-  @objc(attributeFromDeeplink:withRejecter:)
-  func attributeFromDeeplink(
+  @objc(handleDeeplinkUrl:)
+  func handleDeeplinkUrl(url: String) {
+    guard let deeplinkUrl = URL(string: url) else { return }
+
+    Task { @MainActor in
+      Apphud.handleOpen(url: deeplinkUrl)
+    }
+  }
+
+  @objc(requestDeferredDeeplinkAttribution:withRejecter:)
+  func requestDeferredDeeplinkAttribution(
     resolve: @escaping RCTPromiseResolveBlock,
     reject: RCTPromiseRejectBlock
   ) {
-    Apphud.attributeFromDeeplink { data in
-      resolve(data as Any?)
+    Task { @MainActor in
+      Apphud.requestDeferredDeeplinkAttribution()
+      resolve(nil)
     }
   }
 
@@ -360,7 +387,7 @@ class ApphudSdk: NSObject {
       resolve(
         [
           "subscriptions": (result.subscription != nil) ? [result.subscription?.toMap()] : [],
-          "purchases": [],
+          "purchases": (result.nonRenewingPurchase != nil) ? [result.nonRenewingPurchase?.toMap()] : [],
           "error": result.error?.localizedDescription as Any
         ]
       )
@@ -446,17 +473,71 @@ class ApphudSdk: NSObject {
     // do nothing
   }
 
-  @objc(submitPushNotificationsToken:)
-  func submitPushNotificationsToken(token:String) {
-    Apphud.submitPushNotificationsTokenString(string: token, callback: nil)
+  @objc(checkRules:withRejecter:)
+  func checkRules(
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject: @escaping RCTPromiseRejectBlock
+  ) {
+    DispatchQueue.main.async {
+      ApphudUtils.checkRules()
+      resolve(nil)
+    }
   }
 
-  @objc(handlePushNotification:)
-  func handlePushNotification(apsInfo: NSDictionary) -> Void {
-    if let payload = apsInfo as? [AnyHashable: Any] {
-      DispatchQueue.main.async {
-        Apphud.handlePushNotification(apsInfo: payload)
+  @MainActor
+  @objc(pendingRule:withRejecter:)
+  func pendingRule(
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject: @escaping RCTPromiseRejectBlock
+  ) {
+    if let rule = Apphud.pendingRule() {
+      var map: [String: Any] = [:]
+      for (key, value) in rule.toMap() {
+        map[key] = value ?? NSNull()
       }
+      resolve(map)
+    } else {
+      resolve(nil)
+    }
+  }
+
+  @MainActor
+  @objc(showPendingRuleScreen:withRejecter:)
+  func showPendingRuleScreen(
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject: @escaping RCTPromiseRejectBlock
+  ) {
+    let hasPending = Apphud.pendingRuleScreenController() != nil
+    if hasPending {
+      Apphud.showPendingRuleScreen()
+    }
+    resolve(hasPending)
+  }
+
+  @objc(submitPushNotificationsToken:withResolver:withRejecter:)
+  func submitPushNotificationsToken(
+    token: String,
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject: @escaping RCTPromiseRejectBlock
+  ) {
+    Apphud.submitPushNotificationsTokenString(string: token) { success in
+      resolve(success)
+    }
+  }
+
+  @objc(handlePushNotification:withResolver:withRejecter:)
+  func handlePushNotification(
+    apsInfo: NSDictionary,
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject: @escaping RCTPromiseRejectBlock
+  ) {
+    guard let payload = apsInfo as? [AnyHashable: Any] else {
+      resolve(false)
+      return
+    }
+    DispatchQueue.main.async {
+      let handled = Apphud.handlePushNotification(apsInfo: payload)
+      resolve(handled)
     }
   }
   

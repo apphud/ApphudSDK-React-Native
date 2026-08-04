@@ -1,5 +1,6 @@
 package com.reactnativeapphudsdk
 
+import android.net.Uri
 import android.telecom.Call
 import android.util.Log
 import com.apphud.sdk.APPHUD_DEFAULT_MAX_TIMEOUT
@@ -24,6 +25,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
 
   private val moduleScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
   private val unSupportMethodMsg: String = "Unsupported method"
+  private val ruleCallbackHandler = ApphudRuleCallbackHandler(reactContext)
 
   override fun getName(): String {
     return "ApphudSdk"
@@ -78,16 +80,51 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
     ApphudUtils.enableAllLogs()
 
     runOnUiThread {
+      // React Activity/JS can remount while the process-scoped native SDK is
+      // still initialized (e.g. returning from Play Store after a Rule). A
+      // second Apphud.start() aborts without invoking the callback, so return
+      // the existing user instead of hanging the JS promise forever.
+      if (resolveAlreadyInitializedUser(promise)) {
+        return@runOnUiThread
+      }
+
       Apphud.start(
-        this.reactApplicationContext,
-        apiKey,
-        userId,
-        deviceId,
-        observerMode
+        context = this.reactApplicationContext,
+        apiKey = apiKey,
+        userId = userId,
+        deviceId = deviceId,
+        observerMode = observerMode,
+        ruleCallback = ruleCallbackHandler,
       ) {
         promise.resolve(it.toMap())
       }
     }
+  }
+
+  /**
+   * Returns true if the native SDK is already initialized and [promise] was
+   * completed with the current user (or rejected if the user is unavailable).
+   */
+  private fun resolveAlreadyInitializedUser(promise: Promise): Boolean {
+    Apphud.currentUser()?.let { user ->
+      promise.resolve(user.toMap())
+      return true
+    }
+    // userId() is non-null only after ServiceLocator is up (post-start).
+    if (Apphud.userId() == null) {
+      return false
+    }
+    Apphud.refreshUserData { user ->
+      if (user != null) {
+        promise.resolve(user.toMap())
+      } else {
+        promise.reject(
+          "already_initialized",
+          "Apphud SDK already initialized but current user is unavailable",
+        )
+      }
+    }
+    return true
   }
 
   @ReactMethod
@@ -267,13 +304,28 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun attributeFromDeeplink(promise: Promise) {
-    Apphud.attributeFromDeeplink { data ->
-      if (data == null) {
-        promise.resolve(null)
-      } else {
-        promise.resolve(data.toWritableNativeMap())
-      }
+  fun handleDeeplinkUrl(url: String) {
+    if (url.isEmpty()) {
+      return
+    }
+
+    Apphud.handleUri(Uri.parse(url))
+  }
+
+  @ReactMethod
+  fun requestDeferredDeeplinkAttribution(promise: Promise) {
+    val activity = reactApplicationContext.currentActivity ?: run {
+      promise.reject(
+        "no_activity",
+        "Deferred deep link attribution requires an attached Activity. " +
+          "Call requestDeferredDeeplinkAttribution() while the app is in the foreground."
+      )
+      return
+    }
+
+    runOnUiThread {
+      Apphud.requestDeferredDeeplinkAttribution(activity)
+      promise.resolve(null)
     }
   }
 
@@ -350,7 +402,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
 
         is ApphudPurchasesRestoreResult.Success -> {
           resultMap.putArray("subscriptions", result.subscriptions.toWritableNativeArray { it.toMap() })
-          resultMap.putArray("nonRenewingPurchases", result.purchases.toWritableNativeArray { it.toMap() })
+          resultMap.putArray("purchases", result.purchases.toWritableNativeArray { it.toMap() })
         }
       }
 
@@ -391,13 +443,47 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun submitPushNotificationsToken(token: String) {
-    // do nothing
+  fun checkRules(promise: Promise) {
+    runOnUiThread {
+      Apphud.checkRules()
+      promise.resolve(null)
+    }
   }
 
   @ReactMethod
-  fun handlePushNotification(apsInfo: ReadableMap) {
-    // do nothing
+  fun pendingRule(promise: Promise) {
+    runOnUiThread {
+      promise.resolve(Apphud.pendingRule()?.toMap())
+    }
+  }
+
+  @ReactMethod
+  fun showPendingRuleScreen(promise: Promise) {
+    runOnUiThread {
+      Apphud.showPendingScreen { shown ->
+        promise.resolve(shown)
+      }
+    }
+  }
+
+  @ReactMethod
+  fun submitPushNotificationsToken(token: String, promise: Promise) {
+    Apphud.submitPushNotificationsToken(token) { success ->
+      promise.resolve(success)
+    }
+  }
+
+  @ReactMethod
+  fun handlePushNotification(apsInfo: ReadableMap, promise: Promise) {
+    runOnUiThread {
+      val data = mutableMapOf<String, Any>()
+      for ((key, value) in apsInfo.toHashMap()) {
+        if (value != null) {
+          data[key] = value
+        }
+      }
+      promise.resolve(Apphud.handlePushNotification(data))
+    }
   }
 
   @ReactMethod

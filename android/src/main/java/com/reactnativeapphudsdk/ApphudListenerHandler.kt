@@ -1,13 +1,17 @@
 package com.reactnativeapphudsdk
 
+import android.net.Uri
 import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
 import com.apphud.sdk.Apphud
+import com.apphud.sdk.ApphudDeeplinkAttributionKind
 import com.apphud.sdk.ApphudListener
 import com.apphud.sdk.domain.ApphudPlacement
 import com.apphud.sdk.domain.ApphudUser
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
+import com.facebook.react.bridge.UiThreadUtil.runOnUiThread
+import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.modules.core.DeviceEventManagerModule
 
 enum class ApphudSdkDelegateEvents(val value: String) {
@@ -21,13 +25,47 @@ enum class ApphudSdkDelegateEvents(val value: String) {
   APPHUD_DID_PURCHASE("apphudDidPurchase"),
   APPHUD_WILL_PURCHASE("apphudWillPurchase"),
   APPHUD_DID_FAIL_PURCHASE("apphudDidFailPurchase"),
-  APPHUD_DID_SELECT_SURVEY_ANSWER("apphudDidSelectSurveyAnswer")
+  APPHUD_DID_SELECT_SURVEY_ANSWER("apphudDidSelectSurveyAnswer"),
+  APPHUD_DEEPLINK_ATTRIBUTION("apphudDeeplinkAttribution"),
+  APPHUD_RULE_SCREEN_DID_APPEAR("apphudRuleScreenDidAppear"),
+  APPHUD_RULE_WILL_PURCHASE("apphudRuleWillPurchase"),
+  APPHUD_RULE_PURCHASE_COMPLETED("apphudRulePurchaseCompleted"),
+  APPHUD_RULE_SCREEN_WILL_DISMISS("apphudRuleScreenWillDismiss"),
+  APPHUD_RULE_SCREEN_DID_DISMISS("apphudRuleScreenDidDismiss"),
+  APPHUD_RULE_DID_SELECT_SURVEY_ANSWER("apphudRuleDidSelectSurveyAnswer"),
+  APPHUD_RULE_PAYWALL_WITHOUT_SCREEN("apphudRulePaywallWithoutScreen"),
 }
 
 class ApphudListenerHandler(private val reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext), ApphudListener {
   init {
     Apphud.setListener(this)
+    Apphud.setDeeplinkHandler { attribution, kind, uri ->
+      emitDeeplinkAttribution(attribution, kind, uri)
+    }
+  }
+
+  private fun emitDeeplinkAttribution(
+    attribution: Map<String, Any>,
+    kind: ApphudDeeplinkAttributionKind,
+    uri: Uri?
+  ) {
+    val kindValue = when (kind) {
+      ApphudDeeplinkAttributionKind.DEFERRED -> "deferred"
+      else -> "direct"
+    }
+
+    // Deferred attribution may be delivered from a background thread.
+    runOnUiThread {
+      val body = WritableNativeMap().apply {
+        putMap("attribution", attribution.toWritableNativeMap())
+        putString("kind", kindValue)
+        putString("url", uri?.toString())
+      }
+
+      reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+        .emit(ApphudSdkDelegateEvents.APPHUD_DEEPLINK_ATTRIBUTION.value, body)
+    }
   }
 
   override fun apphudDidChangeUserID(userId: String) {

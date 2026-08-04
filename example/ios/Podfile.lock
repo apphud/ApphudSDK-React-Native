@@ -1,5 +1,5 @@
 PODS:
-  - ApphudSDK (4.2.3)
+  - ApphudSDK (4.4.8)
   - boost (1.84.0)
   - DoubleConversion (1.1.6)
   - fast_float (6.1.4)
@@ -1211,8 +1211,8 @@ PODS:
     - React-jsiexecutor
     - React-RCTFBReactNativeSpec
     - ReactCommon/turbomodule/core
-  - react-native-apphud-sdk (4.2.3):
-    - ApphudSDK (= 4.2.3)
+  - react-native-apphud-sdk (4.3.0):
+    - ApphudSDK (= 4.4.8)
     - React-Core
   - react-native-safe-area-context (5.6.2):
     - DoubleConversion
@@ -1569,6 +1569,27 @@ PODS:
     - React-logger (= 0.77.1)
     - React-perflogger (= 0.77.1)
     - React-utils (= 0.77.1)
+  - RNCAsyncStorage (2.1.2):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - RNCMaskedView (0.1.11):
     - React
   - RNGestureHandler (2.29.1):
@@ -1736,7 +1757,7 @@ PODS:
   - Yoga (0.0.0)
 
 DEPENDENCIES:
-  - ApphudSDK (from `https://github.com/apphud/ApphudSDK.git`, tag `4.2.3`)
+  - ApphudSDK (from `https://github.com/apphud/ApphudSDK.git`, tag `4.4.8`)
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - fast_float (from `../node_modules/react-native/third-party-podspecs/fast_float.podspec`)
@@ -1806,6 +1827,7 @@ DEPENDENCIES:
   - ReactAppDependencyProvider (from `build/generated/ios`)
   - ReactCodegen (from `build/generated/ios`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
+  - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCMaskedView (from `../node_modules/@react-native-community/masked-view`)"
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
@@ -1819,7 +1841,7 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   ApphudSDK:
     :git: https://github.com/apphud/ApphudSDK.git
-    :tag: 4.2.3
+    :tag: 4.4.8
   boost:
     :podspec: "../node_modules/react-native/third-party-podspecs/boost.podspec"
   DoubleConversion:
@@ -1955,6 +1977,8 @@ EXTERNAL SOURCES:
     :path: build/generated/ios
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
+  RNCAsyncStorage:
+    :path: "../node_modules/@react-native-async-storage/async-storage"
   RNCMaskedView:
     :path: "../node_modules/@react-native-community/masked-view"
   RNGestureHandler:
@@ -1969,10 +1993,10 @@ EXTERNAL SOURCES:
 CHECKOUT OPTIONS:
   ApphudSDK:
     :git: https://github.com/apphud/ApphudSDK.git
-    :tag: 4.2.3
+    :tag: 4.4.8
 
 SPEC CHECKSUMS:
-  ApphudSDK: d8f9cebd97e00ec039437eec7c3c59d64c3a1f79
+  ApphudSDK: e765078f639901cd54ed8229e907b00079a0d3cc
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6
@@ -2009,7 +2033,7 @@ SPEC CHECKSUMS:
   React-logger: e7eeebaed32b88dcc29b10901aa8c5822dc397c4
   React-Mapbuffer: 73dd1210c4ecf0dfb4e2d4e06f2a13f824a801a9
   React-microtasksnativemodule: d03753688e2abf135edcd4160ab3ce7526da8b0d
-  react-native-apphud-sdk: 78e3a0620817feedea94bb8244fef964ccd3561a
+  react-native-apphud-sdk: 5106e1775a4d312492f29c59177315eea820034d
   react-native-safe-area-context: 90db9cb1243ba193ef6d05b26ff0600e69112214
   React-nativeconfig: cb207ebba7cafce30657c7ad9f1587a8f32e4564
   React-NativeModulesApple: 8411d548b1ad9d2b3e597beb9348e715c8020e0c
@@ -2040,6 +2064,7 @@ SPEC CHECKSUMS:
   ReactAppDependencyProvider: 41e9fb63606c32cce924653d2d410cb01ec81286
   ReactCodegen: d9a09a7f7eee93f54d0b4135d5ca66b31b0c42a5
   ReactCommon: 08f4808f02ff115884e870e5cfea689703ff759a
+  RNCAsyncStorage: 62fdbd7e63312228d4868779026248c2677911e1
   RNCMaskedView: 4c5ee1c8667d56077246cc6d1977f77393923560
   RNGestureHandler: 6ad7823942d1a2133b67552d9aeca1b6a6d452a2
   RNReanimated: 55d324091cbf5067a9c22b6ade0075e626a3f0cb
@@ -2047,6 +2072,6 @@ SPEC CHECKSUMS:
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: 1fd059161b449018342943b095a6d4e69bcaa719
 
-PODFILE CHECKSUM: b88feadc61b4957117df1eefd1a01a13257c115f
+PODFILE CHECKSUM: 30d4f29d63c7ff1137a7be3976ef9c9ba33726b2
 
 COCOAPODS: 1.16.2

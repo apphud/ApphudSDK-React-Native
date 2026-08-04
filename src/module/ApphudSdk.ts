@@ -17,6 +17,7 @@ import type {
   ApphudWebRestoreResult,
   ApphudUser,
   ApphudPlacement,
+  ApphudRule,
   Identifiers,
   PaywallLogsInfo,
   PlacementsOptions,
@@ -82,9 +83,32 @@ interface IApphudSdk {
   /**
    * Available on iOS and Android.
    *
-   * Attempts to attribute the user using a recently opened deep link.
+   * Forwards a deep link opened by the user (Universal Link / App Link or custom scheme URL)
+   * to Apphud and triggers direct deep link attribution. May be called multiple times
+   * during the app lifecycle.
+   *
+   * Wire it to React Native `Linking`:
+   * ```ts
+   * Linking.getInitialURL().then((url) => url && ApphudSdk.handleDeeplinkUrl(url));
+   * Linking.addEventListener('url', ({ url }) => ApphudSdk.handleDeeplinkUrl(url));
+   * ```
+   *
+   * The attribution result is delivered via `ApphudSdkEventEmitter.onApphudDeeplinkAttribution`
+   * with kind `direct`.
    */
-  attributeFromDeeplink(): Promise<Record<string, unknown> | null>;
+  handleDeeplinkUrl(url: string): void;
+
+  /**
+   * Available on iOS and Android.
+   *
+   * Requests deferred deep link attribution for the current app installation.
+   * Call it after SDK initialization, typically once on first launch, while the app
+   * is in the foreground.
+   *
+   * The result is delivered via `ApphudSdkEventEmitter.onApphudDeeplinkAttribution`
+   * with kind `deferred`. When no match is found, `attribution` is an empty object.
+   */
+  requestDeferredDeeplinkAttribution(): Promise<void>;
 
   /**
    * Available on iOS (Android returns false).
@@ -334,20 +358,51 @@ interface IApphudSdk {
   enableDebugLogs(): void;
 
   /**
-   * Available on iOS only.
+   * Available on iOS and Android.
+   *
+   * Manually polls the backend for unread Apphud Rules and presents a screen
+   * when one is available. The SDK also checks for rules automatically after
+   * user registration and periodically.
+   */
+  checkRules(): Promise<void>;
+
+  /**
+   * Available on iOS and Android.
+   *
+   * Returns the Apphud rule whose screen is currently pending or displayed, if any.
+   */
+  pendingRule(): Promise<ApphudRule | null>;
+
+  /**
+   * Available on iOS and Android.
+   *
+   * Presents a previously delayed rule screen.
+   * Returns `true` when a pending screen was presented.
+   */
+  showPendingRuleScreen(): Promise<boolean>;
+
+  /**
+   * Available on iOS and Android.
    *
    * Provide your push notifications token to Apphud SDK. Required for Rules & Screens.
    *
-   * **Important**: string must be hexadecimal string representation of NSData / Data.
+   * **Important (iOS)**: string must be hexadecimal string representation of NSData / Data.
+   * **Android**: pass the FCM registration token string.
+   *
+   * @returns `true` when the token was accepted by the SDK.
    */
-  submitPushNotificationsToken(token: string): void;
+  submitPushNotificationsToken(token: string): Promise<boolean>;
 
   /**
-   * Available on iOS only.
+   * Available on iOS and Android.
    *
    * Pass push notification payload to Apphud SDK. Required for Rules & Screens.
+   *
+   * On Android, pass the FCM `message.data` map (must include `rule_id` for rules).
+   *
+   * @returns `true` when Apphud handled the payload as a rule notification.
    */
-  handlePushNotification(payload: any): void;
+  handlePushNotification(payload: Record<string, unknown>): Promise<boolean>;
 
   /**
    * Available on iOS only.
@@ -413,7 +468,9 @@ export const ApphudSdk: IApphudSdk & ApphudSdkPresenterProvider = {
     ApphudSdkBase.placement(identifier, options ?? {}),
   rawPlacements: () => ApphudSdkBase.rawPlacements(),
   setHost: (url: string) => ApphudSdkBase.setHost(url),
-  attributeFromDeeplink: () => ApphudSdkBase.attributeFromDeeplink(),
+  handleDeeplinkUrl: (url: string) => ApphudSdkBase.handleDeeplinkUrl(url),
+  requestDeferredDeeplinkAttribution: () =>
+    ApphudSdkBase.requestDeferredDeeplinkAttribution(),
   isCommitmentPlanPreferred: (options: CommitmentPlanProductOptions) =>
     ApphudSdkBase.isCommitmentPlanPreferred(options),
   isCommitmentPlanSupported: (options: CommitmentPlanProductOptions) =>
@@ -468,9 +525,12 @@ export const ApphudSdk: IApphudSdk & ApphudSdkPresenterProvider = {
   optOutOfTracking: () => ApphudSdkBase.optOutOfTracking(),
   logout: () => ApphudSdkBase.logout(),
   enableDebugLogs: () => ApphudSdkBase.enableDebugLogs(),
+  checkRules: () => ApphudSdkBase.checkRules(),
+  pendingRule: () => ApphudSdkBase.pendingRule(),
+  showPendingRuleScreen: () => ApphudSdkBase.showPendingRuleScreen(),
   submitPushNotificationsToken: (token: string) =>
     ApphudSdkBase.submitPushNotificationsToken(token),
-  handlePushNotification: (payload: any) =>
+  handlePushNotification: (payload: Record<string, unknown>) =>
     ApphudSdkBase.handlePushNotification(payload),
   idfv: () => ApphudSdkBase.idfv(),
   preloadPaywallScreens:
