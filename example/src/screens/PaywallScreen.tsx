@@ -605,7 +605,7 @@ export default function PaywallScreen({
 
   const placementId =
     currentPaywall?.placementIdentifier ?? route.params.placementId ?? 'N/A';
-  const hasVisualScreen = Boolean(currentPaywall?.screenId);
+  const hasVisualPaywall = Boolean(currentPaywall?.hasVisualPaywall);
 
   return (
     <ScrollView
@@ -616,7 +616,10 @@ export default function PaywallScreen({
         <Text style={styles.sectionTitle}>Paywall</Text>
         <MetaRow label="Paywall ID" value={currentPaywall?.identifier ?? '…'} />
         <MetaRow label="Placement ID" value={placementId} />
-        <MetaRow label="Screen ID" value={currentPaywall?.screenId ?? 'N/A'} />
+        <MetaRow
+          label="Visual screen"
+          value={hasVisualPaywall ? 'has screen' : 'no screen'}
+        />
         <MetaRow
           label="Experiment"
           value={currentPaywall?.experimentName ?? 'N/A'}
@@ -627,11 +630,11 @@ export default function PaywallScreen({
             <TouchableOpacity
               style={[
                 styles.actionButton,
-                !hasVisualScreen && styles.actionButtonDisabled,
+                !hasVisualPaywall && styles.actionButtonDisabled,
               ]}
               onPress={() => paywallScreenPresenter.displayPaywallScreen()}
               activeOpacity={0.85}
-              disabled={!hasVisualScreen}
+              disabled={!hasVisualPaywall}
             >
               <Text style={styles.actionButtonText}>Modal style</Text>
             </TouchableOpacity>
@@ -639,7 +642,7 @@ export default function PaywallScreen({
               style={[
                 styles.actionButton,
                 styles.actionButtonSecondary,
-                !hasVisualScreen && styles.actionButtonDisabled,
+                !hasVisualPaywall && styles.actionButtonDisabled,
               ]}
               onPress={() => {
                 navigation.navigate('PaywallNativeScreen', {
@@ -647,7 +650,7 @@ export default function PaywallScreen({
                 });
               }}
               activeOpacity={0.85}
-              disabled={!hasVisualScreen}
+              disabled={!hasVisualPaywall}
             >
               <Text
                 style={[

@@ -437,11 +437,12 @@ export interface ApphudPaywall {
   placementIdentifier?: string;
 
   /**
-   * Identifier of the visual screen attached to this paywall, if available.
+   * `true` when the paywall has an attached visual screen (`paywall.screen != null`).
    *
-   * Available on iOS.
+   * Use this to decide whether modal / navigation paywall UI can be presented.
+   * Available on iOS and Android.
    */
-  screenId?: string;
+  hasVisualPaywall?: boolean;
 }
 
 /**

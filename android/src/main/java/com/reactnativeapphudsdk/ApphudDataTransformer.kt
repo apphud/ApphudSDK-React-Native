@@ -157,6 +157,7 @@ internal fun ApphudPaywall.toMap(): WritableNativeMap {
   result.putString("variationName", variationName)
   result.putString("parentPaywallIdentifier", parentPaywallIdentifier)
   result.putString("placementIdentifier", placementIdentifier)
+  result.putBoolean("hasVisualPaywall", screen != null)
 
   return result
 }

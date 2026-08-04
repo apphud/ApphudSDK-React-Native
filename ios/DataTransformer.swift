@@ -83,7 +83,7 @@ extension ApphudPaywall : RNAdapter {
     map["variationName"] = variationName
     map["parentPaywallIdentifier"] = parentPaywallIdentifier
     map["placementIdentifier"] = placementIdentifier
-    map["screenId"] = screen?.id
+    map["hasVisualPaywall"] = screen != nil
     map["json"] = json
 
     return map as NSDictionary;
