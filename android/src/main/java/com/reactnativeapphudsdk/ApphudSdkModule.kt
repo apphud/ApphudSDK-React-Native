@@ -80,6 +80,14 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
     ApphudUtils.enableAllLogs()
 
     runOnUiThread {
+      // React Activity/JS can remount while the process-scoped native SDK is
+      // still initialized (e.g. returning from Play Store after a Rule). A
+      // second Apphud.start() aborts without invoking the callback, so return
+      // the existing user instead of hanging the JS promise forever.
+      if (resolveAlreadyInitializedUser(promise)) {
+        return@runOnUiThread
+      }
+
       Apphud.start(
         context = this.reactApplicationContext,
         apiKey = apiKey,
@@ -91,6 +99,32 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
         promise.resolve(it.toMap())
       }
     }
+  }
+
+  /**
+   * Returns true if the native SDK is already initialized and [promise] was
+   * completed with the current user (or rejected if the user is unavailable).
+   */
+  private fun resolveAlreadyInitializedUser(promise: Promise): Boolean {
+    Apphud.currentUser()?.let { user ->
+      promise.resolve(user.toMap())
+      return true
+    }
+    // userId() is non-null only after ServiceLocator is up (post-start).
+    if (Apphud.userId() == null) {
+      return false
+    }
+    Apphud.refreshUserData { user ->
+      if (user != null) {
+        promise.resolve(user.toMap())
+      } else {
+        promise.reject(
+          "already_initialized",
+          "Apphud SDK already initialized but current user is unavailable",
+        )
+      }
+    }
+    return true
   }
 
   @ReactMethod
@@ -368,7 +402,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
 
         is ApphudPurchasesRestoreResult.Success -> {
           resultMap.putArray("subscriptions", result.subscriptions.toWritableNativeArray { it.toMap() })
-          resultMap.putArray("nonRenewingPurchases", result.purchases.toWritableNativeArray { it.toMap() })
+          resultMap.putArray("purchases", result.purchases.toWritableNativeArray { it.toMap() })
         }
       }
 

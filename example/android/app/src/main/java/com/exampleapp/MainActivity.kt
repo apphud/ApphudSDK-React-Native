@@ -29,7 +29,9 @@ class MainActivity : ReactActivity() {
       DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled)
 
   override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
+    // react-native-screens cannot restore its fragments: ScreenFragment's no-arg
+    // constructor throws, so the saved state must be dropped.
+    super.onCreate(null)
     // Forward cold-start links to Apphud for direct deeplink attribution.
     Apphud.handleIntent(intent)
     requestNotificationPermissionIfNeeded()

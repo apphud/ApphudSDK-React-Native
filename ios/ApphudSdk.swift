@@ -38,6 +38,13 @@ class ApphudSdk: NSObject {
 #if DEBUG
       ApphudUtils.enableAllLogs()
 #endif
+
+      // JS can remount while the process-scoped native SDK is still initialized.
+      // Return the existing user instead of calling start again.
+      if let user = Apphud.currentUser() {
+        resolve(user.toMap())
+        return
+      }
       
       Apphud
         .start(
@@ -77,6 +84,11 @@ class ApphudSdk: NSObject {
 
 
     DispatchQueue.main.async {
+      if let user = Apphud.currentUser() {
+        resolve(user.toMap())
+        return
+      }
+
       Apphud
         .startManually(
           apiKey: apiKey,
@@ -375,7 +387,7 @@ class ApphudSdk: NSObject {
       resolve(
         [
           "subscriptions": (result.subscription != nil) ? [result.subscription?.toMap()] : [],
-          "purchases": [],
+          "purchases": (result.nonRenewingPurchase != nil) ? [result.nonRenewingPurchase?.toMap()] : [],
           "error": result.error?.localizedDescription as Any
         ]
       )

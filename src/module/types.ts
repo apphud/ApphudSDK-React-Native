@@ -435,6 +435,13 @@ export interface ApphudPaywall {
    * Current paywall's placement identifier, if available.
    */
   placementIdentifier?: string;
+
+  /**
+   * Identifier of the visual screen attached to this paywall, if available.
+   *
+   * Available on iOS.
+   */
+  screenId?: string;
 }
 
 /**

@@ -607,6 +607,7 @@ export default function PaywallScreen({
     currentPaywall?.placementIdentifier ??
     route.params.placementId ??
     'N/A';
+  const hasVisualScreen = Boolean(currentPaywall?.screenId);
 
   return (
     <ScrollView
@@ -620,6 +621,7 @@ export default function PaywallScreen({
           value={currentPaywall?.identifier ?? '…'}
         />
         <MetaRow label="Placement ID" value={placementId} />
+        <MetaRow label="Screen ID" value={currentPaywall?.screenId ?? 'N/A'} />
         <MetaRow
           label="Experiment"
           value={currentPaywall?.experimentName ?? 'N/A'}
@@ -628,20 +630,29 @@ export default function PaywallScreen({
         {paywallScreenPresenter && currentPaywall ? (
           <View style={styles.actionRow}>
             <TouchableOpacity
-              style={styles.actionButton}
+              style={[
+                styles.actionButton,
+                !hasVisualScreen && styles.actionButtonDisabled,
+              ]}
               onPress={() => paywallScreenPresenter.displayPaywallScreen()}
               activeOpacity={0.85}
+              disabled={!hasVisualScreen}
             >
               <Text style={styles.actionButtonText}>Modal style</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.actionButton, styles.actionButtonSecondary]}
+              style={[
+                styles.actionButton,
+                styles.actionButtonSecondary,
+                !hasVisualScreen && styles.actionButtonDisabled,
+              ]}
               onPress={() => {
                 navigation.navigate('PaywallNativeScreen', {
                   placementIdentifier: currentPaywall.placementIdentifier,
                 });
               }}
               activeOpacity={0.85}
+              disabled={!hasVisualScreen}
             >
               <Text
                 style={[
@@ -843,6 +854,9 @@ const styles = StyleSheet.create({
   },
   actionButtonSecondary: {
     backgroundColor: colors.primaryMuted,
+  },
+  actionButtonDisabled: {
+    opacity: 0.4,
   },
   actionButtonText: {
     fontSize: 13,
