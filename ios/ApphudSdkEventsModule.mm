@@ -68,6 +68,13 @@ RCT_EXPORT_MODULE(ApphudSdkEvents)
   [_impl setApphudProductIdentifiers:ids withResolve:resolve withReject:reject];
 }
 
+- (void)setScreenPresentationStyle:(NSString *)style
+                           resolve:(RCTPromiseResolveBlock)resolve
+                            reject:(RCTPromiseRejectBlock)reject
+{
+  [_impl setScreenPresentationStyle:style withResolve:resolve withReject:reject];
+}
+
 #pragma mark - ApphudSdkEventsEmitting
 
 - (void)emitPlacementsDidFullyLoad:(NSArray *)value

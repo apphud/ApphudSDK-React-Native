@@ -23,6 +23,11 @@ public final class ApphudSdkEventsImpl: NSObject {
 
   fileprivate var productIdentifiers: [String] = []
 
+  /// Modal presentation style for Rules screens, set via
+  /// `setScreenPresentationStyle`. `nil` means "never set": the delegate
+  /// selector stays hidden and the SDK keeps its default behavior.
+  fileprivate var screenPresentationStyle: UIModalPresentationStyle?
+
   private lazy var delegateProxy = ApphudEventsDelegateProxy(owner: self)
 
   /// Keeps the events module that installed the deep link handler, so it can be
@@ -87,6 +92,28 @@ public final class ApphudSdkEventsImpl: NSObject {
     self.productIdentifiers = ids as? [String] ?? []
     resolve(self.productIdentifiers)
   }
+
+  @objc(setScreenPresentationStyle:withResolve:withReject:)
+  public func setScreenPresentationStyle(
+    style: NSString,
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject: RCTPromiseRejectBlock
+  ) -> Void {
+    // The UI delegate reads the style on the main thread; keep the write on
+    // the same thread so a set → show sequence can't race.
+    DispatchQueue.main.async {
+      // Only two supported values; anything else is ignored, state unchanged.
+      switch style as String {
+      case "fullScreen":
+        self.screenPresentationStyle = .fullScreen
+      case "pageSheet":
+        self.screenPresentationStyle = .pageSheet
+      default:
+        NSLog("[Apphud] setScreenPresentationStyle: unsupported style '\(style)', ignoring")
+      }
+      resolve(nil)
+    }
+  }
 }
 
 /// Receives every Apphud delegate callback on behalf of `ApphudSdkEventsImpl`.
@@ -99,6 +126,17 @@ private final class ApphudEventsDelegateProxy: NSObject {
 
   var emitter: (any ApphudSdkEventsEmitting)? {
     owner?.emitter
+  }
+
+  /// While no presentation style is set, hide the optional delegate selector
+  /// so the native SDK behaves exactly as if the method was never implemented
+  /// (its `apphudScreenPresentationStyle?(...)` optional call resolves to
+  /// `nil` and the screen keeps the system default presentation).
+  override func responds(to aSelector: Selector!) -> Bool {
+    if aSelector == #selector(ApphudUIDelegate.apphudScreenPresentationStyle(controller:)) {
+      return owner?.screenPresentationStyle != nil
+    }
+    return super.responds(to: aSelector)
   }
 }
 
@@ -148,6 +186,12 @@ extension ApphudEventsDelegateProxy: ApphudDelegate {
 }
 
 extension ApphudEventsDelegateProxy: ApphudUIDelegate {
+
+  func apphudScreenPresentationStyle(controller: UIViewController) -> UIModalPresentationStyle {
+    // `responds(to:)` guarantees this is only reached when a style is set;
+    // the fallback keeps the compiler satisfied.
+    return owner?.screenPresentationStyle ?? .pageSheet
+  }
 
   private func sanitize(_ map: [String: Any?]) -> [String: Any] {
     var result: [String: Any] = [:]

@@ -45,6 +45,8 @@ export interface Spec extends TurboModule {
   readonly onApphudDeeplinkAttribution: CodegenTypes.EventEmitter<CodegenTypes.UnsafeObject>;
 
   setApphudProductIdentifiers(ids: string[]): Promise<string[]>;
+
+  setScreenPresentationStyle(style: string): Promise<void>;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('ApphudSdkEvents');
