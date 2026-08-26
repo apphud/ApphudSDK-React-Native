@@ -613,6 +613,12 @@ export enum ApphudAttributionProvider {
   custom = 'custom',
 }
 
+/** iOS modal presentation styles for Apphud Rules screens. */
+export enum ApphudScreenPresentationStyle {
+  fullScreen = 'fullScreen',
+  pageSheet = 'pageSheet',
+}
+
 export interface ApphudAttributionData {
   /** Raw attribution data received from MMPs, such as AppsFlyer or Branch. */
   rawData: Record<string, any>;

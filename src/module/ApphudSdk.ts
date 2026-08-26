@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import NativeApphudSdk from '../specs/NativeApphudSdk';
+import NativeApphudSdkEvents from '../specs/NativeApphudSdkEvents';
 import {
   PaywallScreenPresenter,
   type Options as PaywallScreenPresenterOptions,
@@ -23,6 +24,7 @@ import type {
   PaywallLogsInfo,
   PlacementsOptions,
   CommitmentPlanProductOptions,
+  ApphudScreenPresentationStyle,
 } from './types';
 
 interface IApphudSdk {
@@ -362,6 +364,17 @@ interface IApphudSdk {
   checkRules(): Promise<void>;
 
   /**
+   * Available on iOS only. Safe no-op on Android.
+   *
+   * Sets the modal presentation style for Apphud Rules screens (including
+   * Figma rule paywalls). Applies to all Rules screens presented after this
+   * call. If never called, screens keep the SDK's default presentation.
+   */
+  setScreenPresentationStyle(
+    style: ApphudScreenPresentationStyle
+  ): Promise<void>;
+
+  /**
    * Available on iOS and Android.
    *
    * Returns the Apphud rule whose screen is currently pending or displayed, if any.
@@ -526,6 +539,8 @@ export const ApphudSdk: IApphudSdk & ApphudSdkPresenterProvider = {
   logout: () => NativeApphudSdk.logout(),
   enableDebugLogs: () => NativeApphudSdk.enableDebugLogs(),
   checkRules: () => NativeApphudSdk.checkRules(),
+  setScreenPresentationStyle: (style: ApphudScreenPresentationStyle) =>
+    NativeApphudSdkEvents.setScreenPresentationStyle(style),
   pendingRule: () =>
     NativeApphudSdk.pendingRule() as Promise<ApphudRule | null>,
   showPendingRuleScreen: () => NativeApphudSdk.showPendingRuleScreen(),
