@@ -28,7 +28,7 @@ target 'ExampleApp' do
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
-  pod 'ApphudSDK', :git => 'https://github.com/apphud/ApphudSDK.git', :tag => '4.4.8'
+  pod 'ApphudSDK', :git => 'https://github.com/apphud/ApphudSDK.git', :tag => '4.4.9'
   pod 'react-native-apphud-sdk', :path => '../..'
 
   post_install do |installer|

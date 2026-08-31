@@ -88,7 +88,7 @@ Create your account at [Apphud for free](https://app.apphud.com/sign_up?utm_sour
 
 ### iOS (CocoaPods)
 
-This package depends on native `ApphudSDK` **4.4.8**. If `pod install` fails with “could not find compatible versions”, refresh your spec repo:
+This package depends on native `ApphudSDK` **4.4.9**. If `pod install` fails with “could not find compatible versions”, refresh your spec repo:
 
 ```sh
 cd ios && pod install --repo-update
