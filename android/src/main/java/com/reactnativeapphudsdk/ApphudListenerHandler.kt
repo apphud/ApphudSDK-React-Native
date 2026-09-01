@@ -53,6 +53,11 @@ class ApphudListenerHandler(private val reactContext: ReactApplicationContext) :
     promise.resolve(ids)
   }
 
+  /** iOS-only: Rules screens presentation style. Safe no-op on Android. */
+  override fun setScreenPresentationStyle(style: String, promise: Promise) {
+    promise.resolve(null)
+  }
+
   internal fun emitRuleEvent(event: ApphudRuleEvent, body: WritableMap) {
     runOnUiThread {
       when (event) {

@@ -443,6 +443,15 @@ export interface ApphudPaywall {
    * Available on iOS and Android.
    */
   hasVisualPaywall?: boolean;
+
+  /**
+   * Name of the paywall's visual Screen as set in the Apphud Dashboard,
+   * if the paywall has one and the Screen is named. A paywall can have
+   * `hasVisualPaywall == true` and still no `screenName`.
+   *
+   * Available on iOS and Android.
+   */
+  screenName?: string;
 }
 
 /**
@@ -611,6 +620,12 @@ export enum ApphudAttributionProvider {
   Pass custom attribution data to Apphud. Contact your support manager for details.
   */
   custom = 'custom',
+}
+
+/** iOS modal presentation styles for Apphud Rules screens. */
+export enum ApphudScreenPresentationStyle {
+  fullScreen = 'fullScreen',
+  pageSheet = 'pageSheet',
 }
 
 export interface ApphudAttributionData {

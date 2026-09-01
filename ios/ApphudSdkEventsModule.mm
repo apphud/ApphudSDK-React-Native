@@ -2,6 +2,10 @@
 
 #import "ApphudRNBridge.h"
 
+// RN 0.87: React typedefs must be imported before the generated -Swift.h.
+#import <React/RCTBridgeModule.h>
+#import <React/RCTComponent.h>
+
 #if __has_include(<react_native_apphud_sdk/react_native_apphud_sdk-Swift.h>)
 #import <react_native_apphud_sdk/react_native_apphud_sdk-Swift.h>
 #else
@@ -66,6 +70,13 @@ RCT_EXPORT_MODULE(ApphudSdkEvents)
                              reject:(RCTPromiseRejectBlock)reject
 {
   [_impl setApphudProductIdentifiers:ids withResolve:resolve withReject:reject];
+}
+
+- (void)setScreenPresentationStyle:(NSString *)style
+                           resolve:(RCTPromiseResolveBlock)resolve
+                            reject:(RCTPromiseRejectBlock)reject
+{
+  [_impl setScreenPresentationStyle:style withResolve:resolve withReject:reject];
 }
 
 #pragma mark - ApphudSdkEventsEmitting

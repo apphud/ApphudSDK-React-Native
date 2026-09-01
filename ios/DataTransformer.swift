@@ -84,6 +84,7 @@ extension ApphudPaywall : RNAdapter {
     map["parentPaywallIdentifier"] = parentPaywallIdentifier
     map["placementIdentifier"] = placementIdentifier
     map["hasVisualPaywall"] = screen != nil
+    map["screenName"] = screenName
     map["json"] = json
 
     return map as NSDictionary;

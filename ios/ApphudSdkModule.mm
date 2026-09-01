@@ -1,5 +1,9 @@
 #import <ApphudSdkSpec/ApphudSdkSpec.h>
 
+// RN 0.87: React typedefs must be imported before the generated -Swift.h.
+#import <React/RCTBridgeModule.h>
+#import <React/RCTComponent.h>
+
 #if __has_include(<react_native_apphud_sdk/react_native_apphud_sdk-Swift.h>)
 #import <react_native_apphud_sdk/react_native_apphud_sdk-Swift.h>
 #else
