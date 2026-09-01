@@ -443,6 +443,15 @@ export interface ApphudPaywall {
    * Available on iOS and Android.
    */
   hasVisualPaywall?: boolean;
+
+  /**
+   * Name of the paywall's visual Screen as set in the Apphud Dashboard,
+   * if the paywall has one and the Screen is named. A paywall can have
+   * `hasVisualPaywall == true` and still no `screenName`.
+   *
+   * Available on iOS and Android.
+   */
+  screenName?: string;
 }
 
 /**

@@ -22,8 +22,8 @@ Pod::Spec.new do |s|
   s.public_header_files = "ios/**/*.h"
   s.header_dir = "react_native_apphud_sdk"
 
-  # Requires CocoaPods trunk spec for ApphudSDK 4.4.8+. Run: pod install --repo-update
-  s.dependency "ApphudSDK", "4.4.8"
+  # Requires CocoaPods trunk spec for ApphudSDK 4.4.9+. Run: pod install --repo-update
+  s.dependency "ApphudSDK", "4.4.9"
 
   # Links React Native, and wires up the Codegen-generated TurboModule and
   # Fabric interfaces declared in `codegenConfig` (package.json).
