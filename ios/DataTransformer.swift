@@ -111,7 +111,7 @@ extension ApphudProduct : RNAdapter {
     map["productId"] = productId
     map["name"] = name
     map["store"] = store
-    map["skProduct"] = skProduct?.toMap()
+    map["skProduct"] = ApphudPaywallsHelper.skProduct(for: self)?.toMap()
     map["paywallIdentifier"] = paywallIdentifier
     map["placementIdentifier"] = placementIdentifier
     map["variationIdentifier"] = variationIdentifier

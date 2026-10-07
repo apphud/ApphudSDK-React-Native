@@ -156,7 +156,7 @@ public final class ApphudSdkImpl: NSObject {
   ) {
     let maxAttempts = options["maxAttempts"] as? Int ?? APPHUD_DEFAULT_RETRIES
     Task { @MainActor in
-      if let placement = await Apphud.placement(identifier) {
+      if let placement = await ApphudPaywallsHelper.placementsWithSKProducts().first(where: { $0.identifier == identifier }) {
         resolve(placement.toMap())
       } else {
         resolve(NSNull())
@@ -301,7 +301,8 @@ public final class ApphudSdkImpl: NSObject {
         return
       }
 
-      guard let skProduct = apphudProduct.skProduct else {
+      await ApphudPaywallsHelper.waitForSKProducts(for: [apphudProduct], canGiveUp: false)
+      guard let skProduct = ApphudPaywallsHelper.skProduct(for: apphudProduct) else {
         reject("Error", "SKProduct not available", nil)
         return
       }
@@ -582,7 +583,10 @@ public final class ApphudSdkImpl: NSObject {
         return
       }
 
-      resolve(placements.map({ $0.toMap() }))
+      Task { @MainActor in
+        await ApphudPaywallsHelper.waitForSKProducts(for: placements)
+        resolve(placements.map({ $0.toMap() }))
+      }
     }
   }
 
