@@ -674,7 +674,8 @@ private extension ApphudSdkImpl {
   ) {
     DispatchQueue.main.async {
       var response = [String: Any]()
-      response["success"] = result.error == nil
+      // A purchase awaiting approval (Ask to Buy) has no error but hasn't happened yet.
+      response["success"] = result.error == nil && !result.isPending
 
       if let sub = result.subscription?.toMap() {
         response["subscription"] = sub
@@ -683,13 +684,13 @@ private extension ApphudSdkImpl {
         response["nonRenewingPurchase"] = non
       }
 
-      if let skError = result.error as? SKError, skError.code == .paymentCancelled {
+      if result.userCanceled {
         response["userCanceled"] = NSNumber(booleanLiteral: true)
       }
 
       if let err = result.error as? NSError {
         response["error"] = [
-          "code": err.code,
+          "code": storeKit1ErrorCode(for: err)?.rawValue ?? err.code,
           "message": err.localizedDescription,
         ]
       }
@@ -701,9 +702,59 @@ private extension ApphudSdkImpl {
           "date": transaction.transactionDate?.timeIntervalSince1970 as Any,
           "productId": transaction.payment.productIdentifier,
         ]
+      } else if let transaction = result.transactionV2 {
+        // SDK purchases run on StoreKit 2 and leave the StoreKit 1 transaction empty.
+        response["transaction"] = [
+          "state": SKPaymentTransactionState.purchased.rawValue,
+          "id": String(transaction.id),
+          "date": transaction.purchaseDate.timeIntervalSince1970,
+          "productId": transaction.productID,
+        ]
       }
 
       resolve(response)
     }
   }
+}
+
+/// SDK purchases run on StoreKit 2: its errors get the StoreKit 1 codes JS got before, so a
+/// cancel is still `SKError.paymentCancelled`. Nil for errors that don't come from StoreKit 2.
+private func storeKit1ErrorCode(for error: Error) -> SKError.Code? {
+  if let storeKitError = error as? StoreKitError {
+    switch storeKitError {
+    case .userCancelled:
+      return .paymentCancelled
+    case .networkError:
+      return .cloudServiceNetworkConnectionFailed
+    case .notAvailableInStorefront:
+      return .storeProductNotAvailable
+    case .systemError(let underlyingError):
+      return (underlyingError as? SKError)?.code ?? .unknown
+    default:
+      return .unknown
+    }
+  }
+  if let purchaseError = error as? Product.PurchaseError {
+    switch purchaseError {
+    case .invalidQuantity:
+      return .paymentInvalid
+    case .productUnavailable:
+      return .storeProductNotAvailable
+    case .purchaseNotAllowed:
+      return .paymentNotAllowed
+    case .ineligibleForOffer:
+      return .ineligibleForOffer
+    case .invalidOfferIdentifier:
+      return .invalidOfferIdentifier
+    case .invalidOfferPrice:
+      return .invalidOfferPrice
+    case .invalidOfferSignature:
+      return .invalidSignature
+    case .missingOfferParameters:
+      return .missingOfferParams
+    default:
+      return .unknown
+    }
+  }
+  return nil
 }
