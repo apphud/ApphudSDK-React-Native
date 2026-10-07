@@ -68,7 +68,10 @@ public final class PaywallscreenPresenterImpl: NSObject {
               }
 
               controller.onTransactionCompleted = { result in
-                if result.success {
+                // The SDK also closes the paywall after a StoreKit purchase that Apphud
+                // didn't confirm (transactionV2 without success): JS gets it with the error.
+                // A purchase awaiting approval keeps the paywall open.
+                if !result.isPending && (result.success || result.transactionV2 != nil) {
                   self?.sendEvent(
                     .transactionCompleted,
                     to: paywallScreenPresenterId,

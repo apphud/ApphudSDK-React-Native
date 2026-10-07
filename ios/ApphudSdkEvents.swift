@@ -174,8 +174,11 @@ extension ApphudEventsDelegateProxy: ApphudDelegate {
   }
 
   func placementsDidFullyLoad(placements: [ApphudPlacement]) {
-    let result = placements.map { $0.toMap() }
-    self.emitter?.emitPlacementsDidFullyLoad(result)
+    Task { @MainActor in
+      await ApphudPaywallsHelper.waitForSKProducts(for: placements, canGiveUp: false)
+      let result = placements.map { $0.toMap() }
+      self.emitter?.emitPlacementsDidFullyLoad(result)
+    }
   }
 
   func userDidLoad(user: ApphudUser) {
