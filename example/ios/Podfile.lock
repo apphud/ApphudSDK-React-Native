@@ -1,5 +1,5 @@
 PODS:
-  - ApphudSDK (4.6.0)
+  - ApphudSDK (4.6.1)
   - AsyncStorage (3.1.1):
     - hermes-engine
     - RCTRequired
@@ -1449,8 +1449,8 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-apphud-sdk (5.2.0):
-    - ApphudSDK (= 4.6.0)
+  - react-native-apphud-sdk (5.2.1):
+    - ApphudSDK (= 4.6.1)
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2010,7 +2010,7 @@ PODS:
   - Yoga (0.0.0)
 
 DEPENDENCIES:
-  - ApphudSDK (from `https://github.com/apphud/ApphudSDK.git`, tag `4.6.0`)
+  - ApphudSDK (from `https://github.com/apphud/ApphudSDK.git`, tag `4.6.1`)
   - "AsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
@@ -2096,7 +2096,7 @@ DEPENDENCIES:
 EXTERNAL SOURCES:
   ApphudSDK:
     :git: https://github.com/apphud/ApphudSDK.git
-    :tag: 4.6.0
+    :tag: 4.6.1
   AsyncStorage:
     :path: "../node_modules/@react-native-async-storage/async-storage"
   FBLazyVector:
@@ -2262,10 +2262,10 @@ EXTERNAL SOURCES:
 CHECKOUT OPTIONS:
   ApphudSDK:
     :git: https://github.com/apphud/ApphudSDK.git
-    :tag: 4.6.0
+    :tag: 4.6.1
 
 SPEC CHECKSUMS:
-  ApphudSDK: 7565379828bb3d600198b9e135924da7e87b9800
+  ApphudSDK: a8a41a916fbbbfd8f5395f38a5b8b6489979dab3
   AsyncStorage: 163ab23f6aa37a58b7f2379d0b4ee7ac84d6655c
   FBLazyVector: 3c3be9a019176b5699455f7f66c5444b78a411c6
   hermes-engine: 9dfda91eb25900fe8041077d0a61dd6338ef033b
@@ -2306,7 +2306,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: 44dd007f917e2396afa0e70bbd70273237d93fde
   React-microtasksnativemodule: f413ee411341fb3c34d20e85e9f6f524921fab15
   React-mutationobservernativemodule: 58f6d2adf7d98e72b241608dfa2ddce414d2a4e7
-  react-native-apphud-sdk: d6a152ff201d18dc054f4c5b23014b3cc5e2ad6a
+  react-native-apphud-sdk: 0830b5096e7ea576918a02b0b14ab9bc03a2fa39
   react-native-safe-area-context: fb5c8ee9f6dd62ef710611b3d370c501f42a4ac0
   React-NativeModulesApple: 167e532fb9bae30f3c66636b8ee0092bab263667
   React-networking: 89f6b69755a3176f30e56ba1ba8e214b1518ecfb
@@ -2347,6 +2347,6 @@ SPEC CHECKSUMS:
   RNScreens: 7118cd7715c226856125b5bece3c4d9abec90356
   Yoga: 9891cfb1c680f64de9c41b09e7453dea33454d2b
 
-PODFILE CHECKSUM: c7189a35e744ea74d05ac4af01c5b19837aeed69
+PODFILE CHECKSUM: ecb56038c215b78a19428758a528b9f13bfd3b09
 
 COCOAPODS: 1.17.0
