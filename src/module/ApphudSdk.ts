@@ -50,6 +50,15 @@ interface IApphudSdk {
    */
   userId(): Promise<string>;
 
+  /** Native installation ID in V2; null in V1/before start. Kept across logout. */
+  installationId(): Promise<string | null>;
+
+  /** Native anonymous ID in V2; null in V1/before start. Changes on logout. */
+  anonymousId(): Promise<string | null>;
+
+  /** @deprecated Use installationId(). V1 keeps its legacy device ID. */
+  deviceId(): Promise<string | null>;
+
   /**
    * Available on iOS and Android.
    *
@@ -341,9 +350,10 @@ interface IApphudSdk {
    * This might be useful if you have your custom logout/login flow
    * and you want to take control of each logged-in user's subscription status.
    *
-   * **Important**: If previous user had active subscription,
-   * the new logged-in user can still restore purchases on this device
-   * and both users will be merged under the previous paid one, because Apple ID / Google Account is tied to a device.
+   * In V2, the native SDK keeps the installation ID and creates a new anonymous
+   * ID. Log out before switching users. Automatic checks do not transfer another
+   * account's subscription; only an explicit Restore can transfer it.
+   * V1 keeps its previous behaviour.
    */
   logout(): Promise<void>;
 
@@ -455,12 +465,32 @@ type ApphudSdkPresenterProvider = {
   ): PaywallScreenPresenter;
 };
 
+function startNative(
+  options: StartProperties,
+  manually: boolean
+): Promise<ApphudUser> {
+  const identityVersion = options.identityVersion ?? 'v1';
+  if (identityVersion !== 'v1' && identityVersion !== 'v2') {
+    return Promise.reject(new Error('identityVersion must be v1 or v2'));
+  }
+  if (identityVersion === 'v2' && options.deviceId != null) {
+    return Promise.reject(
+      new Error('deviceId is only supported in V1; V2 uses native SDK IDs')
+    );
+  }
+  const args = { ...options, identityVersion };
+  return (
+    manually ? NativeApphudSdk.startManually(args) : NativeApphudSdk.start(args)
+  ) as Promise<ApphudUser>;
+}
+
 export const ApphudSdk: IApphudSdk & ApphudSdkPresenterProvider = {
-  start: (options: StartProperties) =>
-    NativeApphudSdk.start(options) as Promise<ApphudUser>,
-  startManually: (options: StartProperties) =>
-    NativeApphudSdk.startManually(options) as Promise<ApphudUser>,
+  start: (options: StartProperties) => startNative(options, false),
+  startManually: (options: StartProperties) => startNative(options, true),
   userId: () => NativeApphudSdk.userId(),
+  installationId: () => NativeApphudSdk.installationId(),
+  anonymousId: () => NativeApphudSdk.anonymousId(),
+  deviceId: () => NativeApphudSdk.deviceId(),
   placements: (options?: Partial<PlacementsOptions>) =>
     NativeApphudSdk.placements(options ?? {}) as Promise<ApphudPlacement[]>,
   placement: (identifier: string, options?: Partial<PlacementsOptions>) =>

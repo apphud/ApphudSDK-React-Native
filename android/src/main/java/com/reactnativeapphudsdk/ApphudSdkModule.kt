@@ -49,6 +49,12 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
   }
 
     override fun startManually(options: ReadableMap, promise: Promise) {
+    val identityVersion = try {
+      identityVersionFromOptions(options)
+    } catch (error: IllegalArgumentException) {
+      promise.reject("400", error.message)
+      return
+    }
     val apiKey = options.getString("apiKey")
     Log.d("ApphudSdkModule", "apiKey: $apiKey")
     val userId = options.getString("userId")
@@ -82,6 +88,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
         userId = userId,
         deviceId = deviceId,
         observerMode = observerMode,
+        identityVersion = identityVersion,
         ruleCallback = ruleCallbackHandler,
       ) {
         promise.resolve(it.toMap())
@@ -124,6 +131,18 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
     runOnUiThread {
       promise.resolve(Apphud.userId())
     }
+  }
+
+  override fun installationId(promise: Promise) {
+    runOnUiThread { promise.resolve(Apphud.installationId()) }
+  }
+
+  override fun anonymousId(promise: Promise) {
+    runOnUiThread { promise.resolve(Apphud.anonymousId()) }
+  }
+
+  override fun deviceId(promise: Promise) {
+    runOnUiThread { promise.resolve(Apphud.deviceId()) }
   }
 
 

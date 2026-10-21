@@ -10,6 +10,29 @@ import StoreKit
 @objc(ApphudSdkImpl)
 public final class ApphudSdkImpl: NSObject {
 
+  private func identityVersion(
+    from options: NSDictionary,
+    reject: RCTPromiseRejectBlock
+  ) -> ApphudIdentityVersion? {
+    let value = options["identityVersion"]
+    let version: ApphudIdentityVersion
+    if value == nil || value is NSNull {
+      version = .v1
+    } else if let value = value as? String, value == "v1" {
+      version = .v1
+    } else if let value = value as? String, value == "v2" {
+      version = .v2
+    } else {
+      reject("400", "identityVersion must be v1 or v2", nil)
+      return nil
+    }
+    if version == .v2, let deviceID = options["deviceId"], !(deviceID is NSNull) {
+      reject("400", "deviceId is only supported in V1; V2 uses native SDK IDs", nil)
+      return nil
+    }
+    return version
+  }
+
   private func applyBaseUrl(from options: NSDictionary) {
     if let baseUrl = options["baseUrl"] as? String, !baseUrl.isEmpty {
       ApphudHttpClient.shared.domainUrlString = baseUrl
@@ -38,6 +61,7 @@ public final class ApphudSdkImpl: NSObject {
 
     let userID = options["userId"] as? String;
     let observerMode = options["observerMode"] as? Bool ?? false;
+    guard let identityVersion = self.identityVersion(from: options, reject: reject) else { return }
     applyBaseUrl(from: options)
 
     DispatchQueue.main.async {
@@ -56,7 +80,8 @@ public final class ApphudSdkImpl: NSObject {
         .start(
           apiKey: apiKey,
           userID: userID,
-          observerMode: observerMode
+          observerMode: observerMode,
+          identityVersion: identityVersion
         ) { user in
           Task { @MainActor in
             resolve(user.toMap())
@@ -82,6 +107,7 @@ public final class ApphudSdkImpl: NSObject {
     let userID = options["userId"] as? String;
     let deviceID = options["deviceId"] as? String;
     let observerMode = options["observerMode"] as? Bool ?? false;
+    guard let identityVersion = self.identityVersion(from: options, reject: reject) else { return }
     applyBaseUrl(from: options)
 
 #if DEBUG
@@ -100,7 +126,8 @@ public final class ApphudSdkImpl: NSObject {
           apiKey: apiKey,
           userID: userID,
           deviceID: deviceID,
-          observerMode: observerMode
+          observerMode: observerMode,
+          identityVersion: identityVersion
         ) { user in
           Task { @MainActor in
             resolve(user.toMap())
@@ -406,6 +433,24 @@ public final class ApphudSdkImpl: NSObject {
     resolve(
       Apphud.userID()
     );
+  }
+
+  @MainActor @objc(installationId:withRejecter:)
+  public func installationId(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+    let id = Apphud.installationID()
+    resolve(id.isEmpty ? nil : id)
+  }
+
+  @MainActor @objc(anonymousId:withRejecter:)
+  public func anonymousId(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+    let id = Apphud.anonymousID()
+    resolve(id.isEmpty ? nil : id)
+  }
+
+  @MainActor @objc(deviceId:withRejecter:)
+  public func deviceId(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+    let id = Apphud.deviceID()
+    resolve(id.isEmpty ? nil : id)
   }
 
   @objc(setAttribution:withResolver:withRejecter:)

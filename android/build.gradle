@@ -69,11 +69,12 @@ repositories {
 }
 
 dependencies {
+  testImplementation "junit:junit:4.13.2"
   implementation "com.facebook.react:react-android"
 
   // Exposed as `api` so host apps can call Apphud.handleIntent / handleUri
   // directly from their Activity when they prefer native deep link forwarding.
-  api "com.apphud:ApphudSDK-Android:3.6.0"
+  api "com.apphud:ApphudSDK-Android:3.7.0"
 
   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0"
   implementation "com.android.billingclient:billing:8.3.0"

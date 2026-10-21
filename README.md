@@ -147,6 +147,47 @@ The result arrives in `onApphudDeeplinkAttribution` with `kind: 'deferred'`.
 
 > **Breaking change in 4.3.0**: `attributeFromDeeplink()` has been removed. Use `handleDeeplinkUrl(url)` together with `onApphudDeeplinkAttribution`, and `requestDeferredDeeplinkAttribution()` for deferred attribution.
 
+## Identity V2
+
+Native dependencies are iOS SDK 4.7.0 and Android SDK 3.7.0. **V1 remains the
+default**. Enable V2 explicitly:
+
+```ts
+await ApphudSdk.start({ apiKey: 'YOUR_API_KEY', identityVersion: 'v2' });
+const installation = await ApphudSdk.installationId();
+const anonymous = await ApphudSdk.anonymousId();
+await ApphudSdk.updateUserID('signed-in-user');
+```
+
+The native SDK generates and stores its own IDs. Logout keeps `installationId`
+and changes `anonymousId`; Identify keeps the anonymous ID. The getters return
+null in V1 and before initialization. `identityVersion` is read once per launch;
+restart the app to change the model.
+
+Wrappers support standalone identity only, without host-supplied installation
+or anonymous IDs or `logout(anonymousId)`. A custom `deviceId` remains available
+for legacy V1 integrations but is rejected in V2, including `startManually`.
+When adopting V2, omit it and let the native SDK migrate its saved legacy IDs.
+
+In V2 a reinstall creates a new anonymous customer. Restore recovers previous
+subscriptions. **Only an explicit Restore transfers subscriptions between
+accounts**; purchases and automatic transaction checks do not. Log out before
+switching users:
+
+```ts
+await ApphudSdk.logout();
+await ApphudSdk.start({
+  apiKey: 'YOUR_API_KEY',
+  userId: 'next-user',
+  identityVersion: 'v2',
+});
+// User-initiated action; returns the native result after the transfer.
+const restored = await ApphudSdk.restorePurchases();
+```
+
+`deviceId()` is deprecated: it returns the legacy device ID in V1 and the
+installation ID in V2. Use `installationId()` in new V2 integrations.
+
 ## Having a question?
 
 If you have any questions or troubles with SDK integration feel free to contact us. We are online.

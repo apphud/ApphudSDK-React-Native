@@ -33,6 +33,9 @@ export interface ApphudRule {
   paywallIdentifier?: string | null;
 }
 
+/** V1 keeps existing behaviour; V2 uses three IDs owned by the native SDK. */
+export type ApphudIdentityVersion = 'v1' | 'v2';
+
 export interface StartProperties {
   apiKey: string;
 
@@ -43,7 +46,13 @@ export interface StartProperties {
   userId?: string;
 
   /**
-   * Optional. Not recommended to use unless you know what you are doing.
+   * Optional identity model. Defaults to v1. A change takes effect on the next
+   * app launch. In V2 the native SDK generates and stores its own IDs.
+   */
+  identityVersion?: ApphudIdentityVersion;
+
+  /**
+   * @deprecated V1 only. Omit this when enabling V2: the native SDK owns IDs.
    * You can provide your own unique device identifier.
    * If not provided then UUID will be generated.
    */
