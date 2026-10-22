@@ -80,6 +80,21 @@ RCT_EXPORT_MODULE(ApphudSdk)
   [_impl userId:resolve withRejecter:reject];
 }
 
+- (void)installationId:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
+{
+  [_impl installationId:resolve withRejecter:reject];
+}
+
+- (void)anonymousId:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
+{
+  [_impl anonymousId:resolve withRejecter:reject];
+}
+
+- (void)deviceId:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
+{
+  [_impl deviceId:resolve withRejecter:reject];
+}
+
 - (void)updateUserID:(NSString *)userID
              resolve:(RCTPromiseResolveBlock)resolve
               reject:(RCTPromiseRejectBlock)reject

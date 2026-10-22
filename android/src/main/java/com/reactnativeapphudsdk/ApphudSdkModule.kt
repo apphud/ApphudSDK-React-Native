@@ -12,6 +12,7 @@ import com.apphud.sdk.internal.data.network.SdkHeaders
 import com.facebook.react.bridge.*
 import com.facebook.react.bridge.UiThreadUtil.runOnUiThread
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
@@ -49,6 +50,12 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
   }
 
     override fun startManually(options: ReadableMap, promise: Promise) {
+    val identityVersion = try {
+      identityVersionFromOptions(options)
+    } catch (error: IllegalArgumentException) {
+      promise.reject("400", error.message)
+      return
+    }
     val apiKey = options.getString("apiKey")
     Log.d("ApphudSdkModule", "apiKey: $apiKey")
     val userId = options.getString("userId")
@@ -82,6 +89,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
         userId = userId,
         deviceId = deviceId,
         observerMode = observerMode,
+        identityVersion = identityVersion,
         ruleCallback = ruleCallbackHandler,
       ) {
         promise.resolve(it.toMap())
@@ -124,6 +132,18 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
     runOnUiThread {
       promise.resolve(Apphud.userId())
     }
+  }
+
+  override fun installationId(promise: Promise) {
+    runOnUiThread { promise.resolve(Apphud.installationId()) }
+  }
+
+  override fun anonymousId(promise: Promise) {
+    runOnUiThread { promise.resolve(Apphud.anonymousId()) }
+  }
+
+  override fun deviceId(promise: Promise) {
+    runOnUiThread { promise.resolve(Apphud.deviceId()) }
   }
 
 
@@ -392,9 +412,50 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
   }
 
     override fun syncPurchasesInObserverMode(promise: Promise) {
-    Apphud.restorePurchases { result ->
-      promise.resolve(result is ApphudPurchasesRestoreResult.Success)
+    // Read the native model: JS may remount or pass a different start option
+    // after the process-scoped SDK has already initialized.
+    val usesV1 = try {
+      ApphudObserverSync.usesV1()
+    } catch (error: LinkageError) {
+      rejectUnavailableObserverSync(promise, error)
+      return
     }
+    if (usesV1) {
+      Apphud.restorePurchases { result ->
+        promise.resolve(result is ApphudPurchasesRestoreResult.Success)
+      }
+      return
+    }
+
+    val sync = try {
+      ApphudObserverSync.start()
+    } catch (error: LinkageError) {
+      rejectUnavailableObserverSync(promise, error)
+      return
+    }
+
+    moduleScope.launch {
+      try {
+        promise.resolve(sync.await() is ApphudPurchasesRestoreResult.Success)
+      } catch (_: CancellationException) {
+        promise.resolve(false)
+      } catch (_: Exception) {
+        promise.resolve(false)
+      } catch (error: LinkageError) {
+        rejectUnavailableObserverSync(promise, error)
+      } finally {
+        sync.cancel()
+      }
+    }
+  }
+
+  private fun rejectUnavailableObserverSync(promise: Promise, error: LinkageError) {
+    // Never fall back to Restore: that could transfer another account's purchase.
+    promise.reject(
+      "observer_sync_unavailable",
+      "The resolved Apphud Android SDK is incompatible with observer sync. Use the native version required by this wrapper.",
+      error,
+    )
   }
 
     override fun optOutOfTracking() {
