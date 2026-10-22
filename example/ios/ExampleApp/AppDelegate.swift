@@ -6,7 +6,10 @@ import UserNotifications
 
 @main
 class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate {
+  var exampleLaunchOptions: [UIApplication.LaunchOptionsKey: Any]?
   override func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+    self.automaticallyLoadReactNativeWindow = false
+    self.exampleLaunchOptions = launchOptions
     self.moduleName = "ExampleApp"
     self.dependencyProvider = RCTAppDependencyProvider()
 
@@ -100,5 +103,54 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate {
         completionHandler([.alert, .sound, .badge])
       }
     }
+  }
+}
+
+// Create the React Native window in the UIKit scene, using the existing factory.
+final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+  var window: UIWindow?
+
+  func scene(_ scene: UIScene, willConnectTo session: UISceneSession,
+             options connectionOptions: UIScene.ConnectionOptions) {
+    guard let windowScene = scene as? UIWindowScene,
+          let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
+    var launchOptions = appDelegate.exampleLaunchOptions ?? [:]
+    if let context = connectionOptions.urlContexts.first {
+      launchOptions[.url] = context.url
+      if let source = context.options.sourceApplication { launchOptions[.sourceApplication] = source }
+      if let annotation = context.options.annotation { launchOptions[.annotation] = annotation }
+    }
+    if let activity = connectionOptions.userActivities.first {
+      launchOptions[.userActivityDictionary] = [
+        UIApplication.LaunchOptionsKey.userActivityType.rawValue: activity.activityType,
+        "UIApplicationLaunchOptionsUserActivityKey": activity
+      ]
+    }
+    let sceneWindow = UIWindow(windowScene: windowScene)
+    window = sceneWindow
+    appDelegate.window = sceneWindow
+    appDelegate.reactNativeFactory.startReactNative(
+      withModuleName: appDelegate.moduleName ?? "ExampleApp", in: sceneWindow,
+      initialProperties: appDelegate.initialProps, launchOptions: launchOptions)
+  }
+
+  func scene(_ scene: UIScene, openURLContexts contexts: Set<UIOpenURLContext>) {
+    for context in contexts {
+      var options: [UIApplication.OpenURLOptionsKey: Any] = [.openInPlace: context.options.openInPlace]
+      if let source = context.options.sourceApplication { options[.sourceApplication] = source }
+      if let annotation = context.options.annotation { options[.annotation] = annotation }
+      _ = UIApplication.shared.delegate?.application?(UIApplication.shared, open: context.url, options: options)
+    }
+  }
+
+  func scene(_ scene: UIScene, continue userActivity: NSUserActivity) {
+    _ = UIApplication.shared.delegate?.application?(UIApplication.shared, continue: userActivity,
+                                                   restorationHandler: { _ in })
+  }
+
+  func sceneDidDisconnect(_ scene: UIScene) {
+    // RCTAppDelegate.window is nonnull; the next scene connection replaces it.
+    window?.isHidden = true
+    window = nil
   }
 }

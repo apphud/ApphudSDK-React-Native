@@ -74,6 +74,14 @@ We use [TypeScript](https://www.typescriptlang.org/) for type checking, [ESLint]
 
 Our pre-commit hooks verify that the linter and tests pass when committing.
 
+The iOS observer-sync regression tests run on macOS with Xcode installed:
+
+```sh
+yarn test:ios-observer-sync
+```
+
+They execute the Swift bridge method with controlled SDK responses. Also build the iOS example to verify native SDK and Objective-C bridge integration.
+
 ### Scripts
 
 The `package.json` file contains various scripts for common tasks:

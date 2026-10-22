@@ -19,6 +19,9 @@ export interface Spec extends TurboModule {
     options: CodegenTypes.UnsafeObject
   ): Promise<CodegenTypes.UnsafeObject>;
   userId(): Promise<string>;
+  installationId(): Promise<string | null>;
+  anonymousId(): Promise<string | null>;
+  deviceId(): Promise<string | null>;
 
   placements(
     options: CodegenTypes.UnsafeObject
