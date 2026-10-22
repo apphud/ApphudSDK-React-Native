@@ -40,13 +40,19 @@ target 'ExampleApp' do
       # :ccache_enabled => true
     )
 
-    # Xcode 26+ is stricter about consteval in fmt 11.x (bundled with React Native).
-    # See: https://github.com/facebook/react-native/issues/55601
     installer.pods_project.targets.each do |target|
-      next unless target.name == 'fmt'
-
       target.build_configurations.each do |build_config|
-        build_config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
+        # Resource bundles may retain an older minimum than the example app.
+        deployment_target = build_config.build_settings['IPHONEOS_DEPLOYMENT_TARGET']
+        if deployment_target.nil? || Gem::Version.new(deployment_target) < Gem::Version.new(min_ios_version_supported)
+          build_config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = min_ios_version_supported
+        end
+
+        # Xcode 26+ is stricter about consteval in fmt 11.x.
+        # See: https://github.com/facebook/react-native/issues/55601
+        if target.name == 'fmt'
+          build_config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
+        end
       end
     end
   end
