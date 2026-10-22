@@ -225,8 +225,10 @@ interface IApphudSdk {
    *
    * Synchronizes user's purchases with Apphud servers.
    * Should be called only in Observer Mode after purchase or restore.
-   * In Identity V2 this does not transfer purchases between accounts. Use
+   * On Android, Identity V2 sync does not transfer purchases between accounts. Use
    * `restorePurchases()` for an explicit user-requested transfer.
+   * On iOS, V2 calls reject without restoring purchases; legacy V1 behavior is
+   * preserved once the SDK is ready. Calls before readiness also reject on iOS.
    * @returns `true` for native sync success (including nothing new to sync),
    * `false` for failure or cancellation of a V2 sync. Rejects if the resolved native SDK
    * does not support the required sync operation.

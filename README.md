@@ -149,7 +149,7 @@ The result arrives in `onApphudDeeplinkAttribution` with `kind: 'deferred'`.
 
 ## Identity V2
 
-Native dependencies are iOS SDK 4.7.0 and Android SDK 3.7.0. **V1 remains the
+Native dependencies are iOS SDK 4.7.0 and Android SDK 3.7.1. **V1 remains the
 default**. Enable V2 explicitly:
 
 ```ts

@@ -494,9 +494,18 @@ public final class ApphudSdkImpl: NSObject {
     Apphud.incrementUserProperty(key: _key, by: by)
   }
 
-  // TODO
   @MainActor @objc(syncPurchasesInObserverMode:withRejecter:)
   public func syncPurchasesInObserverMode(resolve: @escaping RCTPromiseResolveBlock, reject:RCTPromiseRejectBlock) -> Void {
+    // Read the native identity: a JS remount may pass different start options.
+    guard Apphud.installationID().isEmpty else {
+      reject("observer_sync_unsupported_platform", "syncPurchasesInObserverMode is not supported on iOS with Identity V2. Use restorePurchases only for an explicit user-requested restore.", nil)
+      return
+    }
+    // Fallback paywalls can create a synthetic user before SDK initialization.
+    guard Apphud.currentUser() != nil, !Apphud.userID().isEmpty, !Apphud.deviceID().isEmpty else {
+      reject("observer_sync_not_ready", "Wait for Apphud.start() to complete before syncing purchases.", nil)
+      return
+    }
     Apphud.restorePurchases { result in
       resolve(result.error == nil)
     }

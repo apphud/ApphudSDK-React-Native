@@ -26,6 +26,7 @@
   ],
   "scripts": {
     "test": "jest",
+    "test:ios-observer-sync": "python3 scripts/test-ios-observer-sync.py",
     "typescript": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
