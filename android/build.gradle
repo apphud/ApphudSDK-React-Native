@@ -51,6 +51,10 @@ android {
     buildConfig true
   }
 
+  testOptions {
+    unitTests.returnDefaultValues = true
+  }
+
   buildTypes {
     release {
       minifyEnabled false
@@ -70,6 +74,8 @@ repositories {
 
 dependencies {
   testImplementation "junit:junit:4.13.2"
+  testImplementation "io.mockk:mockk:1.13.8"
+  testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0"
   implementation "com.facebook.react:react-android"
 
   // Exposed as `api` so host apps can call Apphud.handleIntent / handleUri

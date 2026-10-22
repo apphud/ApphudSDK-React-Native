@@ -188,6 +188,13 @@ const restored = await ApphudSdk.restorePurchases();
 `deviceId()` is deprecated: it returns the legacy device ID in V1 and the
 installation ID in V2. Use `installationId()` in new V2 integrations.
 
+On Android in Observer Mode, call `syncPurchasesInObserverMode()` after an
+external purchase. In V2 it synchronizes without transferring another account's
+purchases. The promise returns the native sync result, including a successful
+no-op when there is nothing new to sync; a failed or cancelled sync returns
+`false`. Use `restorePurchases()` only for a user-requested transfer. V1 keeps
+its existing synchronization behavior.
+
 ## Having a question?
 
 If you have any questions or troubles with SDK integration feel free to contact us. We are online.
