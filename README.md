@@ -137,7 +137,7 @@ Alternatively, if you prefer to forward links from native code, call `Apphud.han
 
 ### Deferred attribution
 
-Call this after SDK initialization, typically once on first launch, while the app is in the foreground. On Android it requires an attached Activity and rejects otherwise:
+Call this after SDK initialization, typically once on first launch. It needs no visible screen. Subscribe to `onApphudDeeplinkAttribution` before calling it: a result that arrives while no listener is set is not delivered.
 
 ```ts
 await ApphudSdk.requestDeferredDeeplinkAttribution();
