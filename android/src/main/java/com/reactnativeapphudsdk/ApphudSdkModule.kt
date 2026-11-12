@@ -320,7 +320,7 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
   }
 
     override fun requestDeferredDeeplinkAttribution(promise: Promise) {
-    // Android SDK 3.7.2+ needs no Activity: the request goes out after registration.
+    // Needs no Activity: the native SDK sends the request after registration.
     Apphud.requestDeferredDeeplinkAttribution()
     promise.resolve(null)
   }

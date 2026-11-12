@@ -114,11 +114,13 @@ interface IApphudSdk {
    * Available on iOS and Android.
    *
    * Requests deferred deep link attribution for the current app installation.
-   * Call it after SDK initialization, typically once on first launch, while the app
-   * is in the foreground.
+   * Call it after SDK initialization, typically once on first launch. It needs no
+   * visible screen.
    *
    * The result is delivered via `ApphudSdkEventEmitter.onApphudDeeplinkAttribution`
-   * with kind `deferred`. When no match is found, `attribution` is an empty object.
+   * with kind `deferred`. Subscribe before calling: a result that arrives while no
+   * listener is set is not delivered. When no match is found, `attribution` is an
+   * empty object.
    */
   requestDeferredDeeplinkAttribution(): Promise<void>;
 

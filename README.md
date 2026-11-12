@@ -88,7 +88,7 @@ Create your account at [Apphud for free](https://app.apphud.com/sign_up?utm_sour
 
 ### iOS (CocoaPods)
 
-This package depends on native `ApphudSDK` **4.6.1**. If `pod install` fails with “could not find compatible versions”, refresh your spec repo:
+This package depends on native `ApphudSDK` **4.7.2**. If `pod install` fails with “could not find compatible versions”, refresh your spec repo:
 
 ```sh
 cd ios && pod install --repo-update
@@ -149,7 +149,7 @@ The result arrives in `onApphudDeeplinkAttribution` with `kind: 'deferred'`.
 
 ## Identity V2
 
-Native dependencies are iOS SDK 4.7.0 and Android SDK 3.7.1. **V1 remains the
+Native dependencies are iOS SDK 4.7.2 and Android SDK 3.7.2. **V1 remains the
 default**. Enable V2 explicitly:
 
 ```ts
