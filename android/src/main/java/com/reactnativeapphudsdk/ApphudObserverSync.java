@@ -9,7 +9,7 @@ import kotlinx.coroutines.CoroutineStart;
 import kotlinx.coroutines.Deferred;
 
 /**
- * Adapter for the published Android SDK 3.7.1 JVM ABI.
+ * Adapter for the published Android SDK 3.7.2 JVM ABI.
  *
  * <p>ApphudFlutter.syncPurchases uses this same native operation but discards its
  * result. This adapter preserves RN's boolean completion without using Restore

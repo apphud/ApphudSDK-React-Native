@@ -320,19 +320,9 @@ class ApphudSdkModule(reactContext: ReactApplicationContext) :
   }
 
     override fun requestDeferredDeeplinkAttribution(promise: Promise) {
-    val activity = reactApplicationContext.currentActivity ?: run {
-      promise.reject(
-        "no_activity",
-        "Deferred deep link attribution requires an attached Activity. " +
-          "Call requestDeferredDeeplinkAttribution() while the app is in the foreground."
-      )
-      return
-    }
-
-    runOnUiThread {
-      Apphud.requestDeferredDeeplinkAttribution(activity)
-      promise.resolve(null)
-    }
+    // Needs no Activity: the native SDK sends the request after registration.
+    Apphud.requestDeferredDeeplinkAttribution()
+    promise.resolve(null)
   }
 
     override fun isCommitmentPlanPreferred(options: ReadableMap, promise: Promise) {
