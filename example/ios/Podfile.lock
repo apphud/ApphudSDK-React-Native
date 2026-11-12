@@ -1449,7 +1449,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-apphud-sdk (5.3.0):
+  - react-native-apphud-sdk (5.3.1):
     - ApphudSDK (= 4.7.2)
     - hermes-engine
     - RCTRequired
@@ -2306,7 +2306,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: 44dd007f917e2396afa0e70bbd70273237d93fde
   React-microtasksnativemodule: f413ee411341fb3c34d20e85e9f6f524921fab15
   React-mutationobservernativemodule: 58f6d2adf7d98e72b241608dfa2ddce414d2a4e7
-  react-native-apphud-sdk: ce975623a235b2c82456ea28e8b162ebb9abc34d
+  react-native-apphud-sdk: 056c9ddb1d8d45b596c4a95615f323824de5ce0f
   react-native-safe-area-context: fb5c8ee9f6dd62ef710611b3d370c501f42a4ac0
   React-NativeModulesApple: 167e532fb9bae30f3c66636b8ee0092bab263667
   React-networking: 89f6b69755a3176f30e56ba1ba8e214b1518ecfb
